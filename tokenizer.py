@@ -1,5 +1,7 @@
 from typing import NamedTuple
 import re
+#import numpy as np
+#got this code from https://docs.python.org/3/library/re.html#re.Match
 
 class Token(NamedTuple):
     type: str
@@ -33,7 +35,7 @@ def tokenize(code):
         ('EMULTLINCOMM', r"\*/"),      # End of multiline comment
         ('SINGLINECOMM', r"\/\/"),     # represents beginning of single line comment
         ('ASSIGN_OPS', r"=|\+=|\-=|\*=|/=|%=|\^="), # Assignment operators
-        ('PREFIX_OP', r"\++|\--"),      # Unary operators
+        ('PREFIX_OP', r"\+\+|\-\-"),      # Unary operators
         ('MATH_OP',  r'[+\-*/%]'),     # Arithmetic operators
         ('RELAT_OP', r"<=|>=|!=|>|<|=="), # Relational operators
         ('LOGICAL_OP', r"&&|!|'\||'"),          # Logical operators
@@ -45,17 +47,46 @@ def tokenize(code):
     ]
 
     tokens = []
+    
+    #Allows me to handle comments by treating them as new line characters
+    #code = re.sub('\//.*', "\n", code)
+    #code = re.sub('\/\*.*\*\/', "\n", code)
+    
+    code = re.sub('\//.*|\/\*.*\*\/',"\n", code)
+    #stores instances of strings
+    strings = re.findall('\'.*\'|\".*\"', code)
+    #print(strings)
+
+    #remove all charcters after first single quote or first double literal
+    code = re.sub('\'.*\'', "\'", code)
+    code = re.sub('\".*\"', "\"", code)
+    
     tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_specification)
     line_num = 1
     line_start = 0
+
+    #change this so I can modify code in the middle of it
     for mo in re.finditer(tok_regex, code):
         kind = mo.lastgroup
         value = mo.group()
         column = mo.start() - line_start
+        #print(mo)
         if kind == 'NUMBER':
             value = float(value) if '.' in value else int(value)
         elif kind == 'ID' and value in keywords:
             kind = value
+        elif kind == 'SQUOTE':
+            index = code[mo.start()+1:].find('\'') + mo.start() + 1
+            kind = 'C_LITERAL' # character literal
+            value = strings[0]
+            strings.pop(0)
+    
+        elif kind == 'DQUOTE':
+            index = code[mo.start()+1:].find('\"') + mo.start() + 1
+            kind = 'S_LITERAL' # string literal
+            value = strings[0]
+            strings.pop(0)
+            #print(mo.group(0))
         elif kind == 'NEWLINE':
             line_start = mo.end()
             line_num += 1
