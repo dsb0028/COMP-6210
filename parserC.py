@@ -8,65 +8,109 @@ Term -> Term * Factor  | Term / Factor  | Factor
 Factor -> ( Expr )  | num  | ID
 
 eliminate left recursion
+Expr -> Term + Expr  | - Term + Expr  | Term
 
-Expr -> Term Expr'
-
-Expr' -> + Term Expr' | - Term Expr' | epsilon
-
-Term -> Factor Term' 
-
-Term' -> * Factor Term' | / Factor Term' | epsilon
+Term -> Factor * Term  | Factor / Term  | Factor
 
 Factor -> ( Expr )  | num  | ID
-
-
 
 """
 
 ExprRules = {"Expr + Term", "Exr - Term", "Term"}
-tree = []
-subTree = []
-def createParseTree(data):
-    #if no op tokens exist, must be a term
-    #print(data)
-    values = [tok.value for tok in data]
-    subTree = parseExpr(data)
-    #print("subTree",subTree)
-    return tree
 
-def parseExpr(data):
-    subTree = parseTerm(data)
+#Used ChatGPT to create node class and functions
+class TreeNode:
+    def __init__(self,type, value=None):
+        self.type =  type
+        self.value = value
+        self.children = []
+    
+    def addChild(self,child_type):
+        self.children.append(child_type)
+    
+    def __str__(self, level=0):
+        indent = " " * level
+        result = f"{indent}{self.type}"
+        if self.value is not None:
+            result = f", Value: {self.value}"
+        if self.children:
+            result += "\n"
+            for child in self.children:
+                result += child.__str__()
+        return result
+
+root = TreeNode("Expr")
+def createParseTree(data):
+    validTree = False
+    #if no op tokens exist, must be a term
+    #print(data
+    index = 0
+    while index < len(data):
+        expr = parseExpr(data,index)
+        #root.addChild(expr)
+        index = index + 1
+    return root
+
+def parseExpr(data,index):  
+    if data[index].value == '+':
+        root.addChild("+")
+        root.addChild("Expr")
+
+    term = parseTerm(data,index)
+    
+    #expr = parseExpr(data,index+1)
+    """
+    if term:
+        root.addChild("Term")
+    """
+    """
     if len(data) > 1:
         #print("ok")
         parseExprPrime(data)
     #tree.append(subtree)
     #print("Final Tree", tree)
-    return subTree
-
-def parseTerm(data):
-    subTree = []
-    LHS = parseFactor(data)
-    #print(LHS)
-    tree.extend(str(LHS))
-    data.pop(0)
-
+    """
+    return term
+    
+def parseTerm(data,index):
     #print(tree)
+    factor = parseFactor(data,index)
+    """
+    if factor:
+        root.addChild("Factor")
+    """
+    #print(LHS)
+    #tree.extend(str(LHS))
+    #data.pop(0)
+
+    """
     if len(data) > 1:
         #print("ok")
         subTree = parseTermPrime(data)
         print("Sub",subTree)
         #print("Tree",tree)
     #tree.append(subtree)
-    return subTree
+    """
+    return factor
 
-def parseFactor(data):
-    #print("Data",data)
-    if data[0].type == 'NUMBER':
-        return data[0].value
-    """
-    elif data[0].type == 'ID':
-        return data[0].value
-    """
+def parseFactor(data,index):
+    if data[index].type == 'NUMBER':
+        termNode = TreeNode("Term")
+        root.addChild(termNode)
+        factorNode = TreeNode("Factor")
+        root.addChild(factorNode)
+        numNode = TreeNode("NUMBER")
+        root.addChild(numNode)
+        val = TreeNode(data[index].value)
+        root.addChild(val)
+        return data[index].value
+    
+    elif data[index].type == 'ID':
+        root.addChild('ID')
+        #root.addChild(data[index].value)
+        return data[index].value
+    
+"""
 def parseExprPrime(data):
     if data[0].value == '+':
         tree.extend(str(data[0].value))
@@ -81,7 +125,7 @@ def parseExprPrime(data):
     return tree
 
 def parseTermPrime(data):
-    print("D", data)
+    #print("D", data)
     if data[0].value == '*':
         tree.extend(str(data[0].value))
         #print(tree)
@@ -106,6 +150,7 @@ def parseTermPrime(data):
         parseTermPrime(data)
 
     return tree
+"""
 """
 def parseExpr(data):
     subTree = []
