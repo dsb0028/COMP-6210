@@ -43,5 +43,8 @@ def main():
     print(root)
     """
     print(parseTree)
+    #print(parseTree.children)
+    #childs = [child for child in parseTree.children]
+    #print(childs)
 if __name__ == "__main__":
     main()

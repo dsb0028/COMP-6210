@@ -8,57 +8,75 @@ Term -> Term * Factor  | Term / Factor  | Factor
 Factor -> ( Expr )  | num  | ID
 
 eliminate left recursion
-Expr -> Term + Expr  | - Term + Expr  | Term
+Expr -> Term Expr'
 
-Term -> Factor * Term  | Factor / Term  | Factor
+Expr' -> + Term Expr' | - Term Expr' | epsilon
+
+Term -> Factor Term' 
+
+Term' -> * Factor Term' | / Factor Term' | epsilon
 
 Factor -> ( Expr )  | num  | ID
 
+
 """
 
-ExprRules = {"Expr + Term", "Exr - Term", "Term"}
+exprRules = {"Term ExprP"}
+exprPRules = {"+ Term ExprP", "- Term ExprP"}
+termRules = {"Factor TermP"}
+termPrimeRules = {"* Factor TermP", "/ Factor TermP"}
+factorRules = {"(Expr)", "NUMBER", "ID"}
+
+terminals = {"+", "-", "*", "/", "(", ")", "num", "ID"}
 
 #Used ChatGPT to create node class and functions
+
+
+"""
 class TreeNode:
-    def __init__(self,type, value=None):
+    def __init__(self,type,value=None):
         self.type =  type
         self.value = value
         self.children = []
     
     def addChild(self,child_type):
         self.children.append(child_type)
-    
-    def __str__(self, level=0):
-        indent = " " * level
-        result = f"{indent}{self.type}"
-        if self.value is not None:
-            result = f", Value: {self.value}"
-        if self.children:
-            result += "\n"
-            for child in self.children:
-                result += child.__str__()
-        return result
+"""
 
-root = TreeNode("Expr")
+#treeDict = {'Expr': {'Term':{'Factor': {'NUMBER':{4}},'TermP':' '},'ExprP': {'+':'','Term':{'Factor':{'NUMBER':{4}}, 'TermP':''},'ExprP':''}}}
+#treeDict1 = {'Expr': {'Term':{'Factor':{'NUMBER':''}}, 'TermP':{}},'ExprP':{}}}
+#treeDict2 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}}, 'TermP': {}}, 'ExprP': {}}
+#treeDict3 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}
+treeDict4  = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {5}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {5}}, 'TermP': {}}, 'ExprP': {}}}}}
+#root = TreeNode("Expr")
 def createParseTree(data):
-    validTree = False
+    #validTree = False
     #if no op tokens exist, must be a term
     #print(data
-    index = 0
-    while index < len(data):
-        expr = parseExpr(data,index)
+    treeD = {'Expr':{}}
+    expr = parseExpr(data)
+    if expr:
+        treeD = expr 
         #root.addChild(expr)
-        index = index + 1
-    return root
+    return treeD
 
-def parseExpr(data,index):  
-    if data[index].value == '+':
-        root.addChild("+")
-        root.addChild("Expr")
-
-    term = parseTerm(data,index)
+def parseExpr(data):  
+    exprDict = {'Expr':{}}
     
+    term = parseTerm(data)
+    if term:
+        exprDict['Expr']['Term'] = term['Term']
     #expr = parseExpr(data,index+1)
+    
+    exprPrime = parseExprPrime(data) 
+    if exprPrime:
+        #print(exprPrime)
+        #tempSet = frozenset(exprPrime)
+        #print(tempSet)
+        #frozenset(set(exprDict['Expr']).add(tempSet))
+        exprDict['Expr']['ExprP'] = exprPrime['ExprP']
+    else:
+        exprDict['Expr']['ExprP'] = {}
     """
     if term:
         root.addChild("Term")
@@ -70,11 +88,18 @@ def parseExpr(data,index):
     #tree.append(subtree)
     #print("Final Tree", tree)
     """
-    return term
+    return exprDict
     
-def parseTerm(data,index):
-    #print(tree)
-    factor = parseFactor(data,index)
+def parseTerm(data):
+    termDict = {'Term':{}}
+    factor = parseFactor(data)
+    if factor:
+        termDict['Term']['Factor'] = factor['Factor']
+    
+    termPrime = parseTermPrime(data)
+
+    if termPrime:
+        termDict['Term']['TermP'] = termPrime['TermP']
     """
     if factor:
         root.addChild("Factor")
@@ -91,66 +116,97 @@ def parseTerm(data,index):
         #print("Tree",tree)
     #tree.append(subtree)
     """
-    return factor
+    return termDict
 
-def parseFactor(data,index):
-    if data[index].type == 'NUMBER':
-        termNode = TreeNode("Term")
-        root.addChild(termNode)
-        factorNode = TreeNode("Factor")
-        root.addChild(factorNode)
-        numNode = TreeNode("NUMBER")
-        root.addChild(numNode)
-        val = TreeNode(data[index].value)
-        root.addChild(val)
-        return data[index].value
+def parseFactor(data):
+    factorDict = {'Factor':{}}
+    if data[0].type == 'NUMBER':
+        #termDict = {'Term':'Term'}
+        #root.addChild(termNode)
+        #factorNode = TreeNode("Factor")
+        #root.addChild(factorNode)
+        #numNode = TreeNode("NUMBER")
+        #root.addChild(numNode)
+        #val = TreeNode(data[index].value)
+        #root.addChild(val)
+        factorDict['Factor'] = {'NUMBER':{data[0].value}}
+        return factorDict
     
-    elif data[index].type == 'ID':
-        root.addChild('ID')
+    elif data[0].type == 'ID':
+        factorDict['Factor'] = {'ID':{data[0].value}}
         #root.addChild(data[index].value)
-        return data[index].value
+        return factorDict
     
-"""
+
 def parseExprPrime(data):
-    if data[0].value == '+':
-        tree.extend(str(data[0].value))
+    print("Entered ExprPrime")
+    exprPrimeDict = {'ExprP':{}}
+    
+    if data:
         data.pop(0)
-        parseTerm(data)
-        print("Tree",tree)
+        if data[0].value == '+':
+            #plusSign = data.value
+            exprPrimeDict['ExprP']['+'] = {} 
+            data.pop(0)
+            term = parseTerm(data)
+        
+        #print('\n',"Term",term)
+            if term:
+                exprPrimeDict['ExprP']['Term'] = term['Term']
+        
+            exprPrime = parseExprPrime(data)
+            
+            if exprPrime:
+                exprPrimeDict['ExprP']['ExprP'] = exprPrime['ExprP']
+        #tree.extend(str(data[index].value))
         #data.pop(0)
-    elif data[0].value == '-':
-        tree.extend(parseTerm(data))
-    if len(data) > 1:
-        parseExprPrime(data)
-    return tree
+        #parseTerm(data)
+        #print("Tree",tree)
+        #data.pop(0)
+        elif data[0].value == '-':
+            exprPrimeDict['ExprP']['-'] = {}
+            data.pop(0)
+            term = parseTerm(data)
+
+            if term:
+                exprPrimeDict['ExprP']['Term'] = term['Term']
+        
+            exprPrime = parseExprPrime(data)
+            
+            if exprPrime:
+                exprPrimeDict['ExprP']['ExprP'] = exprPrime['ExprP']
+
+   
+    return exprPrimeDict
 
 def parseTermPrime(data):
     #print("D", data)
-    if data[0].value == '*':
-        tree.extend(str(data[0].value))
-        #print(tree)
-        #print("Entered")
-        #print("0", data)
-        #print("cool")
-        #need get the next token to ensure that there is a factor after '+' token
-        # if the next token does not contain a factor, throw an error (may need a try catch) 
-        data.pop(0)
-        #print("1", data)
-        tree.extend(str(parseFactor(data)))
-        #print(tree)
-        data.pop(0)
-        #print("2",data)
-    elif data[0].value == '/':
-        tree.extend(str(data[0].value))
-        data.pop(0)
-        tree.extend(str(parseFactor(data)))
-        data.pop(0)
-        #parseTermPrime(data)
-    if len(data) > 1:
-        parseTermPrime(data)
+    termPrimeDict = {'TermP':{}}
+    data.pop(0)
+    if data:
+        if data[0].value == '*':
+            termPrimeDict['TermP']['*'] = {} 
+            data.pop(0)
+            factor = parseFactor(data)
+        
+        #print('\n',"Term",term)
+            if factor:
+                termPrimeDict['TermP']['Factor'] = factor['Factor']
+        
+            termPrime = parseTermPrime(data)
+        
+            if termPrime:
+                termPrimeDict['TermP']['TermP'] = termPrime['TermP']
+            pass
+        elif data[0].value == '/':
+            #tree.extend(str(data[0].value))
+            #data.pop(0)
+            #tree.extend(str(parseFactor(data)))
+            #data.pop(0)
+            #parseTermPrime(data)
+            pass
+    return termPrimeDict
 
-    return tree
-"""
 """
 def parseExpr(data):
     subTree = []
@@ -199,7 +255,11 @@ class Node:
         if not temp.right:
             temp.right = temp.insert(temp.right, key)
 
+"""
+def main():
+    #tokens = [(), (), (), ()]    
+    pass
+
 
 if __name__ == '__main__':
     main()
-"""    
