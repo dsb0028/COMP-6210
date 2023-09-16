@@ -10,7 +10,7 @@ def main():
     
 
     args = parser.parse_args()
-    print(args)
+    #print(args)
     s = args.file.read()
     
     #listToStr = ' '.join([str(elem) for elem in s])
@@ -18,10 +18,13 @@ def main():
     #args = parser.parse_args()
     cCopy = copy.deepcopy(s)
     tokens = tokenizer.tokenize(cCopy)
-    parseTree = parserC.createParseTree(tokens)
+ 
     #if -t is passed, printed
     if  args.t == True:
         print(tokens)
+    
+    
+    parseTree = parserC.createParseTree(tokens)
     """
     root = parserC.TreeNode("Expr")
     term = parserC.TreeNode("Term")

@@ -21,78 +21,56 @@ Factor -> ( Expr )  | num  | ID
 
 """
 
-exprRules = {"Term ExprP"}
-exprPRules = {"+ Term ExprP", "- Term ExprP"}
-termRules = {"Factor TermP"}
-termPrimeRules = {"* Factor TermP", "/ Factor TermP"}
-factorRules = {"(Expr)", "NUMBER", "ID"}
-
-terminals = {"+", "-", "*", "/", "(", ")", "num", "ID"}
-
-#Used ChatGPT to create node class and functions
-
 
 """
-class TreeNode:
-    def __init__(self,type,value=None):
-        self.type =  type
-        self.value = value
-        self.children = []
-    
-    def addChild(self,child_type):
-        self.children.append(child_type)
-"""
-
 #treeDict = {'Expr': {'Term':{'Factor': {'NUMBER':{4}},'TermP':' '},'ExprP': {'+':'','Term':{'Factor':{'NUMBER':{4}}, 'TermP':''},'ExprP':''}}}
-#treeDict1 = {'Expr': {'Term':{'Factor':{'NUMBER':''}}, 'TermP':{}},'ExprP':{}}}
 #treeDict2 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}}, 'TermP': {}}, 'ExprP': {}}
-#treeDict3 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}
+treeDict3 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}
+
 treeDict4  = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {5}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {5}}, 'TermP': {}}, 'ExprP': {}}}}}
-#root = TreeNode("Expr")
+treeDict5 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}
+treeDict6 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {5}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}}, 'ExprP': {}}} #4 * 5 / 4
+treeDict7 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {7}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}}
+treeDict8 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}}} #4 + 4 - 4
+treeDict9 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}}} #4 - 4 + 4
+treeDict10 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}} #4 + 8 * 4
+treeDict11 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}} #4 + 8 / 4 
+treeDict12 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}} #4 - 8 / 4  
+treeDict13 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {}}, 'ExprP': {}}}}} # 4 - 8 / 4 + 2
+treeDict14 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {}}, 'ExprP': {}}}}} # 4 + 8 / 4 - 2
+treeDict15 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {}}, 'ExprP': {}}}}} # 4 + 8 * 4 - 2
+treeDict16 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {8}}, 'TermP': {}}}, 'ExprP': {}}}}} #4 + 8 * 4 - 2 / 8
+treeDict17 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {8}}, 'TermP': {}}}, 'ExprP': {}}}}}} #4 + 8 + 4 - 2 / 8
+treeDict19 = {'Expr':{'Term': {'Factor':{'LPAREN':'(','Expr':{'Term': {'Factor':{'NUMBER':{4}}, 'TermP':{}},'ExprP':{'+': {}, 'Term':{'Factor':{'NUMBER':{8}},'TermP':{}}, 'ExprP':{}}}, 'RPAREN':')'}, 'TermP':{} }, 'ExprP':{}}}
+"""
+ 
 def createParseTree(data):
-    #validTree = False
-    #if no op tokens exist, must be a term
-    #print(data
-    treeD = {'Expr':{}}
     expr = parseExpr(data)
-    if expr:
-        treeD = expr 
+    #if expr:
+    #treeD = expr 
         #root.addChild(expr)
-    return treeD
+    return expr
 
 def parseExpr(data):  
     exprDict = {'Expr':{}}
-    
     term = parseTerm(data)
     if term:
         exprDict['Expr']['Term'] = term['Term']
     #expr = parseExpr(data,index+1)
-    
     exprPrime = parseExprPrime(data) 
     if exprPrime:
-        #print(exprPrime)
-        #tempSet = frozenset(exprPrime)
-        #print(tempSet)
-        #frozenset(set(exprDict['Expr']).add(tempSet))
         exprDict['Expr']['ExprP'] = exprPrime['ExprP']
+        #treeD['Expr']['ExprP'] = exprPrime['ExprP']
     else:
         exprDict['Expr']['ExprP'] = {}
-    """
-    if term:
-        root.addChild("Term")
-    """
-    """
-    if len(data) > 1:
-        #print("ok")
-        parseExprPrime(data)
-    #tree.append(subtree)
-    #print("Final Tree", tree)
-    """
+        #treeD['Expr']['ExprP'] = {}
+    #treeD['Expr'] = exprDict['Expr']
     return exprDict
     
 def parseTerm(data):
     termDict = {'Term':{}}
     factor = parseFactor(data)
+    #print("Factor", factor)
     if factor:
         termDict['Term']['Factor'] = factor['Factor']
     
@@ -100,50 +78,31 @@ def parseTerm(data):
 
     if termPrime:
         termDict['Term']['TermP'] = termPrime['TermP']
-    """
-    if factor:
-        root.addChild("Factor")
-    """
-    #print(LHS)
-    #tree.extend(str(LHS))
-    #data.pop(0)
-
-    """
-    if len(data) > 1:
-        #print("ok")
-        subTree = parseTermPrime(data)
-        print("Sub",subTree)
-        #print("Tree",tree)
-    #tree.append(subtree)
-    """
     return termDict
 
 def parseFactor(data):
     factorDict = {'Factor':{}}
+    if data[0].type == 'LPAREN':
+        factorDict['Factor']['LPAREN'] = '('
+        data.pop(0)
+        expr = parseExpr(data)
+        if expr:
+            factorDict['Factor']['Expr'] = expr['Expr']
+        factorDict['Factor']['RPAREN'] = ')'
+        return factorDict
     if data[0].type == 'NUMBER':
-        #termDict = {'Term':'Term'}
-        #root.addChild(termNode)
-        #factorNode = TreeNode("Factor")
-        #root.addChild(factorNode)
-        #numNode = TreeNode("NUMBER")
-        #root.addChild(numNode)
-        #val = TreeNode(data[index].value)
-        #root.addChild(val)
         factorDict['Factor'] = {'NUMBER':{data[0].value}}
         return factorDict
-    
     elif data[0].type == 'ID':
         factorDict['Factor'] = {'ID':{data[0].value}}
-        #root.addChild(data[index].value)
         return factorDict
     
-
 def parseExprPrime(data):
-    print("Entered ExprPrime")
+    #print("Entered ExprPrime")
     exprPrimeDict = {'ExprP':{}}
     
     if data:
-        data.pop(0)
+        #data.pop(0)
         if data[0].value == '+':
             #plusSign = data.value
             exprPrimeDict['ExprP']['+'] = {} 
@@ -197,14 +156,20 @@ def parseTermPrime(data):
         
             if termPrime:
                 termPrimeDict['TermP']['TermP'] = termPrime['TermP']
-            pass
+
         elif data[0].value == '/':
-            #tree.extend(str(data[0].value))
-            #data.pop(0)
-            #tree.extend(str(parseFactor(data)))
-            #data.pop(0)
-            #parseTermPrime(data)
-            pass
+            termPrimeDict['TermP']['/'] = {}
+            data.pop(0)
+            factor = parseFactor(data)
+
+            if factor:
+                termPrimeDict['TermP']['Factor'] = factor['Factor']
+
+            termPrime = parseTermPrime(data)
+
+            if termPrime:
+                termPrimeDict['TermP']['TermP'] = termPrime['TermP']
+            
     return termPrimeDict
 
 """
@@ -256,10 +221,12 @@ class Node:
             temp.right = temp.insert(temp.right, key)
 
 """
+
 def main():
     #tokens = [(), (), (), ()]    
-    pass
-
+    dict1 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}
+    
+        
 
 if __name__ == '__main__':
     main()

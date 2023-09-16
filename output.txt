@@ -1,0 +1,2 @@
+[Token(type='LPAREN', value='(', line=1, column=0), Token(type='ID', value='d', line=1, column=1), Token(type='RPAREN', value=')', line=1, column=2)]
+{'Expr': {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'ID': {'d'}}, 'TermP': {}}, 'ExprP': {}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}}}
