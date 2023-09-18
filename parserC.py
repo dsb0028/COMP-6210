@@ -1,5 +1,6 @@
 import re 
-
+import CustomError
+import copy
 """
 Expr -> Expr + Term  | Expr - Term  | Term
 
@@ -43,8 +44,11 @@ treeDict16 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP'
 treeDict17 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {8}}, 'TermP': {}}}, 'ExprP': {}}}}}} #4 + 8 + 4 - 2 / 8
 treeDict19 = {'Expr':{'Term': {'Factor':{'LPAREN':'(','Expr':{'Term': {'Factor':{'NUMBER':{4}}, 'TermP':{}},'ExprP':{'+': {}, 'Term':{'Factor':{'NUMBER':{8}},'TermP':{}}, 'ExprP':{}}}, 'RPAREN':')'}, 'TermP':{} }, 'ExprP':{}}}
 """
- 
+visitors = []
+
 def createParseTree(data):
+    global dCopy
+    dCopy = copy.deepcopy(data)
     expr = parseExpr(data)
     #if expr:
     #treeD = expr 
@@ -56,26 +60,20 @@ def parseExpr(data):
     term = parseTerm(data)
     if term:
         exprDict['Expr']['Term'] = term['Term']
-    #expr = parseExpr(data,index+1)
     exprPrime = parseExprPrime(data) 
     if exprPrime:
         exprDict['Expr']['ExprP'] = exprPrime['ExprP']
-        #treeD['Expr']['ExprP'] = exprPrime['ExprP']
     else:
         exprDict['Expr']['ExprP'] = {}
-        #treeD['Expr']['ExprP'] = {}
-    #treeD['Expr'] = exprDict['Expr']
     return exprDict
-    
+
 def parseTerm(data):
     termDict = {'Term':{}}
     factor = parseFactor(data)
     #print("Factor", factor)
     if factor:
-        termDict['Term']['Factor'] = factor['Factor']
-    
+        termDict['Term']['Factor'] = factor['Factor']    
     termPrime = parseTermPrime(data)
-
     if termPrime:
         termDict['Term']['TermP'] = termPrime['TermP']
     return termDict
@@ -83,11 +81,35 @@ def parseTerm(data):
 def parseFactor(data):
     factorDict = {'Factor':{}}
     if data[0].type == 'LPAREN':
+        string = ""
+        string = string.join([str(tok.value) for tok in dCopy])
+       
+        if string.rfind(')') == -1:
+            raise CustomError.MissingRParenError(string, "Expected ')' at", 
+                                                {'line': dCopy[len(dCopy)-1].line, 'column': dCopy[len(dCopy)-1].column + 1})
+        
+        if data[1].type == 'RPAREN':
+            exprVals = [tok.value for tok in data]
+            strExpr = ''
+            strExpr = strExpr.join(exprVals)
+            print(exprVals)
+            raise CustomError.MissingExprError(strExpr,"Missing expresssion at", 
+                                               {'line': data[0].line, 'column':data[0].column + 1})
         factorDict['Factor']['LPAREN'] = '('
+        visitors.append(data[0])
         data.pop(0)
         expr = parseExpr(data)
         if expr:
             factorDict['Factor']['Expr'] = expr['Expr']
+            #print("cool")
+        """
+        if len(data) == 0:
+            exprVals = [str(tok.value) for tok in visitors]
+            strExpr = ''
+            strExpr = strExpr.join(exprVals)
+            raise CustomError.MissingRParenError(strExpr, "Expected ')' at", 
+                                               {'line': visitors[1].line, 'column': visitors[1].column + 1})
+        """
         factorDict['Factor']['RPAREN'] = ')'
         return factorDict
     if data[0].type == 'NUMBER':
@@ -98,129 +120,80 @@ def parseFactor(data):
         return factorDict
     
 def parseExprPrime(data):
-    #print("Entered ExprPrime")
-    exprPrimeDict = {'ExprP':{}}
-    
+    exprPrimeDict = {'ExprP':{}}    
     if data:
-        #data.pop(0)
+        if (len(data) == 1 and data[0].type == 'MATH_OP') or data[1].type == 'RPAREN':
+                    visitors.append(data[0])
+                    exprVals = [str(tok.value) for tok in visitors]
+                    strExpr = ''
+                    strExpr = strExpr.join(exprVals)
+                    raise CustomError.MissingFactorError(strExpr, "Expected a Factor at", 
+                                                    {'line': visitors[1].line, 'column': visitors[1].column + 1})
+        
         if data[0].value == '+':
-            #plusSign = data.value
             exprPrimeDict['ExprP']['+'] = {} 
+            visitors.append(data[0])
             data.pop(0)
             term = parseTerm(data)
-        
-        #print('\n',"Term",term)
             if term:
                 exprPrimeDict['ExprP']['Term'] = term['Term']
-        
             exprPrime = parseExprPrime(data)
-            
             if exprPrime:
                 exprPrimeDict['ExprP']['ExprP'] = exprPrime['ExprP']
-        #tree.extend(str(data[index].value))
-        #data.pop(0)
-        #parseTerm(data)
-        #print("Tree",tree)
-        #data.pop(0)
         elif data[0].value == '-':
             exprPrimeDict['ExprP']['-'] = {}
+            visitors.append(data[0])
             data.pop(0)
             term = parseTerm(data)
-
             if term:
                 exprPrimeDict['ExprP']['Term'] = term['Term']
-        
             exprPrime = parseExprPrime(data)
-            
             if exprPrime:
-                exprPrimeDict['ExprP']['ExprP'] = exprPrime['ExprP']
-
-   
+                exprPrimeDict['ExprP']['ExprP'] = exprPrime['ExprP']   
     return exprPrimeDict
 
 def parseTermPrime(data):
-    #print("D", data)
     termPrimeDict = {'TermP':{}}
+    visitors.append(data[0])
     data.pop(0)
     if data:
+        if (len(data) == 1 and data[0].type == 'MATH_OP') or data[1].type == 'RPAREN':
+                    visitors.append(data[0])
+                    exprVals = [str(tok.value) for tok in visitors]
+                    strExpr = ''
+                    strExpr = strExpr.join(exprVals)
+                    raise CustomError.MissingFactorError(strExpr, "Expected a Factor at", 
+                                                    {'line': visitors[1].line, 'column': visitors[1].column + 1})
         if data[0].value == '*':
             termPrimeDict['TermP']['*'] = {} 
+            visitors.append(data[0])
+            #print("data", data)
             data.pop(0)
+            #print("data", data)
             factor = parseFactor(data)
-        
-        #print('\n',"Term",term)
             if factor:
                 termPrimeDict['TermP']['Factor'] = factor['Factor']
-        
             termPrime = parseTermPrime(data)
-        
             if termPrime:
                 termPrimeDict['TermP']['TermP'] = termPrime['TermP']
-
         elif data[0].value == '/':
             termPrimeDict['TermP']['/'] = {}
+            visitors.append(data[0])
+            """
+            if len(data) == 1:
+                raise CustomError.MissingFactorError 
+            """
+            #print("Data", data)
             data.pop(0)
             factor = parseFactor(data)
-
+            #print(data, visitors)
             if factor:
                 termPrimeDict['TermP']['Factor'] = factor['Factor']
-
             termPrime = parseTermPrime(data)
-
             if termPrime:
                 termPrimeDict['TermP']['TermP'] = termPrime['TermP']
-            
     return termPrimeDict
 
-"""
-def parseExpr(data):
-    subTree = []
-    #subTree.append(parseTerm(data[0]))
-    #ops = [tok for tok in data if tok.type == 'MATH_OP']
-    
-    #check for the existence of an op token (+ | -)
-    #maybe have some function that matches a + or - to determine production rule
-    #if '+' or '-' op token is found locate the index of the op token 
-    #if op token is a '+'
-    #   store left hand side of '+' as term, append the '+' token to Expr, then check for token after '+'
-    #      i.e. if the '+' token is the last token, return error '<production rule> : expected a term 
-    #if op token is a '-'
-    #   Choose production Expr - Term
-    #   store left hand side of '-' as term, append the '-' token to Expr, then check for token after '-'
-    #      i.e if the '-' token is the last token, return error '<production rule> : expected a term 
-    #else
-    #   replace Expr with Term
-    #   Term
-    return subTree
-"""
-
-"""
-def parseTerm(data):
-    subTree = parseFactor(data)
-    #check for next token to be    
-    return subTree
-
-def parseFactor(data):
-    return data.value
-"""
-
-
-"""
-class Node:
-    def __init__(self,key):
-        self.left = None
-        self.right = None
-        self.val = key
-    
-    def insert(temp, key):
-        if temp.key is None:
-            temp.key = key
-        if not temp.left:
-            temp.left = temp.insert(temp.left, key)
-        if not temp.right:
-            temp.right = temp.insert(temp.right, key)
-
-"""
 
 def main():
     #tokens = [(), (), (), ()]    

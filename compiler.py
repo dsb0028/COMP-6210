@@ -3,9 +3,11 @@ import tokenizer
 import parserC
 import copy
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', action='store_true')
+    #parser.add_argument('-p', action='store_true')
     parser.add_argument('file', type=argparse.FileType('r'))
     
 
@@ -23,7 +25,7 @@ def main():
     if  args.t == True:
         print(tokens)
     
-    
+    #tCopy = copy.deepcopy(tokens)
     parseTree = parserC.createParseTree(tokens)
     """
     root = parserC.TreeNode("Expr")
@@ -45,7 +47,9 @@ def main():
     #expr.addChild(term1)
     print(root)
     """
+    
     print(parseTree)
+    
     #print(parseTree.children)
     #childs = [child for child in parseTree.children]
     #print(childs)

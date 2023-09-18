@@ -31,9 +31,6 @@ def tokenize(code):
         ('RBRACK', r"\]"),             # Right bracket 
         ('SQUOTE', r"'"),              # Single quote
         ('DQUOTE', r"\""),             # Double quote
-        ('BMULTLINCOMM', r"\/\*"),     # Beginning of multiline comment
-        ('EMULTLINCOMM', r"\*/"),      # End of multiline comment
-        ('SINGLINECOMM', r"\/\/"),     # represents beginning of single line comment
         ('ASSIGN_OPS', r"=|\+=|\-=|\*=|/=|%=|\^="), # Assignment operators
         ('PREFIX_OP', r"\+\+|\-\-"),      # Unary operators
         ('MATH_OP',  r'[+\-*/%]'),     # Arithmetic operators
@@ -80,7 +77,6 @@ def tokenize(code):
             kind = 'C_LITERAL' # character literal
             value = strings[0]
             strings.pop(0)
-    
         elif kind == 'DQUOTE':
             index = code[mo.start()+1:].find('\"') + mo.start() + 1
             kind = 'S_LITERAL' # string literal
