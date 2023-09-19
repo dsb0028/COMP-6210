@@ -1,7 +1,3 @@
-class Error(Exception):
-    """Base class for exceptions in this module."""
-    pass
-        
 class MissingExprError(Exception):
     """ Exception raised for errors in the Factor Rule.
 
@@ -41,4 +37,16 @@ class MissingFactorError(Exception):
         self.message = message
         self.loc = loc
     
+class NotAllTokensHaveBeenConsumedError(Exception):
+    """ Exception raised when all tokens have not been consumed. 
+
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+        
+    """
+    def __init__(self, expression, message):
+        self.expression = expression
+        self.message = message
+        
     

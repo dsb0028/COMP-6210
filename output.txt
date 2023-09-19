@@ -1,2 +1,84 @@
-[Token(type='LPAREN', value='(', line=1, column=0), Token(type='ID', value='d', line=1, column=1), Token(type='RPAREN', value=')', line=1, column=2)]
-{'Expr': {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'ID': {'d'}}, 'TermP': {}}, 'ExprP': {}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}}}
+[Token(type='LPAREN', value='(', line=1, column=0), Token(type='LPAREN', value='(', line=1, column=1), Token(type='NUMBER', value=4, line=1, column=2), Token(type='MATH_OP', value='-', line=1, column=3), Token(type='NUMBER', value=4, line=1, column=4), Token(type='RPAREN', value=')', line=1, column=5), Token(type='RPAREN', value=')', line=1, column=6)]
+Entering Expr
+Entering Term
+Entering Factor
+Entering Expr
+Entering Term
+Entering Factor
+Entering Expr
+Entering Term
+Entering Factor
+factorDict['Factor'] => {'NUMBER': {4}} 
+
+Exiting Factor
+termDict['Term']['Factor'] => {'NUMBER': {4}} 
+
+Entering Term'
+Exiting Term'
+termDict['Term']['TermP'] => {} 
+
+Exiting Term
+exprDict['Expr']['Term'] => {'Factor': {'NUMBER': {4}}, 'TermP': {}} 
+
+Entering Expr'
+Entering Term
+Entering Factor
+factorDict['Factor'] => {'NUMBER': {4}} 
+
+Exiting Factor
+termDict['Term']['Factor'] => {'NUMBER': {4}} 
+
+Entering Term'
+Exiting Term'
+termDict['Term']['TermP'] => {} 
+
+Exiting Term
+Expr'['ExprP']['Term'] => {'Factor': {'NUMBER': {4}}, 'TermP': {}} 
+
+Entering Expr'
+Exiting Expr'
+Expr'['ExprP']['ExprP'] => {} 
+
+Exiting Expr'
+exprDict['Expr']['ExprP'] => {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}} 
+
+Exiting Expr
+factorDict['Factor']['Expr'] => {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}} 
+
+factorDict['Factor'] => {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'} 
+
+Exiting Factor
+termDict['Term']['Factor'] => {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'} 
+
+Entering Term'
+Exiting Term'
+termDict['Term']['TermP'] => {} 
+
+Exiting Term
+exprDict['Expr']['Term'] => {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'}, 'TermP': {}} 
+
+Entering Expr'
+Exiting Expr'
+exprDict['Expr']['ExprP'] => {} 
+
+Exiting Expr
+factorDict['Factor']['Expr'] => {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}} 
+
+factorDict['Factor'] => {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}}, 'RPAREN': ')'} 
+
+Exiting Factor
+termDict['Term']['Factor'] => {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}}, 'RPAREN': ')'} 
+
+Entering Term'
+Exiting Term'
+termDict['Term']['TermP'] => {} 
+
+Exiting Term
+exprDict['Expr']['Term'] => {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}}, 'RPAREN': ')'}, 'TermP': {}} 
+
+Entering Expr'
+Exiting Expr'
+exprDict['Expr']['ExprP'] => {} 
+
+Exiting Expr
+{'Expr': {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'LPAREN': '(', 'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}}, 'RPAREN': ')'}, 'TermP': {}}, 'ExprP': {}}}
