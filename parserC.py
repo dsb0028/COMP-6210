@@ -85,9 +85,13 @@ def parseTerm(data):
     else:
         visitors.append(data[0])
         exprVals = [str(tok.value) for tok in visitors]
+        """
         strExpr = ''
         strExpr = strExpr.join(exprVals)
-        raise CustomError.MissingFactorError(strExpr, "Expected a Factor at", 
+        """
+        index = 0
+        rString = insertPlaceHolder(exprVals, index)
+        raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
                                                     {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column})
     print("termDict['Term']['Factor'] =>", termDict['Term']['Factor'], '\n')
     termPrime = parseTermPrime(data)
@@ -100,14 +104,39 @@ def parseTerm(data):
 def parseFactor(data):
     print("Entering Factor")
     factorDict = {'Factor':{}}
+    if not data:
+        inputVals = [str(tok.value) for tok in dCopy]
+        index = 0
+        if not visitors:
+            visitors.append(data[0])
+            data.pop(0)
+        
+        reversedList = []
+        isListReversed = False
+        if len(visitors) == len(dCopy):
+           reversedList = copy.deepcopy(inputVals)
+           reversedList.reverse()
+           isListReversed = True
+        else:
+            reversedList = inputVals        
+        lastVisitor = visitors[len(visitors)-1].value
+        strExpr = ''
+        strExpr = strExpr.join(reversedList)
+        index = strExpr.find(lastVisitor)
+        reversedList.insert(index,' ˽ ')
+        if isListReversed == True:
+            reversedList.reverse()
+        rString = ''
+        rString = rString.join(reversedList)
+        #rString = insertPlaceHolder(exprVals, index)
+        raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
+                                                {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column}) 
     if data[0].type == 'LPAREN':
         string = ""
         string = string.join([str(tok.value) for tok in dCopy])
-        lastChar = string[len(string)-1]
-        rString = string[:len(string)-1]
-        rString = rString + ' ˽ ' + lastChar #tried to put a placeholder where the error is       
+        index = 0
+        rString = insertPlaceHolder(string, index)
         if string.rfind(')') == -1:
-            print("Whoops")
             raise CustomError.MissingRParenError(rString, "Expected ')' at", 
                                                 {'line': dCopy[len(dCopy)-1].line, 'column': dCopy[len(dCopy)-1].column + 1})
         else:
@@ -145,18 +174,25 @@ def parseFactor(data):
         factorDict['Factor'] = {'ID':{data[0].value}}
     print("factorDict['Factor'] =>", factorDict['Factor'], '\n')
     if factorDict['Factor'] == {}:
-        visitors.append(data[0])
-        exprVals = [str(tok.value) for tok in visitors]
-        rString = insertPlaceHolder(exprVals)
-        """
+        #visitors.append(data[0])
+        #data.pop(0)
+        inputVals = [str(tok.value) for tok in dCopy]
+        index = 0
+        if not visitors:
+            visitors.append(data[0])
+            data.pop(0)
+        lastVisitor = visitors[len(visitors)-1].value
         strExpr = ''
-        strExpr = strExpr.join(exprVals)
-        lastChar = strExpr[len(strExpr)-1]
-        rString = strExpr[:len(strExpr)-1]
-        rString = rString + ' ˽ ' + lastChar #tried to put a placeholder where the error is
-        """
+        strExpr = strExpr.join(inputVals)
+        index = strExpr.find(lastVisitor)
+        rString = ''
+        inputVals.insert(index,' ˽ ')
+        rString = rString.join(inputVals)
+        #rString = insertPlaceHolder(exprVals, index)
         raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
                                                 {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column})
+    visitors.append(data[0])
+    data.pop(0)
     print("Exiting Factor")
     return factorDict
     
@@ -164,13 +200,33 @@ def parseExprPrime(data):
     print("Entering Expr'")
     exprPrimeDict = {'ExprP':{}}    
     if data:
+        """
         if (len(data) == 1 and data[0].type == 'MATH_OP'):
-            visitors.append(data[0])
-            exprVals = [str(tok.value) for tok in visitors]
+            #visitors.append(data[0])
+            #exprVals = [str(tok.value) for tok in visitors]
+            inputVals = [str(tok.value) for tok in dCopy]
+            index = 0
+            visitorsVals = [str(tok.value) for tok in visitors]
+            lastVisitor = visitors[len(visitors)-1].value
             strExpr = ''
-            strExpr = strExpr.join(exprVals)
-            raise CustomError.MissingFactorError(strExpr, "Expected a Factor at", 
+            strExpr = strExpr.join(inputVals)
+            index = strExpr.find(lastVisitor)
+            strVisitors = ''
+            strVisitors = strVisitors.join(visitorsVals)
+            #print(index, strExpr, strExpr[index+1:])
+            #rString = insertPlaceHolder(exprVals, index)
+            rString = ''
+            rString = strVisitors + ' ˽ ' + strExpr[index+1:]
+         
+            
+            #strExpr = ''
+            #strExpr = strExpr.join(exprVals)
+            
+            #index = 0
+            #rString = insertPlaceHolder(exprVals, index)
+            raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
                                                 {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 2})
+        """
         if data[0].value == '+':
             exprPrimeDict['ExprP']['+'] = {} 
             visitors.append(data[0])
@@ -201,15 +257,18 @@ def parseExprPrime(data):
 def parseTermPrime(data):
     print("Entering Term'")
     termPrimeDict = {'TermP':{}}
-    visitors.append(data[0])
-    data.pop(0)
+    
+    """
+    if (len(data) == 1 and data[0].type == 'MATH_OP'):
+        visitors.append(data[0])
+        exprVals = [str(tok.value) for tok in visitors]
+        index = 0
+        rString = insertPlaceHolder(exprVals, index) 
+        raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
+                                               {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 1})
+    
+    """
     if data:
-        if (len(data) == 1 and data[0].type == 'MATH_OP'):
-            visitors.append(data[0])
-            exprVals = [str(tok.value) for tok in visitors]
-            rString = insertPlaceHolder(exprVals) 
-            raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
-                                                {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 1})
         if data[0].value == '*':
             termPrimeDict['TermP']['*'] = {} 
             visitors.append(data[0])
@@ -222,9 +281,8 @@ def parseTermPrime(data):
             else:
                 visitors.append(data[0])
                 exprVals = [str(tok.value) for tok in visitors]
-                strExpr = ''
-                strExpr = strExpr.join(exprVals)
-                raise CustomError.MissingFactorError(strExpr.append('^'), "Expected a Factor at", 
+                rString = insertPlaceHolder(exprVals)
+                raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
                                                 {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 2})
             print("termPrimeDict['TermP']['Factor'] =>", termPrimeDict['TermP']['Factor'], '\n')
             termPrime = parseTermPrime(data)
@@ -259,7 +317,7 @@ def parseTermPrime(data):
     print("Exiting Term'")
     return termPrimeDict
 
-def insertPlaceHolder(exprVals):
+def insertPlaceHolder(exprVals, index):
     strExpr = ''
     strExpr = strExpr.join(exprVals)
     lastChar = strExpr[len(strExpr)-1]
