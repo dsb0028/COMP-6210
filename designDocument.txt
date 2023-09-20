@@ -1,3 +1,90 @@
-Design document that shows valid tokens in our system
+Design document for c compiler
+
+--- Instructions on how to run --- 
+python compiler.py -t -p testFiles/sampleFile.c > output.txt
+
+***  NOTE sampleFile.c represents some c program in testFiles ***  
 
 VALID TOKENS:
+
+Keywords:
+    types => 'int' | 'double' | 'float'
+    modifiers => 'unsigned' | 'long' | 'short'
+    itrs = 'if' | 'for' | 'while' | 'switch' | 'do'
+    controlStmts = 'return' | 'break'  
+
+NUMBER => Integer or Float
+
+ID     => Identifiers
+
+Period => '.'
+
+Comma  => ','
+
+END    => statement terminator => ';'
+
+HASH   => '#'
+
+LPAREN => '('
+
+RPAREN => ')'
+
+LBRACE => '{'
+
+RBRACE => '}'
+
+LBRACK => '['
+
+RBRACK => ']'
+
+SQUOTE => single quote
+
+DQUOTE => double quote
+
+ASSIGN_OPS => '=' | '+=' | '-=' | '*=' | '/=' |'%=' | '^='
+
+PREFIX_OP =>  '++' | '--' 
+
+MATH_OP   => '+' | '-' | '*' | '/' | '%'
+
+RELAT_OP  => '<=' | '>=' | '!=' | '>' | '<' | '=='
+
+LOGICAL_OP => '&&' | '!' | '||' 
+
+BITWISE_OP =>  '&' | '|' | '<<' | '>>' | '~' | '^'
+
+TERNARY_OP => '?:'
+
+NEWLINE => '\n'
+
+SKIP => ' ' | '\t' => at least one space or tab
+
+MISMATCH => any other character
+
+Grammar:
+
+Expr -> Expr + Term  | Expr - Term  | Term
+
+Term -> Term * Factor  | Term / Factor  | Factor
+
+Factor -> ( Expr )  | num  | ID
+
+
+eliminate left recursion
+
+Expr -> Term Expr'
+
+Expr' -> + Term Expr' | - Term Expr' | epsilon
+
+Term -> Factor Term' 
+
+Term' -> * Factor Term' | / Factor Term' | epsilon
+
+Factor -> ( Expr )  | num  | ID
+
+
+
+
+
+
+

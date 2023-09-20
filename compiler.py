@@ -7,7 +7,7 @@ import copy
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', action='store_true')
-    #parser.add_argument('-p', action='store_true')
+    parser.add_argument('-p', action='store_true')
     parser.add_argument('file', type=argparse.FileType('r'))
     
 
@@ -21,17 +21,18 @@ def main():
     cCopy = copy.deepcopy(s)
     tokens = tokenizer.tokenize(cCopy)
  
-    #if -t is passed, printed
+    #if -t is passed, print tokens
     if  args.t == True:
         print(tokens)
     
-    #tCopy = copy.deepcopy(tokens)
+    """ Should the if statement below be in compiler.py or parserC.py? """
+    # if c file just contains comments, there will be no tokens and no parse tree
+    if not tokens:
+        raise RuntimeError("Nothing to Parse")
+
     parseTree = parserC.createParseTree(tokens)
+    if args.p == True:    
+        print(parseTree)
     
-    print(parseTree)
-    
-    #print(parseTree.children)
-    #childs = [child for child in parseTree.children]
-    #print(childs)
 if __name__ == "__main__":
     main()

@@ -13,11 +13,11 @@ def tokenize(code):
     types = {'int', 'double', 'float'}
     modifiers = {'unsigned', 'long', 'short'}
     itrs = {'if', 'for', 'while', 'switch', 'do'}
-    bkStmts = {'return', 'break'}
-    keywords = types.union(modifiers,itrs,bkStmts)
+    controlStmts = {'return', 'break'}
+    keywords = types.union(modifiers,itrs,controlStmts)
         
     token_specification = [
-        ('NUMBER',   r'\d+(\.\d*)?'),  # Integer or decimal number
+        ('NUMBER',   r'\d+(\.\d*)?'),  # Integer or floating point number
         ('ID',       r'[A-Za-z]+[\d]?'),  # Identifiers
         ('PERIOD',r"\."),              # period
         ('COMMA', r'\,'),              # Comma operator
@@ -46,10 +46,10 @@ def tokenize(code):
     tokens = []
     
     #Allows me to handle comments by treating them as new line characters
-    #code = re.sub('\//.*', "\n", code)
+    #code = re.sub('//.*', ' ', code)
     #code = re.sub('\/\*.*\*\/', "\n", code)
     
-    code = re.sub('\//.*|\/\*.*\*\/',"\n", code)
+    code = re.sub('\//.*|\/\*.*\*\/'," ", code)
     #stores instances of strings
     strings = re.findall('\'.*\'|\".*\"', code)
     #print(strings)
@@ -62,11 +62,10 @@ def tokenize(code):
     line_num = 1
     line_start = 0
 
-    #change this so I can modify code in the middle of it
     for mo in re.finditer(tok_regex, code):
         kind = mo.lastgroup
         value = mo.group()
-        column = mo.start() - line_start
+        column = mo.start() - line_start + 1
         #print(mo)
         if kind == 'NUMBER':
             value = float(value) if '.' in value else int(value)
