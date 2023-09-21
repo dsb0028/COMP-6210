@@ -45,7 +45,6 @@ treeDict17 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP'
 treeDict19 = {'Expr':{'Term': {'Factor':{'LPAREN':'(','Expr':{'Term': {'Factor':{'NUMBER':{4}}, 'TermP':{}},'ExprP':{'+': {}, 'Term':{'Factor':{'NUMBER':{8}},'TermP':{}}, 'ExprP':{}}}, 'RPAREN':')'}, 'TermP':{} }, 'ExprP':{}}}
 """
 visitors = []
-
 def createParseTree(data):
     global dCopy
     dCopy = copy.deepcopy(data)
@@ -54,9 +53,6 @@ def createParseTree(data):
         string = ""
         string = string.join([str(tok.value) for tok in dCopy])
         raise CustomError.NotAllTokensHaveBeenConsumedError(string,"Invalid expression")
-    #if expr:
-    #treeD = expr 
-        #root.addChild(expr)
     return expr
 
 def parseExpr(data):  
@@ -79,20 +75,8 @@ def parseTerm(data):
     print("Entering Term")
     termDict = {'Term':{}}
     factor = parseFactor(data)
-    #print("Factor", factor)
     if factor:
         termDict['Term']['Factor'] = factor['Factor']    
-    else:
-        visitors.append(data[0])
-        exprVals = [str(tok.value) for tok in visitors]
-        """
-        strExpr = ''
-        strExpr = strExpr.join(exprVals)
-        """
-        index = 0
-        rString = insertPlaceHolder(exprVals, index)
-        raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
-                                                    {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column})
     print("termDict['Term']['Factor'] =>", termDict['Term']['Factor'], '\n')
     termPrime = parseTermPrime(data)
     if termPrime:
@@ -110,7 +94,6 @@ def parseFactor(data):
         if not visitors:
             visitors.append(data[0])
             data.pop(0)
-        
         reversedList = []
         isListReversed = False
         if len(visitors) == len(dCopy):
@@ -131,6 +114,7 @@ def parseFactor(data):
         #rString = insertPlaceHolder(exprVals, index)
         raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
                                                 {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column}) 
+    
     if data[0].type == 'LPAREN':
         string = ""
         string = string.join([str(tok.value) for tok in dCopy])
@@ -152,7 +136,9 @@ def parseFactor(data):
             factorDict['Factor']['Expr'] = expr['Expr']
         print("factorDict['Factor']['Expr'] =>", factorDict['Factor']['Expr'], '\n')   
         if data:
-            factorDict['Factor']['RPAREN'] = ')'
+            #not enough to check if there are still tokens that need to be parsed 
+            if data[0].type == 'RPAREN':
+                factorDict['Factor']['RPAREN'] = ')'
             #data.pop(0)
             #pop first index of data here so the first index of data contains the next token
             if len(data) > 1:
@@ -174,21 +160,23 @@ def parseFactor(data):
         factorDict['Factor'] = {'ID':{data[0].value}}
     print("factorDict['Factor'] =>", factorDict['Factor'], '\n')
     if factorDict['Factor'] == {}:
-        #visitors.append(data[0])
-        #data.pop(0)
         inputVals = [str(tok.value) for tok in dCopy]
-        index = 0
+        isThereVisitor = True
         if not visitors:
-            visitors.append(data[0])
+            isThereVisitor = False #no tokens have been parsed thus far
+            visitors.append(data[0]) #need to append token where the error occurred
             data.pop(0)
+        isListReversed = False # mechanism to work around limitation of str.insert method
+        if isThereVisitor == True:
+           inputVals.reverse()
+           isListReversed = True        
         lastVisitor = visitors[len(visitors)-1].value
-        strExpr = ''
-        strExpr = strExpr.join(inputVals)
-        index = strExpr.find(lastVisitor)
+        index = [i for i,tok in enumerate(inputVals) if tok == lastVisitor]
+        inputVals.insert(index[0],' ˽ ')
+        if isListReversed == True:
+            inputVals.reverse()
         rString = ''
-        inputVals.insert(index,' ˽ ')
         rString = rString.join(inputVals)
-        #rString = insertPlaceHolder(exprVals, index)
         raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
                                                 {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column})
     visitors.append(data[0])
@@ -200,33 +188,6 @@ def parseExprPrime(data):
     print("Entering Expr'")
     exprPrimeDict = {'ExprP':{}}    
     if data:
-        """
-        if (len(data) == 1 and data[0].type == 'MATH_OP'):
-            #visitors.append(data[0])
-            #exprVals = [str(tok.value) for tok in visitors]
-            inputVals = [str(tok.value) for tok in dCopy]
-            index = 0
-            visitorsVals = [str(tok.value) for tok in visitors]
-            lastVisitor = visitors[len(visitors)-1].value
-            strExpr = ''
-            strExpr = strExpr.join(inputVals)
-            index = strExpr.find(lastVisitor)
-            strVisitors = ''
-            strVisitors = strVisitors.join(visitorsVals)
-            #print(index, strExpr, strExpr[index+1:])
-            #rString = insertPlaceHolder(exprVals, index)
-            rString = ''
-            rString = strVisitors + ' ˽ ' + strExpr[index+1:]
-         
-            
-            #strExpr = ''
-            #strExpr = strExpr.join(exprVals)
-            
-            #index = 0
-            #rString = insertPlaceHolder(exprVals, index)
-            raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
-                                                {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 2})
-        """
         if data[0].value == '+':
             exprPrimeDict['ExprP']['+'] = {} 
             visitors.append(data[0])
@@ -257,33 +218,22 @@ def parseExprPrime(data):
 def parseTermPrime(data):
     print("Entering Term'")
     termPrimeDict = {'TermP':{}}
-    
-    """
-    if (len(data) == 1 and data[0].type == 'MATH_OP'):
-        visitors.append(data[0])
-        exprVals = [str(tok.value) for tok in visitors]
-        index = 0
-        rString = insertPlaceHolder(exprVals, index) 
-        raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
-                                               {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 1})
-    
-    """
     if data:
         if data[0].value == '*':
             termPrimeDict['TermP']['*'] = {} 
             visitors.append(data[0])
-            #print("data", data)
             data.pop(0)
-            #print("data", data)
             factor = parseFactor(data)
             if factor:
                 termPrimeDict['TermP']['Factor'] = factor['Factor']
+            """
             else:
                 visitors.append(data[0])
                 exprVals = [str(tok.value) for tok in visitors]
                 rString = insertPlaceHolder(exprVals)
                 raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
                                                 {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 2})
+            """
             print("termPrimeDict['TermP']['Factor'] =>", termPrimeDict['TermP']['Factor'], '\n')
             termPrime = parseTermPrime(data)
             if termPrime:
@@ -318,11 +268,30 @@ def parseTermPrime(data):
     return termPrimeDict
 
 def insertPlaceHolder(exprVals, index):
+    
     strExpr = ''
     strExpr = strExpr.join(exprVals)
     lastChar = strExpr[len(strExpr)-1]
     rString = strExpr[:len(strExpr)-1]
     rString = rString + lastChar + ' ˽ '  #tried to put a placeholder where the error is
+    
+    """
+    isThereVisitor = True
+    if not visitors:
+        isThereVisitor = False #no tokens have been parsed thus far
+        visitors.append(data[0]) #need to append token where the error occurred
+        data.pop(0)
+    
+    isListReversed = False # mechanism to work around limitation of str.insert method
+    if isThereVisitor == True:
+        inputVals.reverse()
+        isListReversed = True        
+    lastVisitor = visitors[len(visitors)-1].value
+    index = [i for i,tok in enumerate(inputVals) if tok == lastVisitor]
+    inputVals.insert(index[0],' ˽ ')
+    if isListReversed == True:
+        inputVals.reverse()
+    """
     return rString    
 
 def main():

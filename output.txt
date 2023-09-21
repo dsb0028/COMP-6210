@@ -1,19 +1,6 @@
-[Token(type='NUMBER', value=4, line=22, column=1), Token(type='MATH_OP', value='+', line=22, column=2)]
+[Token(type='MATH_OP', value='*', line=34, column=2), Token(type='NUMBER', value=4, line=34, column=4)]
 Entering Expr
 Entering Term
 Entering Factor
-factorDict['Factor'] => {'NUMBER': {4}} 
+factorDict['Factor'] => {} 
 
-Exiting Factor
-termDict['Term']['Factor'] => {'NUMBER': {4}} 
-
-Entering Term'
-Exiting Term'
-termDict['Term']['TermP'] => {} 
-
-Exiting Term
-exprDict['Expr']['Term'] => {'Factor': {'NUMBER': {4}}, 'TermP': {}} 
-
-Entering Expr'
-Entering Term
-Entering Factor
