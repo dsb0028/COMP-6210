@@ -1,6 +1,7 @@
 import re 
-import CustomError
+from CustomError import *
 import copy
+
 """
 Expr -> Expr + Term  | Expr - Term  | Term
 
@@ -22,248 +23,210 @@ Factor -> ( Expr )  | num  | ID
 
 """
 
-
-"""
-#treeDict = {'Expr': {'Term':{'Factor': {'NUMBER':{4}},'TermP':' '},'ExprP': {'+':'','Term':{'Factor':{'NUMBER':{4}}, 'TermP':''},'ExprP':''}}}
-#treeDict2 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}}, 'TermP': {}}, 'ExprP': {}}
-treeDict3 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}
-
-treeDict4  = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {5}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {5}}, 'TermP': {}}, 'ExprP': {}}}}}
-treeDict5 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}
-treeDict6 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {5}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}}, 'ExprP': {}}} #4 * 5 / 4
-treeDict7 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {7}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}}
-treeDict8 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}}} #4 + 4 - 4
-treeDict9 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}}} #4 - 4 + 4
-treeDict10 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}} #4 + 8 * 4
-treeDict11 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}} #4 + 8 / 4 
-treeDict12 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {}}}} #4 - 8 / 4  
-treeDict13 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {}}, 'ExprP': {}}}}} # 4 - 8 / 4 + 2
-treeDict14 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {}}, 'ExprP': {}}}}} # 4 + 8 / 4 - 2
-treeDict15 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {}}, 'ExprP': {}}}}} # 4 + 8 * 4 - 2
-treeDict16 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {'*': {}, 'Factor': {'NUMBER': {4}}, 'TermP': {}}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {8}}, 'TermP': {}}}, 'ExprP': {}}}}} #4 + 8 * 4 - 2 / 8
-treeDict17 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {8}}, 'TermP': {}}, 'ExprP': {'+': {}, 'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {'-': {}, 'Term': {'Factor': {'NUMBER': {2}}, 'TermP': {'/': {}, 'Factor': {'NUMBER': {8}}, 'TermP': {}}}, 'ExprP': {}}}}}} #4 + 8 + 4 - 2 / 8
-treeDict19 = {'Expr':{'Term': {'Factor':{'LPAREN':'(','Expr':{'Term': {'Factor':{'NUMBER':{4}}, 'TermP':{}},'ExprP':{'+': {}, 'Term':{'Factor':{'NUMBER':{8}},'TermP':{}}, 'ExprP':{}}}, 'RPAREN':')'}, 'TermP':{} }, 'ExprP':{}}}
-"""
-visitors = []
-def createParseTree(data):
-    global dCopy
-    dCopy = copy.deepcopy(data)
-    expr = parseExpr(data)
-    if len(visitors) < len(dCopy):
-        string = ""
-        string = string.join([str(tok.value) for tok in dCopy])
-        raise CustomError.NotAllTokensHaveBeenConsumedError(string,"Invalid expression")
+visited = []
+internalNodeKeys = {'Expr', 'Term', 'TermP', 'Factor','ExprP'}
+def createParseTree(tokens):
+    """
+    Description: 
+    Creates a parse tree using a recursive descent parser with no back tracking
+    Args:
+        tokens: a list of tokens generated from the tokenizer
+    
+    Returns:
+        expr: nested dictionary object that contains the resulting parse tree
+    """
+    # deepcopy is necessary to make sure that the original tokens list will be perserved in case of error
+    # all recursive functions need to have access to the original token list
+    global originalTokensList
+    originalTokensList = copy.deepcopy(tokens)
+    #returns the parse tree resulting from my recursive decent parser with no back tracking
+    expr = parseExpr(tokens)
+    #checks to make sure that all tokens have been parsed
+    # if all tokens have not been parsed yet, then we need to throw an error message
+    if tokens:
+        tokenString = ""
+        # The value of each token in the original tokens list is converted into a string 
+        # before being appended to a list using list comprehension. The resulting list of token value strings
+        # is joined with the value of tokenString, which is originally empty
+        # tokenString will be a string containing the values of each token in the original token list
+        tokenString = tokenString.join([str(tok.value) for tok in originalTokensList])
+        raise NotAllTokensHaveBeenConsumedError(tokenString,"Invalid expression")
     return expr
 
-def parseExpr(data):  
+def parseExpr(tokens):
+    """
+    Description:
+        Simulates the expr rules from the grammar
+    Args:
+        tokens: tokens that have yet to be parsed from the original token list
+    Returns:
+        exprDict: A nested dictionary object that contains all children resulting from Term and Expr' rules
+    """ 
     print("Entering Expr")
+    #Initializes a dictionary object that will store the children of expr rule
     exprDict = {'Expr':{}}
-    term = parseTerm(data)
+    #parse Term
+    term = parseTerm(tokens)
     if term:
-        exprDict['Expr']['Term'] = term['Term']
+        exprDict['Expr'].update(term)
     print("exprDict['Expr']['Term'] =>", exprDict['Expr']['Term'], '\n')
-    exprPrime = parseExprPrime(data) 
+    exprPrime = parseExprPrime(tokens) 
     if exprPrime:
-        exprDict['Expr']['ExprP'] = exprPrime['ExprP']
-    else:
-        exprDict['Expr']['ExprP'] = {}
+        exprDict['Expr'].update(exprPrime)
     print("exprDict['Expr']['ExprP'] =>", exprDict['Expr']['ExprP'], '\n')
     print("Exiting Expr")
     return exprDict
 
-def parseTerm(data):
+def parseTerm(tokens):
+    """
+    Description:
+    Args:
+    Returns:
+    """
     print("Entering Term")
+    #Initializes a dictionary object called termDict that has a key called Term 
+    # and an empty dictionary as the value to store children
     termDict = {'Term':{}}
-    factor = parseFactor(data)
+    #Contains the tree for factor given the tokens that have yet to be parsed
+    factor = parseFactor(tokens)
+    #The value of factor will only be stored as a child of Term in Term dictionary if factor exists
     if factor:
-        termDict['Term']['Factor'] = factor['Factor']    
+        #lookup key associated with Factor symbol
+        termDict['Term'].update(factor)
     print("termDict['Term']['Factor'] =>", termDict['Term']['Factor'], '\n')
-    termPrime = parseTermPrime(data)
+    #Contains the tree resulting from Term Prime productions given tokens that have yet to be parsed
+    termPrime = parseTermPrime(tokens)
+    #The resulting Term' tree will ony be stored as a child of Term if termPrime exists
     if termPrime:
-        termDict['Term']['TermP'] = termPrime['TermP']
+        termDict['Term'].update(termPrime)
     print("termDict['Term']['TermP'] =>", termDict['Term']['TermP'], '\n')
     print("Exiting Term")
     return termDict
 
-def parseFactor(data):
+def parseFactor(tokens):
+    """
+    Description:
+    Args:
+    Returns:
+    """
     print("Entering Factor")
-    factorDict = {'Factor':{}}
-    if not data:
-        inputVals = [str(tok.value) for tok in dCopy]
-        index = 0
-        if not visitors:
-            visitors.append(data[0])
-            data.pop(0)
-        reversedList = []
-        isListReversed = False
-        if len(visitors) == len(dCopy):
-           reversedList = copy.deepcopy(inputVals)
-           reversedList.reverse()
-           isListReversed = True
+    #Initalizes a dictionary object that stores the children resulting from a matching factor production
+    factorSubTree = {'Factor':{}}
+    #Checks to make sure there are tokens left in the token buffer, if not there must be an error
+    if tokens:
+        #the next token to be consumed will be set to the token that is next in the tokens buffer 
+        tokenToBeConsumed = tokens[0]
+    else:
+        visitedString = ""
+        visitedTokValues = [str(tok.value) for tok in visited]
+        visitedTokValues.append(' ˽ ')
+        visitedString = visitedString.join(visitedTokValues)
+        tokensBufferString = ""
+        tokenBufferValues = [str(tok.value) for tok in tokens]
+        tokensBufferString = tokensBufferString.join(tokenBufferValues)
+        expression = visitedString + tokensBufferString
+        raise MissingFactorError(expression,"Expected an Identifier or Number",
+                                 {'line': visited[len(visited)-1].line, 'column': visited[len(visited)-1].column+1})
+    #terminalNodes contains the token types versus the token values
+    """
+    TYPES ARE USED INSTEAD OF VALUES BECAUSE A NUMBER, AND ID CAN HAVE ANY VALUE
+    IN OTHER WORDS, THE TOKEN VALUES FOR NUMBER AND ID CANNOT BE HARDCODED
+    FOR EXPRPRIME AND TERMPRIME, IT IS NECESSARY TO SPECIFY TOKEN VALUES INSTEAD OF TOKEN TYPES FOR 
+    THE TERMINAL NODES BECAUSE '+', '-', '*', AND '/' ALL ARE OF TYPE MATH_OP. THIS BECOMES PROBLAMATIC 
+    IF THE NEXT TOKEN TO BE CONSUMED IN EXPRPRIME HAS A VALUE OF '*' OR '/' AND WE ARE GOING OFF OF ITS TYPE, 
+    THERE WILL BE A MATCH WHEN THERE SHOULDN'T BE ONE. THE ONLY TERMINAL NODES IN EXPRPRIME ARE '+' AND '-'.  
+    """
+    terminalNodes = {'LPAREN','RPAREN','NUMBER','ID'}
+    leafNode = match(tokenToBeConsumed, terminalNodes,True)
+    if leafNode:
+        if leafNode.type == 'LPAREN':
+            factorSubTree['Factor'].update({leafNode.type:leafNode.value})
+            consume(tokenToBeConsumed,tokens)
+            expr = parseExpr(tokens)
+            if expr:
+                factorSubTree['Factor'].update(expr)
+            tokenToBeConsumed = tokens[0]
+            leafNode = match(tokenToBeConsumed, terminalNodes,True)
+            if leafNode.type == 'RPAREN':
+                factorSubTree['Factor'].update({leafNode.type:leafNode.value})
+                consume(tokenToBeConsumed,tokens)
         else:
-            reversedList = inputVals        
-        lastVisitor = visitors[len(visitors)-1].value
-        strExpr = ''
-        strExpr = strExpr.join(reversedList)
-        index = strExpr.find(lastVisitor)
-        reversedList.insert(index,' ˽ ')
-        if isListReversed == True:
-            reversedList.reverse()
-        rString = ''
-        rString = rString.join(reversedList)
-        #rString = insertPlaceHolder(exprVals, index)
-        raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
-                                                {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column}) 
-    
-    if data[0].type == 'LPAREN':
-        string = ""
-        string = string.join([str(tok.value) for tok in dCopy])
-        index = 0
-        rString = insertPlaceHolder(string, index)
-        if string.rfind(')') == -1:
-            raise CustomError.MissingRParenError(rString, "Expected ')' at", 
-                                                {'line': dCopy[len(dCopy)-1].line, 'column': dCopy[len(dCopy)-1].column + 1})
-        else:
-            if len(dCopy) == 2 and data[1].type == 'RPAREN':
-                raise CustomError.MissingExprError(rString, "Missing expresssion at", 
-                                               {'line': dCopy[len(dCopy)-1].line, 'column': dCopy[len(dCopy)-1].column + 1})
-       
-        factorDict['Factor']['LPAREN'] = '('
-        visitors.append(data[0])
-        data.pop(0)
-        expr = parseExpr(data)
-        if expr:
-            factorDict['Factor']['Expr'] = expr['Expr']
-        print("factorDict['Factor']['Expr'] =>", factorDict['Factor']['Expr'], '\n')   
-        if data:
-            #not enough to check if there are still tokens that need to be parsed 
-            if data[0].type == 'RPAREN':
-                factorDict['Factor']['RPAREN'] = ')'
-            #data.pop(0)
-            #pop first index of data here so the first index of data contains the next token
-            if len(data) > 1:
-                if data[1].type == 'LPAREN':
-                    string = ""
-                    string = string.join([str(tok.value) for tok in dCopy])
-                    raise SyntaxError("Expected an operator after )")
-                #expecting an operator
-                # raise an error called MissingLParenError(visitors,error message,loc of error)    
-        else:
-            string = ""
-            string = string.join([str(tok.value) for tok in dCopy])
-            raise CustomError.MissingRParenError(string, "Expected ')' at", 
-                                                {'line': dCopy[len(dCopy)-1].line, 'column': dCopy[len(dCopy)-1].column + 1})
-
-    elif data[0].type == 'NUMBER':
-        factorDict['Factor'] = {'NUMBER':{data[0].value}}
-    elif data[0].type == 'ID':
-        factorDict['Factor'] = {'ID':{data[0].value}}
-    print("factorDict['Factor'] =>", factorDict['Factor'], '\n')
-    if factorDict['Factor'] == {}:
-        inputVals = [str(tok.value) for tok in dCopy]
-        isThereVisitor = True
-        if not visitors:
-            isThereVisitor = False #no tokens have been parsed thus far
-            visitors.append(data[0]) #need to append token where the error occurred
-            data.pop(0)
-        isListReversed = False # mechanism to work around limitation of str.insert method
-        if isThereVisitor == True:
-           inputVals.reverse()
-           isListReversed = True        
-        lastVisitor = visitors[len(visitors)-1].value
-        index = [i for i,tok in enumerate(inputVals) if tok == lastVisitor]
-        inputVals.insert(index[0],' ˽ ')
-        if isListReversed == True:
-            inputVals.reverse()
-        rString = ''
-        rString = rString.join(inputVals)
-        raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
-                                                {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column})
-    visitors.append(data[0])
-    data.pop(0)
+            if leafNode.type == 'RPAREN':
+                visitedString = ""
+                visitedTokValues = [str(tok.value) for tok in visited]
+                visitedTokValues.append(' ˽ ')
+                visitedString = visitedString.join(visitedTokValues)
+                tokensBufferString = ""
+                tokenBufferValues = [str(tok.value) for tok in tokens]
+                tokensBufferString = tokensBufferString.join(tokenBufferValues)
+                expression = visitedString + tokensBufferString
+                raise MissingFactorError(expression,"Expected an Identifier or Number",
+                                 {'line': visited[len(visited)-1].line, 'column': visited[len(visited)-1].column+1})             
+            factorSubTree['Factor'].update({leafNode.type:leafNode.value})
+            consume(tokenToBeConsumed,tokens)
+    else:
+        visitedString = ""
+        visitedTokValues = [str(tok.value) for tok in visited]
+        visitedTokValues.append(' ˽ ')
+        visitedString = visitedString.join(visitedTokValues)
+        tokensBufferString = ""
+        tokenBufferValues = [str(tok.value) for tok in tokens]
+        tokensBufferString = tokensBufferString.join(tokenBufferValues)
+        expression = visitedString + tokensBufferString
+        raise MissingFactorError(expression,"Expected an Identifier or Number",
+                                 {'line': visited[len(visited)-1].line, 'column': visited[len(visited)-1].column+1})
     print("Exiting Factor")
-    return factorDict
+    return factorSubTree
     
-def parseExprPrime(data):
+def parseExprPrime(tokens):
+    """
+    Description:
+    Args:
+    Returns:
+    """
     print("Entering Expr'")
-    exprPrimeDict = {'ExprP':{}}    
-    if data:
-        if data[0].value == '+':
-            exprPrimeDict['ExprP']['+'] = {} 
-            visitors.append(data[0])
-            data.pop(0)
-            term = parseTerm(data)
+    #Initalizes a dictionary object that stores the children resulting from a matching Expr' production
+    exprPrimeDict = {'ExprP':'ε'}
+    #If tokens have yet to be consumed, match the value of the next token to be consumed to a '+' or '-' 
+    if tokens:    
+        tokenToBeConsumed = tokens[0]
+        terminalNodes = {'+','-'}
+        leafNode = match(tokenToBeConsumed, terminalNodes)
+        if leafNode:
+            exprPrimeDict = {'ExprP':{}} 
+            exprPrimeDict['ExprP'].update({leafNode.type:leafNode.value})
+            consume(tokenToBeConsumed,tokens)
+            term = parseTerm(tokens)
             if term:
-                exprPrimeDict['ExprP']['Term'] = term['Term']
-            print("Expr'[Expr']['Term'] =>", exprPrimeDict['ExprP']['Term'], '\n')
-            exprPrime = parseExprPrime(data)
+                exprPrimeDict['ExprP'].update(term)
+            exprPrime = parseExprPrime(tokens)
             if exprPrime:
-                exprPrimeDict['ExprP']['ExprP'] = exprPrime['ExprP']
-            print("Expr'[Expr'][Expr'] =>", exprPrimeDict['ExprP']['ExprP'], '\n')    
-        elif data[0].value == '-':
-            exprPrimeDict['ExprP']['-'] = {}
-            visitors.append(data[0])
-            data.pop(0)
-            term = parseTerm(data)
-            if term:
-                exprPrimeDict['ExprP']['Term'] = term['Term']
-            print("Expr'['ExprP']['Term'] =>", exprPrimeDict['ExprP']['Term'], '\n') 
-            exprPrime = parseExprPrime(data)
-            if exprPrime:
-                exprPrimeDict['ExprP']['ExprP'] = exprPrime['ExprP']
-            print("Expr'['ExprP']['ExprP'] =>", exprPrimeDict['ExprP']['ExprP'], '\n')
+                exprPrimeDict['ExprP'].update(exprPrime)
     print("Exiting Expr'")        
     return exprPrimeDict
 
-def parseTermPrime(data):
+def parseTermPrime(tokens):
+    """
+    Description: 
+    Args:
+    Return:
+    """
     print("Entering Term'")
-    termPrimeDict = {'TermP':{}}
-    if data:
-        if data[0].value == '*':
-            termPrimeDict['TermP']['*'] = {} 
-            visitors.append(data[0])
-            data.pop(0)
-            factor = parseFactor(data)
+    termPrimeDict = {'TermP':'ε'}
+    if tokens:
+        tokenToBeConsumed = tokens[0]
+        terminalNodes = {'*','/'}
+        leafNode = match(tokenToBeConsumed, terminalNodes)
+        if leafNode:
+            termPrimeDict = {'TermP':{}}
+            termPrimeDict['TermP'].update({leafNode.type:leafNode.value})
+            consume(tokenToBeConsumed,tokens)
+            factor = parseFactor(tokens)
             if factor:
-                termPrimeDict['TermP']['Factor'] = factor['Factor']
-            """
-            else:
-                visitors.append(data[0])
-                exprVals = [str(tok.value) for tok in visitors]
-                rString = insertPlaceHolder(exprVals)
-                raise CustomError.MissingFactorError(rString, "Expected a Factor at", 
-                                                {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 2})
-            """
-            print("termPrimeDict['TermP']['Factor'] =>", termPrimeDict['TermP']['Factor'], '\n')
-            termPrime = parseTermPrime(data)
+                termPrimeDict['TermP'].update(factor)
+            termPrime = parseTermPrime(tokens)
             if termPrime:
-                termPrimeDict['TermP']['TermP'] = termPrime['TermP']
-            print("termPrimeDict['TermP']['TermP'] =>", termPrimeDict['TermP']['TermP'], '\n') 
-        elif data[0].value == '/':
-            termPrimeDict['TermP']['/'] = {}
-            visitors.append(data[0])
-            """
-            if len(data) == 1:
-                raise CustomError.MissingFactorError 
-            """
-            #print("Data", data)
-            data.pop(0)
-            factor = parseFactor(data)
-            #print(data, visitors)
-            if factor:
-                termPrimeDict['TermP']['Factor'] = factor['Factor']
-            else:
-                visitors.append(data[0])
-                exprVals = [str(tok.value) for tok in visitors]
-                strExpr = ''
-                strExpr = strExpr.join(exprVals)
-                raise CustomError.MissingFactorError(strExpr, "Expected a Factor at", 
-                                                {'line': visitors[len(visitors)-1].line, 'column': visitors[len(visitors)-1].column + 2})
-            print("termPrimeDict['TermP']['Factor'] =>", termPrimeDict['TermP']['Factor'],'\n')
-            termPrime = parseTermPrime(data)
-            if termPrime:
-                termPrimeDict['TermP']['TermP'] = termPrime['TermP']
-            print("termPrimeDict['TermP']['TermP'] =>", termPrimeDict['TermP']['TermP'], '\n')
+                termPrimeDict['TermP'].update(termPrime)
     print("Exiting Term'")
     return termPrimeDict
 
@@ -279,8 +242,8 @@ def insertPlaceHolder(exprVals, index):
     isThereVisitor = True
     if not visitors:
         isThereVisitor = False #no tokens have been parsed thus far
-        visitors.append(data[0]) #need to append token where the error occurred
-        data.pop(0)
+        visitors.append(tokens[0]) #need to append token where the error occurred
+        
     
     isListReversed = False # mechanism to work around limitation of str.insert method
     if isThereVisitor == True:
@@ -293,6 +256,41 @@ def insertPlaceHolder(exprVals, index):
         inputVals.reverse()
     """
     return rString    
+
+def match(currToken, terminalNodes, isFactor = False):
+    """
+    Description:
+        If token to be consumed matches a terminal node that is part of rule, return true
+        Else: return False
+    Args:
+        currToken: is the next token to be consumed
+        terminalNodes: represents all leaf nodes defined under a specific set of rules 
+    Returns:
+        isAMatch: boolean that represents whether a match exists or not
+    """
+    isAMatch = False
+    matchToken = None
+    if isFactor == True:
+        if currToken.type in terminalNodes:
+            isAMatch = True
+            matchToken = currToken
+    else:
+        if currToken.value in terminalNodes:
+            isAMatch = True
+            matchToken = currToken
+    return matchToken
+
+def consume(currToken,tokens):
+    """
+    Description:
+        Consumes the current token 
+    Args:
+        currToken: the token being consumed
+    Returns:
+        None
+    """
+    visited.append(currToken)
+    tokens.pop(0)
 
 def main():
     #tokens = [(), (), (), ()]    
