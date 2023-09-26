@@ -18,6 +18,7 @@ def main():
     if not tokens:
         raise RuntimeError("Nothing to Parse")
     parseTree = parserC.createParseTree(tokens)
+    ast = parserC.createAST(parseTree)
     if args.p == True:    
         print(parseTree)
     
