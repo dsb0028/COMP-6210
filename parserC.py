@@ -1,15 +1,18 @@
-import re 
 from CustomError import *
-import copy
 
 """
-Expr -> Expr + Term  | Expr - Term  | Term
+Program -> Declarations
+Declarations -> Declaration-Specifiers Declarator Compound-Statement
+Declaration-Specifiers -> Type-Specifier Declaration-Specifiers
+Declarator -> Direct-Declarator
+Direct-Declarator -> ID (identifier-list)
+Identifier-List -> ID | identifier-list,ID | epsilon
+Compound-Statement -> { block-item-list }
+block-item-list -> block-item | block-item-list block-item | epsilon
+block-item -> statement
+statement -> jump-statement
+jump-statement -> return Expr;
 
-Term -> Term * Factor  | Term / Factor  | Factor
-
-Factor -> ( Expr )  | num  | ID
-
-eliminate left recursion
 Expr -> Term Expr'
 
 Expr' -> + Term Expr' | - Term Expr' | epsilon
@@ -252,33 +255,6 @@ def parseTermPrime(tokenBuffer):
                 termPrimeTree['TermP'].update(termPrime)
     print("Exiting Term'")
     return termPrimeTree
-
-def insertPlaceHolder(exprVals, index):
-    
-    strExpr = ''
-    strExpr = strExpr.join(exprVals)
-    lastChar = strExpr[len(strExpr)-1]
-    rString = strExpr[:len(strExpr)-1]
-    rString = rString + lastChar + ' ˽ '  #tried to put a placeholder where the error is
-    
-    """
-    isThereVisitor = True
-    if not visitors:
-        isThereVisitor = False #no tokens have been parsed thus far
-        visitors.append(tokens[0]) #need to append token where the error occurred
-        
-    
-    isListReversed = False # mechanism to work around limitation of str.insert method
-    if isThereVisitor == True:
-        inputVals.reverse()
-        isListReversed = True        
-    lastVisitor = visitors[len(visitors)-1].value
-    index = [i for i,tok in enumerate(inputVals) if tok == lastVisitor]
-    inputVals.insert(index[0],' ˽ ')
-    if isListReversed == True:
-        inputVals.reverse()
-    """
-    return rString    
 
 def match(currToken, terminalNodes, isFactor = False):
     """
