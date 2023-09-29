@@ -1,0 +1,24 @@
+program:
+	declarations
+
+
+
+declarations:
+	type id (args) {localDeclarations statements}
+
+
+
+args:
+	epsilon
+
+
+localDeclarations:
+	epsilon
+
+
+statements:
+	jump-statement
+
+jump-statement:
+	return Expr;
+

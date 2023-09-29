@@ -72,6 +72,40 @@ def getDictionaryItems(parseTree):
         else:
             yield (key, value)
     
+def parseDeclarations(tokenBuffer):
+    #type ID (args) {localDeclarations statements}
+    #if currToken is type:
+    #   consume(currToken)
+    #   if currToken is ID:
+    #       consume(currToken)
+    #       if currToken is LEFTPAREN:
+    #           parseArgs(tokenBuffer)
+    #           if currToken is LEFTBRACK:
+    #               parseLocalDeclarations(tokenBuffer)
+    #               parseStatements(tokenBuffer)
+    #               if currToken is RIGHTBRACK:
+    #                   consume(currToken);
+    pass
+
+def parseArgs(tokenBuffer):
+    pass
+
+def parseLocalDeclarations(tokenBuffer):
+    pass
+
+def parseStatements(tokenBuffer):
+    #parseJumpStatement(tokenBuffer)
+    pass
+
+def parseJumpStatement(tokenBuffer):
+    #if currToken is 'return':
+    #   consume(currToken, tokenBuffer)
+    #   parseExpr(tokenBuffer)
+    #   if currToken is END:
+    #       store jump statement in dictionary
+    #   else:
+    #       return error "expected semicolon at end of statement"
+    pass
 
 def parseExpr(tokenBuffer):
     """
