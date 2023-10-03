@@ -1,6 +1,11 @@
-int doom = 0;
+//int doom = 0;
 
 int main() {
-    double dare = 4.0;
+    //float a;
+    double dare;
+   // int a;
+   // a = 4;
+   //a = 5;
+    //b = 6; 
     return 0;
 }

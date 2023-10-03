@@ -1,17 +1,28 @@
 from CustomError import *
-
+from symboltable import *
 """
 Program -> Declarations
-Declarations -> Declaration-Specifiers Declarator Compound-Statement
-Declaration-Specifiers -> Type-Specifier Declaration-Specifiers
-Declarator -> Direct-Declarator
-Direct-Declarator -> ID (identifier-list)
-Identifier-List -> ID | identifier-list,ID | epsilon
-Compound-Statement -> { block-item-list }
-block-item-list -> block-item | block-item-list block-item | epsilon
-block-item -> statement
-statement -> jump-statement
-jump-statement -> return Expr;
+Declarations => type id (args) compound-statement
+
+args -> epsilon
+
+compound-statement:
+	{localDeclarations statements}
+
+localDeclarations:
+	type id assignment-expression; 
+	type id;
+	epsilon
+
+assignment-expression:
+	= Expr
+
+statements:
+	jump-statement
+
+jump-statement:
+	return Expr;
+
 
 Expr -> Term Expr'
 
@@ -25,7 +36,7 @@ Factor -> ( Expr )  | num  | ID
 
 
 """
-
+symTable = SymbolTable()
 consumed = []
 internalNodeKeys = {'Expr', 'Term', 'TermP', 'Factor','ExprP'}
 def createParseTree(tokens):
@@ -41,14 +52,15 @@ def createParseTree(tokens):
     #The token buffer stores tokens in the order that they are going to be consumed
     tokenBuffer = tokens
     #Stores the parse tree resulting from my recursive decent parser with no back tracking
-    expr = parseExpr(tokenBuffer)
+    #expr = parseExpr(tokenBuffer)
+    declarations = parseDeclarations(tokenBuffer)
     #checks to make sure that all tokens have been consumed, i.e token buffer should be empty
     # if all tokens have not been consumed yet, then we need to throw an error message
     if tokenBuffer:
         #Convert the values of all the consumed tokens into string format
         errorString = generateErrorString(tokenBuffer, isParseTreeGenerated=True)
         raise NotAllTokensHaveBeenConsumedError(errorString,"Invalid expression")
-    return expr
+    return declarations
 
 def createAST(parseTree):
     astTree = {}
@@ -73,31 +85,161 @@ def getDictionaryItems(parseTree):
             yield (key, value)
     
 def parseDeclarations(tokenBuffer):
+    """
+    Description:
+        Simulates the Declaractions productions from the grammar.
+    Args:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        declarationsTree: a nested dict object that contains all children resulting from declarations productions 
+    """
     #type ID (args) {localDeclarations statements}
-    #if currToken is type:
-    #   consume(currToken)
-    #   if currToken is ID:
-    #       consume(currToken)
-    #       if currToken is LEFTPAREN:
-    #           parseArgs(tokenBuffer)
-    #           if currToken is LEFTBRACK:
-    #               parseLocalDeclarations(tokenBuffer)
-    #               parseStatements(tokenBuffer)
-    #               if currToken is RIGHTBRACK:
-    #                   consume(currToken);
-    pass
+    #Assuming that the only numeric data types in C are int, double, and float
+    types = {'int', 'double', 'float'}
+    #Next token to be consumed from the token buffer
+    tokenToBeConsumed = tokenBuffer[0]
+    #Initializes a dictionary object that will store the children of Declarations
+    declarationsTree = {'Declarations':{}}
+    #If the token to be consumed is either a int, double, or float, update the declarationsTree
+    #to contain both the data type and value of the token under the key Declarations
+    if tokenToBeConsumed.type in types:
+        #SymbolTable.functionType = tokenToBeConsumed.type
+        declarationsTree['Declarations'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed, tokenBuffer)
+        tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.type == 'ID':
+            #SymbolTable.functionName = tokenToBeConsumed.value
+            #print(SymbolTable.functionName)
+            symTable.addAFunction(tokenToBeConsumed.value,consumed[-1].value)
+            declarationsTree['Declarations'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
+            tokenToBeConsumed = tokenBuffer[0]
+            if tokenToBeConsumed.type == 'LPAREN':
+                declarationsTree['Declarations'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                consume(tokenToBeConsumed,tokenBuffer)
+                args = parseArgs(tokenBuffer)
+                declarationsTree['Declarations'].update(args)
+                tokenToBeConsumed = tokenBuffer[0]
+                if tokenToBeConsumed.type == 'RPAREN':
+                    declarationsTree['Declarations'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                    consume(tokenToBeConsumed,tokenBuffer)
+                    compoundStmt = parseCompoundStatement(tokenBuffer)
+                    declarationsTree['Declarations'].update(compoundStmt)
+    return declarationsTree
+
+def parseCompoundStatement(tokenBuffer):
+    """
+    Description:
+    Args:
+    Returns:
+    """
+    compoundStmtTree = {'Compound Statement':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type == 'LBRACE':
+        compoundStmtTree['Compound Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        localDecls = parseLocalDeclarations(tokenBuffer)
+        compoundStmtTree['Compound Statement'].update(localDecls)
+        statements = parseStatements(tokenBuffer)
+        compoundStmtTree['Compound Statement'].update(statements)
+        tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.type == 'RBRACE':
+            compoundStmtTree['Compound Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed, tokenBuffer)
+    return compoundStmtTree
 
 def parseArgs(tokenBuffer):
-    pass
+    """
+    Description:
+    Args:
+    Returns:
+    """
+    argsTree = {'Arguments':{}}
+    return argsTree
 
 def parseLocalDeclarations(tokenBuffer):
-    pass
+    """
+    Description:
+    Args:
+    Returns:
+    """
+    localDeclsTree = {'Local Declarations':{}}
+    types = {'int', 'double', 'float'}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type in types:
+        localDeclsTree['Local Declarations'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        #SymbolTable.varType = tokenToBeConsumed.type
+        consume(tokenToBeConsumed,tokenBuffer)
+        tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.type == 'ID':
+            localDeclsTree['Local Declarations'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            #SymbolTable.varName = tokenToBeConsumed.value 
+            #NEED TO START HERE TOMMOROW
+            symTable.addAVariable(tokenToBeConsumed.value,consumed[-1].value, symTable.lookUpFunction)
+            consume(tokenToBeConsumed,tokenBuffer)
+            tokenToBeConsumed = tokenBuffer[0]
+            assignStatement = parseAssignStatement(tokenBuffer)
+            if assignStatement['Assignment Statement'] != {}:
+                localDeclsTree['Local Declarations'].update(assignStatement)
+            else:
+                tokenToBeConsumed = tokenBuffer[0]
+                if tokenToBeConsumed.type == 'END':
+                    localDeclsTree['Local Declarations'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                    consume(tokenToBeConsumed,tokenBuffer)
+    return localDeclsTree
 
 def parseStatements(tokenBuffer):
-    #parseJumpStatement(tokenBuffer)
-    pass
+    """
+    Description:
+    Args:
+    Returns:
+    """
+    stmtsTree = {'Statements':{}}
+    jumpStmt = parseJumpStatement(tokenBuffer)
+    stmtsTree['Statements'].update(jumpStmt)
+    return stmtsTree
+
+
+def parseAssignStatement(tokenBuffer):
+    """
+    Description:
+    Args:
+    Returns:
+    """
+    assignmentStmtTree = {'Assignment Statement':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.value == '=':
+        assignmentStmtTree['Assignment Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        tokenToBeConsumed = tokenBuffer[0]
+        expr = parseExpr(tokenBuffer)
+        assignmentStmtTree['Assignment Statement'].update(expr)
+        tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.type == 'END':
+            assignmentStmtTree['Assignment Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
+    return assignmentStmtTree
 
 def parseJumpStatement(tokenBuffer):
+    """
+    Description:
+    Args:
+    Returns:
+    """
+    jumpStmtTree = {'Jump Statement':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type == 'return':
+        jumpStmtTree['Jump Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        expr = parseExpr(tokenBuffer)
+        jumpStmtTree['Jump Statement'].update(expr)
+        tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.type == 'END':
+            jumpStmtTree['Jump Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
+    
+    #WILL DELETE COMMENT BLOCK LATER
+    #NEED TO IMPLEMENT ELSE IF LAST TOKEN IN SO CALLED STATEMENT IS NOT OF TYPE END        
     #if currToken is 'return':
     #   consume(currToken, tokenBuffer)
     #   parseExpr(tokenBuffer)
@@ -105,7 +247,7 @@ def parseJumpStatement(tokenBuffer):
     #       store jump statement in dictionary
     #   else:
     #       return error "expected semicolon at end of statement"
-    pass
+    return jumpStmtTree
 
 def parseExpr(tokenBuffer):
     """
@@ -217,6 +359,11 @@ def parseFactor(tokenBuffer):
     return factorTree
 
 def generateErrorString(tokenBuffer, isParseTreeGenerated = False):
+    """
+    Description:
+    Args:
+    Returns:
+    """
     #Convert the values of all the consumed tokens into string format
     consumedString = ""
     consumedTokValues = [str(tok.value) for tok in consumed]

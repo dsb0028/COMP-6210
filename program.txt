@@ -4,21 +4,74 @@ program:
 
 
 declarations:
-	type id (args) {localDeclarations statements}
-
-
+	type id (args) compound-statement
 
 args:
 	epsilon
 
+compound-statement:
+	{localDeclarations statements}
+
 
 localDeclarations:
+	type id assignment-expression; 
+	type id;
 	epsilon
 
-
+assignment-expression:
+	= Expr
 statements:
 	jump-statement
 
 jump-statement:
 	return Expr;
 
+
+
+expression:
+	assignment-expression
+	expression , assignment-expression
+
+assignment-expression:
+	conditional-expression
+	unary-expression assignment-operator assignment-expression
+
+
+primary-expression:
+	identifier
+	constant
+	string-literal
+	( expression )
+
+postfix-expression:
+	primary-expression
+	postfix-expression [ expression ]
+	postfix-expression ( argument-expression-listopt )
+	postfix-expression . identifier
+	postfix-expression -> identifier
+	postfix-expression ++
+	postfix-expression --
+	( type-name ) { initializer-list }
+	( type-name ) { initializer-list , }
+
+cast-expression:
+	unary-expression
+	( type-name ) cast-expression
+
+unary-expression:
+	postfix-expression
+	++ unary-expression
+-- 	unary-expression
+	unary-operator cast-expression
+
+---------------------------------------------------------------------
+Declarations -> Declaration-Specifiers Declarator Compound-Statement
+Declaration-Specifiers -> Type-Specifier Declaration-Specifiers
+Declarator -> Direct-Declarator
+Direct-Declarator -> ID (identifier-list)
+Identifier-List -> ID | identifier-list,ID | epsilon
+Compound-Statement -> { block-item-list }
+block-item-list -> block-item | block-item-list block-item | epsilon
+block-item -> statement
+statement -> jump-statement
+jump-statement -> return Expr;

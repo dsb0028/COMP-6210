@@ -1,0 +1,31 @@
+symbolTable expected output
+
+main.c
+
+
+nameOfFunctions typeOfFunctions function_begins (line-num, col_num) function_ends(line_num, col-num) nameOfVariables typeOfVariables  
+
+main               int                   (2,1)                             (4,1)                          N/A           N/A     
+
+
+
+nameofFunctions typeOfFunctions function_begins (line-num, col_num) function_ends(line_num, col-num) nameOfVariables typeOfVariables var_declared (line_num, col_num) var_defined (line_num, col_num) 
+main               int                 (3, 13)                               (7, 1)                       dare         double                  (5,5)                        (5, 19)
+
+
+_______________________________ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+nameofFunctions typeOfFunctions function_begins (line-num, col_num) function_ends(line_num, col-num) nameOfVariables typeOfVariables var_declared (line_num, col_num) var_defined (line_num, col_num) 
+main               int                 (3, 13)                               (7, 1)                       [dare,a]         [double, int]                 [(5,5), (6,5)]                        [(5, 19), (7,9)]
+
+
+
+
+
+
+
+
+
+
+
+                                                 
