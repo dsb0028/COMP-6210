@@ -13,14 +13,14 @@ def main():
     tokens = tokenizer.tokenize(s)
     #if -t is passed, print tokens
     if  args.t == True:
-        print(tokens)
+        print("Tokens",tokens,'\n')
     # if c file just contains comments, there will be no tokens and no parse tree
     if not tokens:
         raise RuntimeError("Nothing to Parse")
-    parseTree = parserC.createParseTree(tokens)
-    ast = parserC.createAST(parseTree)
+    parseTree,symbolTable = parserC.createParseTree(tokens)
+    #ast = parserC.createAST(parseTree)
     if args.p == True:    
-        print(parseTree)
+        print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table)
     
 if __name__ == "__main__":
     main()
