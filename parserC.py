@@ -164,14 +164,13 @@ declaration-list:
     declaration declaration-list
     epsilon
 
-
 direct-declarator:
     identifer direct-declarator'
     (declarator) direct-declarator'
 
 direct-declarator':
     (parameter-type-list)
-    (identifer-type-list)
+    (identifer-list)
     epsilon
 
 parameter-type-list:
@@ -184,7 +183,11 @@ parameter-list:
 parameter-declaration:
     declaration-specifers declarator
 
+identifier-list:
+    identifier identifier-list'
 
+identifer-list':
+    , identifer identifier-list'
 """
 symTable = SymbolTable()
 consumed = []
@@ -201,14 +204,16 @@ def createParseTree(tokens):
     #Stores the tokens into a tokenBuffer
     #The token buffer stores tokens in the order that they are going to be consumed
     tokenBuffer = tokens
+    #print("tokenBuffer",tokenBuffer)
     #Stores the parse tree resulting from my recursive decent parser with no back tracking
     #expr = parseExpr(tokenBuffer)
     #declarations = parseDeclarations(tokenBuffer)
     translationUnit = parseTranslationUnit(tokenBuffer)
     #checks to make sure that all tokens have been consumed, i.e token buffer should be empty
     # if all tokens have not been consumed yet, then we need to throw an error message
-
-    
+    #print("Consumed",len(consumed), '\n', "Token Buffer", set(tokenBuffer),'\n')
+    #print("consumed",consumed,'\n', "length of token buffer", len(tokenBuffer))
+    print("Length of Consumed", len(consumed), "tokenBuffer",tokenBuffer)
     if not set(tokenBuffer).issubset(set(consumed)):
         #Convert the values of all the consumed tokens into string format
         #errorString = generateErrorString(tokenBuffer, isParseTreeGenerated=True)
@@ -255,7 +260,9 @@ def parseTranslationUnit(tokenBuffer):
     translationUnitTree = {'Translation-Unit':{}}
     externalDeclaration = parseExternalDeclaration(tokenBuffer)
     #Updating the translatationUnitTree with the externalDeclation subtree
-    translationUnitTree['Translation-Unit'].update(externalDeclaration)
+    #print("TokenBuffer", tokenBuffer, '\n')
+    if externalDeclaration:
+        translationUnitTree['Translation-Unit'].update(externalDeclaration)
     return translationUnitTree 
 
 """
@@ -277,6 +284,7 @@ def parseExternalDeclaration(tokenBuffer):
         externalDeclarationTree['External-Declaration'].update(declaration)
     else:
         tokenBuffer = consumed + tokenBuffer
+        consumed.clear()
         functionDef = parseFunctionDefinition(tokenBuffer)
         if functionDef['Function-Definition'] != {}:
             externalDeclarationTree['External-Declaration'].update(functionDef)
@@ -770,7 +778,7 @@ def parseExpression(tokenBuffer):
     if assignmentExpr['Assignment-Expression'] != {}:
         exprTree['Expression'].update(assignmentExpr)
     expressionList = parseExpressionList(tokenBuffer)
-    if expressionList['Expression-List'] != {}:
+    if expressionList:
         exprTree['Expression'].update(expressionList)
     return exprTree
 
@@ -811,7 +819,7 @@ def parseUnaryExpression(tokenBuffer):
     unaryExpressionTree = {'Unary-Expression':{}}
     postfixExpression = parsePostfixExpression(tokenBuffer)
     if postfixExpression:
-        unaryExpressionTree.update(postfixExpression)
+        unaryExpressionTree['Unary-Expression'].update(postfixExpression)
     return unaryExpressionTree
 
 """
@@ -968,14 +976,6 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
         definedInFunctionDef: determines whether the direct-declarator is being defined in a function definition or not
     Returns:
     """
-    #if current token is identifier:
-    #    .......
-    #elif current token is (
-    #   declarator = parseDeclarator(tokenBuffer)
-    #   if current token is ):
-    #       .....
-    #   else:
-    #       error message
     directDeclaratorTree = {'Direct-Declarator':{}}
     tokenToBeConsumed = tokenBuffer[0]
     if definedInFunctionDef == False:
@@ -1014,7 +1014,7 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
 """
 direct-declarator':
     (parameter-type-list)
-    (identifer-type-list)
+    (identifer-list)
     epsilon
 """
 def parseDirectDeclaratorPrime(tokenBuffer, isInFunDef = False):
@@ -1324,13 +1324,7 @@ def parseJumpStatement(tokenBuffer):
     Arguments:
     Returns:
     """
-    #if currToken is return:
-    #   expression = parseExpression(tokenBuffer)
-    #   if currToken is ;:
-    #       ......
-    #   else:
-    #       error message is returned    
-    
+   
     jumpStatementTree = {'Jump-Statement':{}}
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type == 'return':
