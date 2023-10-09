@@ -6,22 +6,22 @@ Program:
     translation-unit
 
 translation-unit:
-    external-declaration translation-unit'
-
-translation-unit':
-    translation-unit translation-unit'
-    epsilon
+    external-declaration external-declaration'
 
 external-declaration:
     declaration
     function-definition
+
+external-declaration':
+    external-declaration external-declaration'
+    epsilon
     
 declaration:
     declaration-specifiers init-declarator-list;
     epsilon
 
 declaration-specifiers:
-    type-specifier declaration-specifers'
+    type declaration-specifers'
 
 declaration-specifiers':
     declaration-specifiers declaration-specifiers'
@@ -164,46 +164,25 @@ declaration-list:
     declaration declaration-list
     epsilon
 
+
 direct-declarator:
-    identifier
-    (declarator)
-    direct-declarator(parameter-type-list)
-    direct-declarator(identifier-listopt)
-Declarations => type id (args) compound-statement
+    identifer direct-declarator'
+    (declarator) direct-declarator'
 
-args -> epsilon
-
-compound-statement:
-	{localDeclarations statements}
-
-localDeclarations:
-	type id assignment-expression; localDeclarations 
-	type id; localDeclarations
-    id assignment-expression; localDeclarations
-
-    typeopt id assignment-expressionopt; localDeclarations
+direct-declarator':
+    (parameter-type-list)
+    (identifer-type-list)
     epsilon
 
-assignment-expression:
-	= Expr
-    epsilon
+parameter-type-list:
+    parameter-list
+    parameter-list, ...
 
-statements:
-	jump-statement
+parameter-list:
+    parameter-declaration parameter-list'
 
-jump-statement:
-	return Expr;
-
-
-Expr -> Term Expr'
-
-Expr' -> + Term Expr' | - Term Expr' | epsilon
-
-Term -> Factor Term' 
-
-Term' -> * Factor Term' | / Factor Term' | epsilon
-
-Factor -> ( Expr )  | num  | ID
+parameter-declaration:
+    declaration-specifers declarator
 
 
 """
@@ -277,29 +256,8 @@ def parseTranslationUnit(tokenBuffer):
     externalDeclaration = parseExternalDeclaration(tokenBuffer)
     #Updating the translatationUnitTree with the externalDeclation subtree
     translationUnitTree['Translation-Unit'].update(externalDeclaration)
-    #if externalDeclaration:
-    #    translationUnitTree['Translation-Unit'].update(externalDeclaration)
-    #    print(tokenBuffer)
     return translationUnitTree 
-"""
-translation-unit':
-    translation-unit translation-unit'
-    epsilon
-"""
 
-def parseTranslationUnitPrime(tokenBuffer):
-    """
-    Descripton:
-    Arguments:
-    Returns:
-    """
-    #Initializes a dictionary object that will store the children of translation-unit-prime
-    translationUnitPrimeTree = {'Translation-Unit-Prime':{}}
-    if tokenBuffer:
-        translationUnit = parseTranslationUnit(tokenBuffer)
-        if translationUnit:
-            translationUnitPrimeTree['Translation-Unit-Prime'].update(translationUnit)
-    return translationUnitPrimeTree
 """
 external-declaration:
     declaration
@@ -325,6 +283,27 @@ def parseExternalDeclaration(tokenBuffer):
             print(tokenBuffer)
     return externalDeclarationTree
 
+"""
+external-declaration':
+    external-declaration external-declaration'
+    epsilon
+"""
+
+def parseExternalDeclarationPrime(tokenBuffer):
+    """
+    Description:
+    Arguments:
+    Returns:
+    """
+    externalDeclarationPrimeTree = {'External-Declaration-Prime':{}}
+    if tokenBuffer:
+        externalDeclaration = parseExternalDeclaration(tokenBuffer)
+        if externalDeclaration:
+            externalDeclarationPrimeTree['External-Declaration-Prime'].update(externalDeclaration)
+            externalDeclarationPrime = parseExternalDeclarationPrime(tokenBuffer)
+            if externalDeclarationPrime:
+                externalDeclarationPrimeTree['External-Declaration-Prime'].update(externalDeclarationPrime)
+    return externalDeclarationPrimeTree
 """
 declaration:
     declaration-specifiers init-declarator-list;
@@ -928,8 +907,7 @@ def parseFunctionDefinition(tokenBuffer):
     declarationSpecifiers = parseDeclarationSpecifiers(tokenBuffer)
     if declarationSpecifiers:
         functionDefTree['Function-Definition'].update(declarationSpecifiers)
-        isAFunction = True
-        declarator = parseDeclarator(tokenBuffer)
+        declarator = parseDeclarator(tokenBuffer,definedInFunctionDef = True)
         if declarator:
             functionDefTree['Function-Definition'].update(declarator)
             declarationList = parseDeclarationList(tokenBuffer)
@@ -974,13 +952,7 @@ def parsePointer(tokenBuffer):
     pointerTree = {'Pointer':{}}
     return pointerTree
 
-"""
-direct-declarator:
-    identifier 
-    (declarator)
-    direct-declarator(parameter-type-list)
-    direct-declarator(identifier-type-listopt)
-"""
+
 """
 direct-declarator:
     identifer direct-declarator'
@@ -1006,20 +978,37 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
     #       error message
     directDeclaratorTree = {'Direct-Declarator':{}}
     tokenToBeConsumed = tokenBuffer[0]
-    if tokenToBeConsumed.type == 'ID':
-        directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-        consume(tokenToBeConsumed,tokenBuffer)
-    tokenToBeConsumed = tokenBuffer[0]
-    if tokenToBeConsumed.type == 'LPAREN':
-        directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-        consume(tokenToBeConsumed,tokenBuffer)
-        declarator = parseDeclarator(tokenBuffer)
-        if declarator:
-            directDeclaratorTree['Direct-Declarator'].update(declarator)
-            tokenToBeConsumed = tokenBuffer[0]
-            if tokenToBeConsumed.type == 'RPAREN':
+    if definedInFunctionDef == False:
+        if tokenToBeConsumed.type == 'LPAREN':
+            directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
+            declarator = parseDeclarator(tokenBuffer)
+            if declarator:
+                directDeclaratorTree['Direct-Declarator'].update(declarator)
+                tokenToBeConsumed = tokenBuffer[0]
+                if tokenToBeConsumed.type == 'RPAREN':
+                    directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                    consume(tokenToBeConsumed,tokenBuffer)
+                    directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
+                    if directDeclaratorP:
+                        directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)        
+                else:
+                    #error handling
+                    pass
+        elif tokenToBeConsumed.type == 'ID':
                 directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                 consume(tokenToBeConsumed,tokenBuffer)
+                directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
+                if directDeclaratorP:
+                    directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)      
+    else:
+        if tokenToBeConsumed.type == 'ID':
+            directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
+            directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
+            if directDeclaratorP:
+                directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)
+
     return directDeclaratorTree
 
 """
@@ -1037,7 +1026,186 @@ def parseDirectDeclaratorPrime(tokenBuffer, isInFunDef = False):
     Returns:    
         directDeclaratorPrimeTree: dict that stores children resulting from its productions
     """
-    pass
+    directDeclaratorPrimeTree = {'Direct-Declarator-Prime':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type == 'LPAREN':
+        directDeclaratorPrimeTree['Direct-Declarator-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        parameterTypeList = parseParameterTypeList(tokenBuffer)
+        if parameterTypeList['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers'] == {}:
+            if parameterTypeList['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declarator']['Direct-Declarator'] != {}:
+                identifierList = parseIdentifierList(tokenBuffer)
+                if identifierList['Identifier-List']:
+                    directDeclaratorPrimeTree['Direct-Declarator-Prime'].update(identifierList)
+                    tokenToBeConsumed = tokenBuffer[0]
+                    if tokenToBeConsumed.type == 'RPAREN':
+                        directDeclaratorPrimeTree['Direct-Declarator-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                        consume(tokenToBeConsumed,tokenBuffer)
+                    else:
+                        #error handling
+                        pass
+            else:
+                directDeclaratorPrimeTree['Direct-Declarator-Prime'].update(parameterTypeList)
+                tokenToBeConsumed = tokenBuffer[0]
+                if tokenToBeConsumed.type == 'RPAREN':
+                    directDeclaratorPrimeTree['Direct-Declarator-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                    consume(tokenToBeConsumed,tokenBuffer)
+        else:
+            directDeclaratorPrimeTree['Direct-Declarator-Prime'].update(parameterTypeList)
+            tokenToBeConsumed = tokenBuffer[0]
+            if tokenToBeConsumed.type == 'RPAREN':
+                    directDeclaratorPrimeTree['Direct-Declarator-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                    consume(tokenToBeConsumed,tokenBuffer)
+            else:
+                #error handling
+                pass
+    else:
+        #error handling 
+        pass
+    return directDeclaratorPrimeTree
+
+"""
+if the list terminates with an ellipsis (, ...),
+no information about the number or types
+of the parameters after the comma is supplied.
+
+parameter-type-list:
+    parameter-list
+    parameter-list, ...
+"""
+
+def parseParameterTypeList(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        parameterTypeListTree: dict object that contains the children resulting from parameter-type-list productions
+    """
+    parameterTypeListTree = {'Parameter-Type-List':{}}
+    parameterList = parseParameterList(tokenBuffer)
+    if parameterList:
+        parameterTypeListTree['Parameter-Type-List'].update(parameterList)
+    return parameterTypeListTree
+
+"""
+parameter-list:
+    parameter-declaration parameter-list'
+"""
+
+def parseParameterList(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        parameterListTree: dict object that contains the children resulting from parameter-list productions
+    """
+    parameterListTree = {'Parameter-List':{}}
+    parameterDeclaration = parseParameterDeclaration(tokenBuffer)
+    if parameterDeclaration:
+        parameterListTree['Parameter-List'].update(parameterDeclaration)
+        parameterListPrime = parseParameterListPrime(tokenBuffer)
+        if parameterListPrime:
+            parameterListTree['Parameter-List'].update(parameterListPrime)
+    return parameterListTree
+
+
+"""
+parameter-list':
+    , parameter-declaration parameter-list'
+    epsilon
+"""
+
+def parseParameterListPrime(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        parameterListPrimeTree: dict object that contains the children resulting from parameter-list' productions
+    """
+    parameterListPrimeTree = {'Parameter-List-Prime':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type == 'COMMA':
+        parameterListPrimeTree['Parameter-List-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        parameterDeclaration = parseParameterDeclaration(tokenBuffer)
+        if parameterDeclaration:
+            parameterListPrimeTree['Parameter-List-Prime'].update(parameterDeclaration)
+            parameterListPrime = parseParameterListPrime(tokenBuffer)
+            if parameterListPrime:
+                parameterListPrimeTree['Parameter-List-Prime'].update(parameterListPrime)
+    return parameterListPrimeTree
+
+"""
+parameter-declaration:
+    declaration-specifers declarator
+"""
+def parseParameterDeclaration(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        parameterDeclarationTree: dict object that contains the children resulting from parameter-declaration productions
+    """
+    parameterDeclarationTree = {'Parameter-Declaration':{}}
+    declarationSpecifiers = parseDeclarationSpecifiers(tokenBuffer)
+    if declarationSpecifiers:
+        parameterDeclarationTree['Parameter-Declaration'].update(declarationSpecifiers)
+        declarator = parseDeclarator(tokenBuffer)
+        if declarator:
+            parameterDeclarationTree['Parameter-Declaration'].update(declarator)
+    return parameterDeclarationTree
+"""
+identifier-list:
+    identifier identifier-list'
+"""
+
+def parseIdentifierList(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that havce yet to be consumed
+    Returns:
+        identifierListTree: dict object that contains the children resulting from identifier-list productions
+    """
+    identifierListTree = {'Identifier-List':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type == 'ID':
+        identifierListTree['Identifier-List'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        identifierListPrime = parseIdentifierListPrime(tokenBuffer)
+        if identifierListPrime:
+            identifierListTree['Identifier-List'].update(identifierListPrime)
+    return identifierListTree
+
+"""
+identifer-list':
+    , identifer identifier-list'
+"""
+def parseIdentifierListPrime(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        identifierListPrimeTree: dict object that contains the children resulting from identifier-list-prime productions
+    """
+    identifierListPrimeTree = {'Identifier-List-Prime':{}}
+    tokenToBeConsumed = tokenBuffer[0] 
+    if tokenToBeConsumed.type == 'COMMA':
+        identifierListPrimeTree['Identifier-List-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed, tokenBuffer)
+        tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.type == 'ID':
+            identifierListPrimeTree['Identifier-List-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
+            identifierListPrime = parseIdentifierListPrime(tokenBuffer)
+            if identifierListPrime:
+                identifierListPrimeTree['Identifier-List-Prime'].update(identifierListPrime)
+    return identifierListPrimeTree
 
 """
 declaration-list:

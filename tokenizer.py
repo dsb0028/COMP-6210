@@ -10,7 +10,7 @@ class Token(NamedTuple):
     column: int
 
 def tokenize(code):
-    types = {'int', 'double', 'float'}
+    types = {'int', 'double', 'float','char'}
     modifiers = {'unsigned', 'long', 'short'}
     itrs = {'if', 'for', 'while', 'switch', 'do'}
     controlStmts = {'return', 'break'}
