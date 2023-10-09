@@ -18,10 +18,11 @@ external-declaration':
     
 declaration:
     declaration-specifiers init-declarator-list;
+    ID initital-declarator;
     epsilon
 
 declaration-specifiers:
-    type declaration-specifers'
+    type-specifier declaration-specifers'
 
 declaration-specifiers':
     declaration-specifiers declaration-specifiers'
@@ -41,27 +42,7 @@ init-declarator:
 
 initializer:
     assignment-expression
-    { initializer-list }
-    { initializer-list, }    
-
-initializer-list:
-    designation initializer
-
-designation:
-    designation-list =
-    epsilon
-
-designator-list:
-    designator
-    desinator-list designator
-
-designator:
-    [ constant-expression ]
-    . identifier
-
-constant-expression:
-    conditional-expression
-
+  
 assignment-expression:
     conditional-expression
     unary-expression assignment-operator assignment-expression
@@ -114,13 +95,9 @@ cast-expression:
     unary-expression
 
 expression:
-    assignment-expression expression-list
+    assignment-expression 
     epsilon
     
-expession-list:
-    , expression expression-list
-    epsilon
-
 unary-expression:
     postfix-expression
 
@@ -191,7 +168,6 @@ identifer-list':
 """
 symTable = SymbolTable()
 consumed = []
-#internalNodeKeys = {'Expr', 'Term', 'TermP', 'Factor','ExprP'}
 def createParseTree(tokens):
     """
     Description: 
@@ -199,21 +175,15 @@ def createParseTree(tokens):
     Args:
         tokens: a list of tokens generated from the tokenizer
     Returns:
-        expr: nested dictionary object that contains the resulting parse tree
+        translationUnit: nested dictionary object that contains the resulting parse tree
     """
     #Stores the tokens into a tokenBuffer
     #The token buffer stores tokens in the order that they are going to be consumed
     tokenBuffer = tokens
-    #print("tokenBuffer",tokenBuffer)
-    #Stores the parse tree resulting from my recursive decent parser with no back tracking
-    #expr = parseExpr(tokenBuffer)
-    #declarations = parseDeclarations(tokenBuffer)
+    #Stores the parse tree resulting from my recursive decent parser with some back tracking
     translationUnit = parseTranslationUnit(tokenBuffer)
     #checks to make sure that all tokens have been consumed, i.e token buffer should be empty
     # if all tokens have not been consumed yet, then we need to throw an error message
-    #print("Consumed",len(consumed), '\n', "Token Buffer", set(tokenBuffer),'\n')
-    #print("consumed",consumed,'\n', "length of token buffer", len(tokenBuffer))
-    print("Length of Consumed", len(consumed), "tokenBuffer",tokenBuffer)
     if not set(tokenBuffer).issubset(set(consumed)):
         #Convert the values of all the consumed tokens into string format
         #errorString = generateErrorString(tokenBuffer, isParseTreeGenerated=True)
@@ -260,7 +230,6 @@ def parseTranslationUnit(tokenBuffer):
     translationUnitTree = {'Translation-Unit':{}}
     externalDeclaration = parseExternalDeclaration(tokenBuffer)
     #Updating the translatationUnitTree with the externalDeclation subtree
-    #print("TokenBuffer", tokenBuffer, '\n')
     if externalDeclaration:
         translationUnitTree['Translation-Unit'].update(externalDeclaration)
     return translationUnitTree 
@@ -288,7 +257,6 @@ def parseExternalDeclaration(tokenBuffer):
         functionDef = parseFunctionDefinition(tokenBuffer)
         if functionDef['Function-Definition'] != {}:
             externalDeclarationTree['External-Declaration'].update(functionDef)
-            print(tokenBuffer)
     return externalDeclarationTree
 
 """
@@ -764,7 +732,7 @@ def parseCastExpression(tokenBuffer):
 
 """
 expression:
-    assignment-expression expression-list
+    assignment-expression
     epsilon
 """
 def parseExpression(tokenBuffer):
@@ -777,34 +745,7 @@ def parseExpression(tokenBuffer):
     assignmentExpr = parseAssignmentExpression(tokenBuffer)
     if assignmentExpr['Assignment-Expression'] != {}:
         exprTree['Expression'].update(assignmentExpr)
-    expressionList = parseExpressionList(tokenBuffer)
-    if expressionList:
-        exprTree['Expression'].update(expressionList)
     return exprTree
-
-"""    
-expession-list:
-    , expression expression-list
-    epsilon
-"""
-def parseExpressionList(tokenBuffer):
-    """
-    Description:
-    Arguments:
-    Returns:
-    """
-    expressionListTree = {'Expression-List':{}}
-    tokenToBeConsumed = tokenBuffer[0]
-    if tokenToBeConsumed.type == 'COMMA':
-        expressionListTree['Expression-List'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-        consume(tokenToBeConsumed,tokenBuffer)
-        expression = parseExpression(tokenBuffer)
-        if expression:
-            expressionListTree['Expression-List'].update(expression)
-            expressionList = parseExpressionList(tokenBuffer)
-            if expressionList:
-                expressionListTree['Expression-List'].update(expressionList)
-    return expressionListTree
 
 """
 unary-expression:
@@ -918,14 +859,12 @@ def parseFunctionDefinition(tokenBuffer):
         declarator = parseDeclarator(tokenBuffer,definedInFunctionDef = True)
         if declarator:
             function = declarator['Declarator']['Direct-Declarator']['ID']
-            #varTypeToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers']['type-specifier']
-            #varValueToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declarator']['Direct-Declarator']['ID']
-            #print("Parameter-List-Prime",declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-List-Prime'])
-            #parameters = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']
-            #print("Parameters",parameters)
-            #print("Var",varTypeToAddToSymbolTable,varValueToAddToSymbolTable)
             symTable.addAFunction(function)
-            #symTable.addAVariable(varValueToAddToSymbolTable,varTypeToAddToSymbolTable,function)
+            if declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime'].get('Parameter-Type-List'):
+                if declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers'] != {}:
+                    varTypeToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers']['type-specifier']
+                    varValueToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declarator']['Direct-Declarator']['ID']
+                    symTable.addAVariable(varValueToAddToSymbolTable,varTypeToAddToSymbolTable,function)
             functionDefTree['Function-Definition'].update(declarator)
             declarationList = parseDeclarationList(tokenBuffer)
             if declarationList:
@@ -1006,9 +945,6 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
                     pass
         elif tokenToBeConsumed.type == 'ID':
                 directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-                print("Symbol Table",symTable.table)
-                print(tokenToBeConsumed.value)
-                #symTable.addAVariable(tokenToBeConsumed.value,tokenToBeConsumed.type,symTable.table['main'])
                 consume(tokenToBeConsumed,tokenBuffer)
                 directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
                 if directDeclaratorP:
@@ -1095,7 +1031,6 @@ def parseParameterTypeList(tokenBuffer):
         parameterTypeListTree: dict object that contains the children resulting from parameter-type-list productions
     """
     parameterTypeListTree = {'Parameter-Type-List':{}}
-    #print("1",symTable.table)
     parameterList = parseParameterList(tokenBuffer)
     if parameterList:
         parameterTypeListTree['Parameter-Type-List'].update(parameterList)
@@ -1168,12 +1103,7 @@ def parseParameterDeclaration(tokenBuffer):
     if declarationSpecifiers:
         parameterDeclarationTree['Parameter-Declaration'].update(declarationSpecifiers)
         declarator = parseDeclarator(tokenBuffer)
-        if declarator:
-            #variable = declarator['Declarator']['Direct-Declarator']['ID']
-            #variableType = declarationSpecifiers['Declaration-Specifiers']['int']
-            #print("Variable Type",variableType)
-            #print("Symbol Table",symTable.table)
-            #symTable.addAVariable(variable,variableType,function='main')         
+        if declarator:   
             parameterDeclarationTree['Parameter-Declaration'].update(declarator)
     return parameterDeclarationTree
 """

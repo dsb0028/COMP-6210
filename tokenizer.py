@@ -1,6 +1,5 @@
 from typing import NamedTuple
 import re
-#import numpy as np
 #got this code from https://docs.python.org/3/library/re.html#re.Match
 
 class Token(NamedTuple):
@@ -10,7 +9,7 @@ class Token(NamedTuple):
     column: int
 
 def tokenize(code):
-    types = {'int', 'double', 'float','char'}
+    types = {'int', 'double', 'float'}
     modifiers = {'unsigned', 'long', 'short'}
     itrs = {'if', 'for', 'while', 'switch', 'do'}
     controlStmts = {'return', 'break'}
@@ -44,17 +43,13 @@ def tokenize(code):
     ]
 
     tokens = []
-    
-    #Allows me to handle comments by treating them as new line characters
-    #code = re.sub('//.*', ' ', code)
-    #code = re.sub('\/\*.*\*\/', "\n", code)
-    
+      
     code = re.sub('\//.*|\/\*.*\*\/'," ", code)
     #stores instances of strings
     strings = re.findall('\'.*\'|\".*\"', code)
     #print(strings)
 
-    #remove all charcters after first single quote or first double literal
+    #remove all charcters after first single quote or first double quote
     code = re.sub('\'.*\'', "\'", code)
     code = re.sub('\".*\"', "\"", code)
     
@@ -66,22 +61,18 @@ def tokenize(code):
         kind = mo.lastgroup
         value = mo.group()
         column = mo.start() - line_start + 1
-        #print(mo)
         if kind == 'NUMBER':
             value = float(value) if '.' in value else int(value)
         elif kind == 'ID' and value in keywords:
             kind = value
         elif kind == 'SQUOTE':
-            index = code[mo.start()+1:].find('\'') + mo.start() + 1
             kind = 'C_LITERAL' # character literal
             value = strings[0]
             strings.pop(0)
         elif kind == 'DQUOTE':
-            index = code[mo.start()+1:].find('\"') + mo.start() + 1
             kind = 'S_LITERAL' # string literal
             value = strings[0]
             strings.pop(0)
-            #print(mo.group(0))
         elif kind == 'NEWLINE':
             line_start = mo.end()
             line_num += 1
@@ -91,9 +82,7 @@ def tokenize(code):
         elif kind == 'MISMATCH':
             raise RuntimeError(f'{value!r} unexpected on line {line_num}')
         token =  Token(kind, value, line_num, column)
-        #print("Token",token, '\n')
         tokens.append(token)
-        #print(tokens)
     return tokens
 
     

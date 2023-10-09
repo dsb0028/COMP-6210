@@ -61,153 +61,188 @@ SKIP => ' ' | '\t' => at least one space or tab
 
 MISMATCH => any other character
 
-
 Grammar:
 
-program: 
-	declarations
+Program:
+    translation-unit
 
-declarations:
-	external-declaration 	
+translation-unit:
+    external-declaration external-declaration'
 
 external-declaration:
-	function-definition
-	declaration
-	
+    declaration
+    function-definition
+
+external-declaration':
+    external-declaration external-declaration'
+    epsilon
+    
 declaration:
-	declaration-specifiers init-declarator-listopt ;
+    declaration-specifiers init-declarator-list;
+    ID initital-declarator;
+    epsilon
 
 declaration-specifiers:
-	type-specifier declaration-specifiers
- 
+    type-specifier declaration-specifers'
+
+declaration-specifiers':
+    declaration-specifiers declaration-specifiers'
+    epsilon
+    
 init-declarator-list:
-	init-declarator
-	init-declarator-list , init-declarator
+    init-declarator init-declarator-list' 
+    epsilon
+
+init-declarator-list':
+    , init-declarator-list init-declarator-list'
+    epsilon  
 
 init-declarator:
-	declarator
-	declarator = initializer
+    declarator
+    declarator = initializer
 
-function-definition:
-	declaration-specifiers declarator declaration-listopt compound-statement
+initializer:
+    assignment-expression
+  
+assignment-expression:
+    conditional-expression
 
-declaration-list:
-	declaration
-	declaration-list declaration
+conditional-expression:
+    logical-OR-expression
 
-declarator:
-	direct-declarator
+logical-OR-expression;
+    logical-AND-expression
 
-direct-declarator:
-	
-	identifier (identifier-listopt)
+logical-AND-expression:
+    inclusive-OR-expression
 
-identifier-list:
-	identifier
-	identifier-list , identifier
+inclusive-OR-expression:
+    exclusive-OR-expression
 
-compound-statement:
-	{ block-item-list }
+exclusive-OR-expression:
+    AND-expression
 
+AND-expression:
+    equality-expression
 
-block-item-list:
-	block-item
-	block-item-list block-item
+equality-expression:
+    relational-expression
 
-block-item:
-	declaration
-	statement
+relational-expression:
+    shift-expression
 
-statement:
-	jump-statement
+shift-expression:
+    additive-expression
 
-jump-statement:
-	return expressionopt;
+additive-expression:
+    multiplicative-expression additive-expression'
+   
+additive-expression':
+    + multiplicative-expression additive-expression'
+    - multiplicatice-expression additive-expression'
+    epsilon
+        
+multiplicative-expression:
+    cast-expression multiplicative-expresssion'
+  
+multiplicative-expresssion':
+    * cast-expression multiplicative-expresssion'
+    / cast-expression multiplicative-expresssion'
+    % cast-expression multiplicative-expresssion'
+    epsilon
+
+cast-expression:
+    unary-expression
 
 expression:
-	assignment-expression
-	expression , assignment-expression
-
-assignment-expression:
-	conditional-expression
-	unary-expression assignment-operator assignment-expression
-
+    assignment-expression 
+    epsilon
+    
 unary-expression:
-	postfix-expression
-	++ unary-expression
-	-- unary-expression
+    postfix-expression
 
 postfix-expression:
-	primary-expression
-	postfix-expression [ expression ]
-	postfix-expression ( argument-expression-listopt )
-	postfix-expression . identifier
-	postfix-expression -> identifier
-	postfix-expression ++
-	postfix-expression --
-	( type-name ) { initializer-list }
-	( type-name ) { initializer-list , }
+    primary-expression
 
 primary-expression:
-	identifier
-	constant
-	string-literal
-	( expression )
+    identifier
+    constant
+    string-literal
+    ( expression )
+    
+declarator:
+    pointer direct-declarator
 
-argument-expression-list:
-	assignment-expression
-	argument-expression-list , assignment-expression
+pointer:
+    epsilon
+
+function-definition:
+    declaration-specifiers declarator declaration-list compound-statement
+
+compound-statement:
+    { block-item-list }
+
+block-item-list:
+    block-item block-item-list
+    epsilon
+
+block-item:
+    declaration
+    statement
+
+statement:
+    compound-statement
+    jump-statement
+
+jump-statement:
+    return expressionopt;
+    
+declaration-list:
+    declaration declaration-list
+    epsilon
+
+direct-declarator:
+    identifer direct-declarator'
+    (declarator) direct-declarator'
+
+direct-declarator':
+    (parameter-type-list)
+    (identifer-list)
+    epsilon
+
+parameter-type-list:
+    parameter-list
+    parameter-list, ...
+
+parameter-list:
+    parameter-declaration parameter-list'
+
+parameter-declaration:
+    declaration-specifers declarator
+
+identifier-list:
+    identifier identifier-list'
+
+identifer-list':
+    , identifer identifier-list'
 
 
-assignment-operator:
-	= | *= | /= | %= | += | -= | <<= | >>= | &= | ^= | |=
 
-unary-operator:
-	& | * | + | - | ~ | !
-
-expression-statement:
-	expressionopt ;
-
-constant-expression:
-	conditional-expression
+Tree:
+	Parse Tree
 
 
-Expr -> Term Expr'
-
-Expr' -> + Term Expr' | - Term Expr' | epsilon
-
-Term -> Factor Term' 
-
-Term' -> * Factor Term' | / Factor Term' | epsilon
-
-Factor -> ( Expr )  | num  | ID 
-
-
-
-Grammar:
-
-Expr -> Expr + Term  | Expr - Term  | Term
-
-Term -> Term * Factor  | Term / Factor  | Factor
-
-Factor -> ( Expr )  | num  | ID
-
-
-eliminate left recursion
-
-Expr -> Term Expr'
-
-Expr' -> + Term Expr' | - Term Expr' | epsilon
-
-Term -> Factor Term' 
-
-Term' -> * Factor Term' | / Factor Term' | epsilon
-
-Factor -> ( Expr )  | num  | ID
-
-
-
-
-
-
+Comments:
+	Used C11 handbook provided on Canvas to help me restructure the grammar
+	Symbol Table will only be correct when there are 0 or 1 parameters.
+	Symbol Table will not contain variables defined inside of a function
+	Parse Tree does not support functions that have a return type of char
+	Parse Tree will support functions that either have a return type of int, float, or double
+	Error handling has not been fully implemented
+	Had to restructure grammar so it can be further expanded to support more things
+	function-definition cannot support identifier-lists in the declarator due to bug in code.
+	function-definition can only support parameter-type-list inside of declarator
+	can not produce valid parse tree if source file contains more than one function
+	Having strange issue where the tokenbuffer will suddenly contain the tokens from compound statment when the subtree for external declaration is added to translation-unit
+	I am getting the correct parse trees. It's a very strange bug. 
 
