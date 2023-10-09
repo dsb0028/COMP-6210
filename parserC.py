@@ -363,7 +363,7 @@ def parseDeclarationSpecifiers(tokenBuffer):
     types = {'int', 'float','double'}
     #check if type-specifier is valid type
     if tokenToBeConsumed.type in types:
-        declarationSpecifiers['Declaration-Specifiers'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        declarationSpecifiers['Declaration-Specifiers'].update({'type-specifier':tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         declarationSpecifiersP = parseDeclarationSpecifiersPrime(tokenBuffer)
         if declarationSpecifiersP:
@@ -917,6 +917,15 @@ def parseFunctionDefinition(tokenBuffer):
         functionDefTree['Function-Definition'].update(declarationSpecifiers)
         declarator = parseDeclarator(tokenBuffer,definedInFunctionDef = True)
         if declarator:
+            function = declarator['Declarator']['Direct-Declarator']['ID']
+            #varTypeToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers']['type-specifier']
+            #varValueToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declarator']['Direct-Declarator']['ID']
+            #print("Parameter-List-Prime",declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-List-Prime'])
+            #parameters = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']
+            #print("Parameters",parameters)
+            #print("Var",varTypeToAddToSymbolTable,varValueToAddToSymbolTable)
+            symTable.addAFunction(function)
+            #symTable.addAVariable(varValueToAddToSymbolTable,varTypeToAddToSymbolTable,function)
             functionDefTree['Function-Definition'].update(declarator)
             declarationList = parseDeclarationList(tokenBuffer)
             if declarationList:
@@ -997,6 +1006,9 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
                     pass
         elif tokenToBeConsumed.type == 'ID':
                 directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                print("Symbol Table",symTable.table)
+                print(tokenToBeConsumed.value)
+                #symTable.addAVariable(tokenToBeConsumed.value,tokenToBeConsumed.type,symTable.table['main'])
                 consume(tokenToBeConsumed,tokenBuffer)
                 directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
                 if directDeclaratorP:
@@ -1083,6 +1095,7 @@ def parseParameterTypeList(tokenBuffer):
         parameterTypeListTree: dict object that contains the children resulting from parameter-type-list productions
     """
     parameterTypeListTree = {'Parameter-Type-List':{}}
+    #print("1",symTable.table)
     parameterList = parseParameterList(tokenBuffer)
     if parameterList:
         parameterTypeListTree['Parameter-Type-List'].update(parameterList)
@@ -1156,6 +1169,11 @@ def parseParameterDeclaration(tokenBuffer):
         parameterDeclarationTree['Parameter-Declaration'].update(declarationSpecifiers)
         declarator = parseDeclarator(tokenBuffer)
         if declarator:
+            #variable = declarator['Declarator']['Direct-Declarator']['ID']
+            #variableType = declarationSpecifiers['Declaration-Specifiers']['int']
+            #print("Variable Type",variableType)
+            #print("Symbol Table",symTable.table)
+            #symTable.addAVariable(variable,variableType,function='main')         
             parameterDeclarationTree['Parameter-Declaration'].update(declarator)
     return parameterDeclarationTree
 """

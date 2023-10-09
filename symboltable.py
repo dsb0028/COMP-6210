@@ -10,7 +10,7 @@ class SymbolTable:
     
     def lookUpVariable(self,name,function):
         if name not in self.table[function]:
-            raise SyntaxError("woah")
+            raise SyntaxError("Variable not found")
         else:
             return self.table[function][name]
 def main():
