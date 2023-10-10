@@ -1353,7 +1353,6 @@ def parseBlockItem(tokenBuffer):
     blockItemTree = {'Block-Item':{}}
     declaration = parseDeclaration(tokenBuffer)
     if declaration['Declaration'].get('END') == None:
-        #backtracking
         statement = parseStatement(tokenBuffer)
         if statement:
             blockItemTree['Block-Item'].update(statement)
