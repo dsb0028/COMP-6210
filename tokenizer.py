@@ -34,7 +34,7 @@ def tokenize(code):
         ('PREFIX_OP', r"\+\+|\-\-"),      # Unary operators
         ('MATH_OP',  r'[+\-*/%]'),     # Arithmetic operators
         ('RELAT_OP', r"<=|>=|!=|>|<|=="), # Relational operators
-        ('LOGICAL_OP', r"&&|!|'\||'"),          # Logical operators
+        ('LOGICAL_OP', r"&&|!|\|\|"),          # Logical operators
         ('BITWISE_OP', r"&|\||<<|>>|~|\^"), # Bitwise operators
         ('TERNARY_OP', r'\?:'),        # Ternary operator
         ('NEWLINE',  r'\n'),           # Line endings

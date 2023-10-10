@@ -198,6 +198,7 @@ def createParseTree(tokens):
     translationUnit = parseTranslationUnit(tokenBuffer)
     #checks to make sure that all tokens have been consumed, i.e token buffer should be empty
     # if all tokens have not been consumed yet, then we need to throw an error message
+    print("Tokens",tokens)
     if not set(tokenBuffer).issubset(set(consumed)):
         #Convert the values of all the consumed tokens into string format
         #errorString = generateErrorString(tokenBuffer, isParseTreeGenerated=True)
@@ -246,6 +247,7 @@ def parseTranslationUnit(tokenBuffer):
     #Updating the translatationUnitTree with the externalDeclation subtree
     if externalDeclaration:
         translationUnitTree['Translation-Unit'].update(externalDeclaration)
+        print("Token-Buffer-Empty-2",tokenBuffer)
     return translationUnitTree 
 
 """
@@ -267,10 +269,12 @@ def parseExternalDeclaration(tokenBuffer):
         externalDeclarationTree['External-Declaration'].update(declaration)
     else:
         tokenBuffer = consumed + tokenBuffer
+        print(tokenBuffer)
         consumed.clear()
         functionDef = parseFunctionDefinition(tokenBuffer)
         if functionDef['Function-Definition'] != {}:
             externalDeclarationTree['External-Declaration'].update(functionDef)
+    print("Token-Buffer-External-Def", tokenBuffer)
     return externalDeclarationTree
 
 """
@@ -482,9 +486,11 @@ def parseConditionalExpression(tokenBuffer):
         conditionalExprTree['Conditional-Expression'].update(logicalOrExpression)
     return conditionalExprTree
 
+
+
 """
-logical-OR-expression;
-    logical-AND-expression
+logical-OR-expression:
+    logical-AND-expression logical-OR-expression'
 """
 def parseLogicalOrExpression(tokenBuffer):
     """
@@ -496,11 +502,37 @@ def parseLogicalOrExpression(tokenBuffer):
     logicalAndExpr = parseLogicalAndExpression(tokenBuffer)
     if logicalAndExpr:
         logicalOrExpressionTree['Logical-OR-Expression'].update(logicalAndExpr)
+        logicalOrExprPrime = parseLogicalOrExpressionPrime(tokenBuffer)
+        if logicalOrExprPrime:
+            logicalOrExpressionTree['Logical-OR-Expression'].update(logicalOrExprPrime)
     return logicalOrExpressionTree
 
 """
+logical-OR-expression':
+    || logical-AND-expression 
+    epsilon
+"""
+def parseLogicalOrExpressionPrime(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        logicalOrExpressionPrimeTree
+    """
+    logicalOrExpressionPrimeTree = {'Logical-OR-Expression-Prime':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.value == '||':
+        logicalOrExpressionPrimeTree['Logical-OR-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        logicalAndExpr = parseLogicalAndExpression(tokenBuffer)
+        if logicalAndExpr:
+            logicalOrExpressionPrimeTree['Logical-OR-Expression-Prime'].update(logicalAndExpr)
+    return logicalOrExpressionPrimeTree
+
+"""
 logical-AND-expression:
-    inclusive-OR-expression
+    inclusive-OR-expression logical-AND-expression'
 """
 def parseLogicalAndExpression(tokenBuffer):
     """
@@ -512,8 +544,34 @@ def parseLogicalAndExpression(tokenBuffer):
     inclusiveOrExpr = parseInclusiveOrExpression(tokenBuffer)
     if inclusiveOrExpr['Inclusive-OR-Expression'] != {}:
         logicalAndExprTree['Logical-AND-Expression'].update(inclusiveOrExpr)
+        logicalAndExprPrime = parseLogicalAndExpressionPrime(tokenBuffer)
+        if logicalAndExprPrime:
+            logicalAndExprTree['Logical-AND-Expression'].update(logicalAndExprPrime)
     return logicalAndExprTree
 
+"""
+logical-AND-expression':
+    && inclusive-OR-expression
+    epsilon
+"""
+def parseLogicalAndExpressionPrime(tokenBuffer):
+    """
+    Definition:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+    
+    """
+    logicalAndExpressionPrimeTree = {'Logical-AND-Expression-Prime':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.value == '&&':
+        logicalAndExpressionPrimeTree['Logical-AND-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        inclusiveOrExpr = parseInclusiveOrExpression(tokenBuffer)
+        if inclusiveOrExpr:
+            logicalAndExpressionPrimeTree['Logical-AND-Expression-Prime'].update(inclusiveOrExpr)
+    return logicalAndExpressionPrimeTree
+    pass
 """
 inclusive-OR-expression:
     exclusive-OR-expression
@@ -937,6 +995,7 @@ def parseFunctionDefinition(tokenBuffer):
                 compoundStatement = parseCompoundStatement(tokenBuffer)
                 if compoundStatement:
                     functionDefTree['Function-Definition'].update(compoundStatement)
+    print("Token-buffer-empty",tokenBuffer)
     return functionDefTree
 
 """
@@ -1265,6 +1324,7 @@ def parseCompoundStatement(tokenBuffer):
             if tokenToBeConsumed.type == 'RBRACE':
                 compoundStatementTree['Compound-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                 consume(tokenToBeConsumed,tokenBuffer)
+                print("Token-Buffer-end", tokenBuffer)
     return compoundStatementTree
 
 """
@@ -1273,6 +1333,7 @@ block-item-list:
     epsilon
 """
 def parseBlockItemList(tokenBuffer):
+    print("Token Buffer", tokenBuffer)
     blockItemListTree = {'Block-Item-List':{}}
     if tokenBuffer[0].type != 'RBRACE':
         blockItem = parseBlockItem(tokenBuffer)
