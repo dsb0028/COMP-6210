@@ -182,6 +182,7 @@ identifer-list':
 """
 symTable = SymbolTable()
 consumed = []
+tokenBuffer = []
 def createParseTree(tokens):
     """
     Description: 
@@ -193,13 +194,13 @@ def createParseTree(tokens):
     """
     #Stores the tokens into a tokenBuffer
     #The token buffer stores tokens in the order that they are going to be consumed
+    global tokenBuffer
     tokenBuffer = tokens
     #Stores the parse tree resulting from my recursive decent parser with some back tracking
     translationUnit = parseTranslationUnit(tokenBuffer)
     #checks to make sure that all tokens have been consumed, i.e token buffer should be empty
     # if all tokens have not been consumed yet, then we need to throw an error message
-    print("Tokens",tokens)
-    if not set(tokenBuffer).issubset(set(consumed)):
+    if tokenBuffer:
         #Convert the values of all the consumed tokens into string format
         #errorString = generateErrorString(tokenBuffer, isParseTreeGenerated=True)
         #raise NotAllTokensHaveBeenConsumedError(errorString,"Invalid expression")
@@ -232,7 +233,7 @@ translation-unit:
     external-declaration translation-unit
 """
 
-def parseTranslationUnit(tokenBuffer):
+def parseTranslationUnit(tokens):
     """
     Description:
         Simulates the translation-unit productions     
@@ -243,11 +244,10 @@ def parseTranslationUnit(tokenBuffer):
     """
     #Initializes a dictionary object that will store the children of translation-unit
     translationUnitTree = {'Translation-Unit':{}}
-    externalDeclaration = parseExternalDeclaration(tokenBuffer)
+    externalDeclaration = parseExternalDeclaration(tokens)
     #Updating the translatationUnitTree with the externalDeclation subtree
     if externalDeclaration:
         translationUnitTree['Translation-Unit'].update(externalDeclaration)
-        print("Token-Buffer-Empty-2",tokenBuffer)
     return translationUnitTree 
 
 """
@@ -256,7 +256,7 @@ external-declaration:
     function-definition
 """
 
-def parseExternalDeclaration(tokenBuffer):
+def parseExternalDeclaration(tokens):
     """
     Description:
     Arguments:
@@ -264,17 +264,16 @@ def parseExternalDeclaration(tokenBuffer):
     
     """
     externalDeclarationTree = {'External-Declaration':{}}
-    declaration = parseDeclaration(tokenBuffer)
+    declaration = parseDeclaration(tokens)
     if declaration['Declaration'].get('END') != None:
         externalDeclarationTree['External-Declaration'].update(declaration)
     else:
+        global tokenBuffer
         tokenBuffer = consumed + tokenBuffer
-        print(tokenBuffer)
         consumed.clear()
         functionDef = parseFunctionDefinition(tokenBuffer)
         if functionDef['Function-Definition'] != {}:
             externalDeclarationTree['External-Declaration'].update(functionDef)
-    print("Token-Buffer-External-Def", tokenBuffer)
     return externalDeclarationTree
 
 """
@@ -995,7 +994,6 @@ def parseFunctionDefinition(tokenBuffer):
                 compoundStatement = parseCompoundStatement(tokenBuffer)
                 if compoundStatement:
                     functionDefTree['Function-Definition'].update(compoundStatement)
-    print("Token-buffer-empty",tokenBuffer)
     return functionDefTree
 
 """
@@ -1080,7 +1078,6 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
             directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
             if directDeclaratorP:
                 directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)
-
     return directDeclaratorTree
 
 """
@@ -1324,7 +1321,6 @@ def parseCompoundStatement(tokenBuffer):
             if tokenToBeConsumed.type == 'RBRACE':
                 compoundStatementTree['Compound-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                 consume(tokenToBeConsumed,tokenBuffer)
-                print("Token-Buffer-end", tokenBuffer)
     return compoundStatementTree
 
 """
@@ -1333,7 +1329,6 @@ block-item-list:
     epsilon
 """
 def parseBlockItemList(tokenBuffer):
-    print("Token Buffer", tokenBuffer)
     blockItemListTree = {'Block-Item-List':{}}
     if tokenBuffer[0].type != 'RBRACE':
         blockItem = parseBlockItem(tokenBuffer)
