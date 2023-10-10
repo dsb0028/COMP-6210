@@ -50,8 +50,14 @@ assignment-expression:
 conditional-expression:
     logical-OR-expression
 
-logical-OR-expression;
+logical-OR-expression:
     logical-AND-expression
+    logical-OR-expression || logical-AND-expression
+
+logical-OR-expression:
+    logical-AND-expression logical-OR-expression'
+logical-OR-expression':
+    || logical-AND-expression
 
 logical-AND-expression:
     inclusive-OR-expression
@@ -69,7 +75,15 @@ equality-expression:
     relational-expression
 
 relational-expression:
-    shift-expression
+    shift-expression relational-expression'
+
+relational-expression':
+    < shift-expression
+    > shift-expression
+    <= shift-expression
+    >= shift-expression
+    epsilon 
+
 
 shift-expression:
     additive-expression
@@ -567,8 +581,9 @@ def parseEqualityExpression(tokenBuffer):
 
 """
 relational-expression:
-    shift-expression
+    shift-expression relational-expression'
 """
+
 def parseRelationalExpression(tokenBuffer):
     """
     Description:
@@ -578,8 +593,58 @@ def parseRelationalExpression(tokenBuffer):
     relationalExprTree = {'Relational-Expression':{}}
     shiftExpression = parseShiftExpression(tokenBuffer)
     if shiftExpression['Shift-Expression'] != {}:
-        relationalExprTree['Relational-Expression'].update(shiftExpression)
+        relationalExprTree['Relational-Expression'].update(shiftExpression) 
+        relationalExpressionPrime = parseRelationalExpressionPrime(tokenBuffer)
+        if relationalExpressionPrime['Relational-Expression-Prime']:
+            relationalExprTree['Relational-Expression'].update(relationalExpressionPrime)
     return relationalExprTree
+
+"""
+relational-expression':
+    < shift-expression
+    > shift-expression
+    <= shift-expression
+    >= shift-expression
+    epsilon
+
+"""
+
+def parseRelationalExpressionPrime(tokenBuffer):
+    """
+    Description:
+    Arguments:
+        tokenBuffer: tokens that have yet to be consumed
+    Returns:
+        relationalExpessionPrimeTree:
+    """
+    relationalExpressionPrimeTree = {'Relational-Expression-Prime':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.value == '<':
+        relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        shiftExpression = parseShiftExpression(tokenBuffer)
+        if shiftExpression:
+            relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
+    elif tokenToBeConsumed.value == '>':
+        relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        shiftExpression = parseShiftExpression(tokenBuffer)
+        if shiftExpression:
+            relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
+    elif tokenToBeConsumed.value == '>=':
+        relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        shiftExpression = parseShiftExpression(tokenBuffer)
+        if shiftExpression:
+            relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
+    elif tokenToBeConsumed.value == '<=':
+        relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        shiftExpression = parseShiftExpression(tokenBuffer)
+        if shiftExpression:
+            relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
+    return relationalExpressionPrimeTree
+
 
 """
 shift-expression:
@@ -699,7 +764,7 @@ def parseMultiplicativeExpressionPrime(tokenBuffer):
             consume(tokenToBeConsumed, tokenBuffer)
             castExpression = parseCastExpression(tokenBuffer)
             if castExpression['Cast-Expression'] != {}:
-                multiplicativeExprPrimeTree['Multiplicative Expression Prime'].update(castExpression)
+                multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(castExpression)
                 multiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
                 if multiplicativeExprPrime != None:
                     multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(multiplicativeExprPrime)
@@ -1244,6 +1309,7 @@ def parseBlockItem(tokenBuffer):
 statement:
     compound-statement
     jump-statement
+    selection-statement
 """
 def parseStatement(tokenBuffer):
     """
@@ -1260,6 +1326,10 @@ def parseStatement(tokenBuffer):
         jumpStatement = parseJumpStatement(tokenBuffer) 
         if jumpStatement['Jump-Statement'] != {}:
             statementTree['Statement'].update(jumpStatement)
+        else:
+            selectionStatement = parseSelectionStatement(tokenBuffer)
+            if selectionStatement['Selection-Statement'] != {}:
+                statementTree['Statement'].update(selectionStatement)
     return statementTree
 
 """
@@ -1294,6 +1364,50 @@ def parseJumpStatement(tokenBuffer):
             consume(tokenToBeConsumed,tokenBuffer)
         
     return jumpStatementTree
+
+"""
+selection-statement:
+    if ( expression ) statement
+    if ( expression ) statement else statement
+"""
+
+def parseSelectionStatement(tokenBuffer):
+    """
+    Description:
+    Arguments:
+    Returns:
+    
+    """
+    selectionStmtTree = {'Selection-Statement':{}}
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type == 'if':
+        selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+        tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.type == 'LPAREN':
+            selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
+            expression = parseExpression(tokenBuffer)
+            if expression:
+                selectionStmtTree['Selection-Statement'].update(expression)
+                tokenToBeConsumed = tokenBuffer[0]
+                if tokenToBeConsumed.type == 'RPAREN':
+                    selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                    consume(tokenToBeConsumed,tokenBuffer)
+                    statement = parseStatement(tokenBuffer)
+                    statement['Statement-1'] = statement.pop('Statement')
+                    if statement['Statement-1']:
+                        selectionStmtTree['Selection-Statement'].update(statement)
+                        tokenToBeConsumed = tokenBuffer[0]
+                        if tokenToBeConsumed.type == 'else':
+                            selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                            consume(tokenToBeConsumed, tokenBuffer)
+                            statement = parseStatement(tokenBuffer)
+                            statement['Statement-2'] = statement.pop('Statement')
+                            if statement:
+                                selectionStmtTree['Selection-Statement'].update(statement)         
+    return selectionStmtTree
+
 
 def match(currToken, terminalNodes, isFactor = False):
     """

@@ -11,7 +11,7 @@ class Token(NamedTuple):
 def tokenize(code):
     types = {'int', 'double', 'float'}
     modifiers = {'unsigned', 'long', 'short'}
-    itrs = {'if', 'for', 'while', 'switch', 'do'}
+    itrs = {'if', 'for', 'while', 'switch', 'do','else'}
     controlStmts = {'return', 'break'}
     keywords = types.union(modifiers,itrs,controlStmts)
         
