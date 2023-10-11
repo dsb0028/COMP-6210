@@ -364,7 +364,7 @@ def parseDeclarationSpecifiers(tokenBuffer):
         declarationSpecifiers['Declaration-Specifiers'].update({'type-specifier':tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         declarationSpecifiersP = parseDeclarationSpecifiersPrime(tokenBuffer)
-        if declarationSpecifiersP:
+        if declarationSpecifiersP['Declaration-Specifiers-Prime'] != {}:
             declarationSpecifiers['Declaration-Specifiers'].update(declarationSpecifiersP)
     return declarationSpecifiers
 """
@@ -383,7 +383,7 @@ def parseDeclarationSpecifiersPrime(tokenBuffer):
     if declarationSpecifers != {'Declaration-Specifiers':{}}:
         declarationSpecifiersPrimeDict['Declaration-Specifiers-Prime'].update(declarationSpecifers)
         declarationSpecifersP = parseDeclarationSpecifiersPrime(tokenBuffer)
-        if declarationSpecifersP:
+        if declarationSpecifersP['Declaration-Specifiers-Prime'] != {}:
             declarationSpecifiersPrimeDict['Declaration-Specifiers-Prime'].update(declarationSpecifersP)
     return declarationSpecifiersPrimeDict
 """
@@ -466,6 +466,8 @@ def parseAssignmentExpression(tokenBuffer):
     else:
         if tokenToBeConsumed.value in assignmentOperator:
             findTerminalNodes(conditionalExpr)
+            tokenBuffer.insert(0,consumed[-1])
+            consumed.pop(-1)
             #print(assignmentExpressionTree)
         #backtracking is necessary
         unaryExpr = parseUnaryExpression(tokenBuffer)
@@ -478,6 +480,7 @@ def parseAssignmentExpression(tokenBuffer):
         #assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
         if tokenToBeConsumed.value in assignmentOperator:
             assignmentExpressionTree['Assignment-Expression'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            consume(tokenToBeConsumed,tokenBuffer)
             assignExpr = parseAssignmentExpression(tokenBuffer)
             if assignExpr['Assignment-Expression'] != {}:
                 assignmentExpressionTree['Assignment-Expression'].update(assignExpr)
@@ -501,7 +504,7 @@ def parseConditionalExpression(tokenBuffer):
     """
     conditionalExprTree = {'Conditional-Expression':{}}
     logicalOrExpression = parseLogicalOrExpression(tokenBuffer)
-    if logicalOrExpression:
+    if logicalOrExpression['Logical-OR-Expression'] != {}:
         conditionalExprTree['Conditional-Expression'].update(logicalOrExpression)
     return conditionalExprTree
 
@@ -519,16 +522,16 @@ def parseLogicalOrExpression(tokenBuffer):
     """
     logicalOrExpressionTree = {'Logical-OR-Expression':{}}
     logicalAndExpr = parseLogicalAndExpression(tokenBuffer)
-    if logicalAndExpr:
+    if logicalAndExpr['Logical-AND-Expression'] != {}:
         logicalOrExpressionTree['Logical-OR-Expression'].update(logicalAndExpr)
         logicalOrExprPrime = parseLogicalOrExpressionPrime(tokenBuffer)
-        if logicalOrExprPrime:
+        if logicalOrExprPrime['Logical-OR-Expression-Prime'] != {}:
             logicalOrExpressionTree['Logical-OR-Expression'].update(logicalOrExprPrime)
     return logicalOrExpressionTree
 
 """
 logical-OR-expression':
-    || logical-AND-expression 
+    || logical-AND-expression logical-OR-expression'
     epsilon
 """
 def parseLogicalOrExpressionPrime(tokenBuffer):
@@ -545,8 +548,11 @@ def parseLogicalOrExpressionPrime(tokenBuffer):
         logicalOrExpressionPrimeTree['Logical-OR-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         logicalAndExpr = parseLogicalAndExpression(tokenBuffer)
-        if logicalAndExpr:
+        if logicalAndExpr['Logical-AND-Expression'] != {}:
             logicalOrExpressionPrimeTree['Logical-OR-Expression-Prime'].update(logicalAndExpr)
+            logicalOrExprPrime = parseLogicalOrExpressionPrime(tokenBuffer)
+            if logicalOrExprPrime['Logical-OR-Expression-Prime'] != {}:
+                logicalOrExpressionPrimeTree['Logical-OR-Expression-Prime'].update(logicalOrExprPrime)
     return logicalOrExpressionPrimeTree
 
 """
@@ -564,14 +570,13 @@ def parseLogicalAndExpression(tokenBuffer):
     if inclusiveOrExpr['Inclusive-OR-Expression'] != {}:
         logicalAndExprTree['Logical-AND-Expression'].update(inclusiveOrExpr)
         logicalAndExprPrime = parseLogicalAndExpressionPrime(tokenBuffer)
-        if logicalAndExprPrime:
+        if logicalAndExprPrime['Logical-AND-Expression-Prime'] != {}:
             logicalAndExprTree['Logical-AND-Expression'].update(logicalAndExprPrime)
     return logicalAndExprTree
 
 """
 logical-AND-expression':
-    && inclusive-OR-expression
-    epsilon
+    && inclusive-OR-expression logical-AND-expression'
 """
 def parseLogicalAndExpressionPrime(tokenBuffer):
     """
@@ -587,8 +592,11 @@ def parseLogicalAndExpressionPrime(tokenBuffer):
         logicalAndExpressionPrimeTree['Logical-AND-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         inclusiveOrExpr = parseInclusiveOrExpression(tokenBuffer)
-        if inclusiveOrExpr:
+        if inclusiveOrExpr['Inclusive-OR-Expression'] != {}:
             logicalAndExpressionPrimeTree['Logical-AND-Expression-Prime'].update(inclusiveOrExpr)
+            logicalAndExprPrime = parseLogicalAndExpressionPrime(tokenBuffer)
+            if logicalAndExprPrime['Logical-AND-Expression-Prime'] != {}:
+                logicalAndExpressionPrimeTree['Logical-AND-Expression-Prime'].update(logicalAndExprPrime)
     return logicalAndExpressionPrimeTree
     pass
 """
@@ -700,25 +708,25 @@ def parseRelationalExpressionPrime(tokenBuffer):
         relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         shiftExpression = parseShiftExpression(tokenBuffer)
-        if shiftExpression:
+        if shiftExpression['Shift-Expression'] != {}:
             relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
     elif tokenToBeConsumed.value == '>':
         relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         shiftExpression = parseShiftExpression(tokenBuffer)
-        if shiftExpression:
+        if shiftExpression['Shift-Expression'] != {}:
             relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
     elif tokenToBeConsumed.value == '>=':
         relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         shiftExpression = parseShiftExpression(tokenBuffer)
-        if shiftExpression:
+        if shiftExpression['Shift-Expression'] != {}:
             relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
     elif tokenToBeConsumed.value == '<=':
         relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         shiftExpression = parseShiftExpression(tokenBuffer)
-        if shiftExpression:
+        if shiftExpression['Shift-Expression'] != {}:
             relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
     return relationalExpressionPrimeTree
 
@@ -754,7 +762,8 @@ def parseAdditiveExpression(tokenBuffer):
     if multiplicativeExpr['Multiplicative-Expression'] != {}:
         additiveExpressionTree['Additive-Expression'].update(multiplicativeExpr)
         additiveExpressionPrime = parseAdditiveExpressionPrime(tokenBuffer)
-        additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
+        if additiveExpressionPrime['Additive-Expression-Prime'] != {}:
+            additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
     return additiveExpressionTree
 
 """   
@@ -779,7 +788,7 @@ def parseAdditiveExpressionPrime(tokenBuffer):
             if castExpression['Cast-Expression'] != {}:
                 additiveExpressionPrimeTree['Additive-Expression-Prime'].update(castExpression)
                 additiveExprPrime = parseAdditiveExpressionPrime(tokenBuffer)
-                if additiveExprPrime != None:
+                if additiveExprPrime['Additive-Expression-Prime'] != {}:
                     additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
         elif tokenToBeConsumed.value == '-':
             additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
@@ -788,7 +797,7 @@ def parseAdditiveExpressionPrime(tokenBuffer):
             if castExpression['Cast-Expression'] != {}:
                 additiveExpressionPrimeTree['Additive-Expression-Prime'].update(castExpression)
                 additiveExprPrime = parseAdditiveExpressionPrime(tokenBuffer)
-                if additiveExprPrime != None:
+                if additiveExprPrime['Additive-Expression-Prime'] != {}:
                     additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
     return additiveExpressionPrimeTree
 
@@ -807,7 +816,7 @@ def parseMultiplicativeExpression(tokenBuffer):
     if castExpr['Cast-Expression'] != {}:
         multiplicativeExprTree['Multiplicative-Expression'].update(castExpr)
     multiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
-    if multiplicativeExprPrime != None:
+    if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
         multiplicativeExprTree['Multiplicative-Expression'].update(multiplicativeExprPrime)
     return multiplicativeExprTree
 
@@ -831,10 +840,10 @@ def parseMultiplicativeExpressionPrime(tokenBuffer):
             multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             consume(tokenToBeConsumed, tokenBuffer)
             castExpression = parseCastExpression(tokenBuffer)
-            if castExpression:
+            if castExpression['Cast-Expression'] != {}:
                 multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(castExpression)
                 multiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
-                if multiplicativeExprPrime != None:
+                if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
                     multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(multiplicativeExprPrime)
         elif tokenToBeConsumed.value == '/':
             multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
@@ -843,7 +852,7 @@ def parseMultiplicativeExpressionPrime(tokenBuffer):
             if castExpression['Cast-Expression'] != {}:
                 multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(castExpression)
                 multiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
-                if multiplicativeExprPrime != None:
+                if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
                     multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(multiplicativeExprPrime)
         elif tokenToBeConsumed.value == '%':
             multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
@@ -852,7 +861,7 @@ def parseMultiplicativeExpressionPrime(tokenBuffer):
             if castExpression['Cast-Expression'] != {}:
                 multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(castExpression)
                 multiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
-                if multiplicativeExprPrime != None:
+                if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
                     multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(multiplicativeExprPrime)
     return multiplicativeExprPrimeTree
 
@@ -868,7 +877,7 @@ def parseCastExpression(tokenBuffer):
     """
     castExpressionTree = {'Cast-Expression':{}}
     unaryExpression = parseUnaryExpression(tokenBuffer)
-    if unaryExpression:
+    if unaryExpression['Unary-Expression'] != {}:
         castExpressionTree['Cast-Expression'].update(unaryExpression)
     return castExpressionTree
 
@@ -901,7 +910,7 @@ def parseUnaryExpression(tokenBuffer):
     """
     unaryExpressionTree = {'Unary-Expression':{}}
     postfixExpression = parsePostfixExpression(tokenBuffer)
-    if postfixExpression:
+    if postfixExpression['Postfix-Expression'] != {}:
         unaryExpressionTree['Unary-Expression'].update(postfixExpression)
     return unaryExpressionTree
 
@@ -917,7 +926,7 @@ def parsePostfixExpression(tokenBuffer):
     """
     postfixExpressionTree = {'Postfix-Expression':{}}
     primaryExpression = parsePrimaryExpression(tokenBuffer)
-    if primaryExpression:
+    if primaryExpression['Primary-Expression'] != {}:
         postfixExpressionTree['Postfix-Expression'].update(primaryExpression)
     return postfixExpressionTree
 
@@ -1009,11 +1018,11 @@ def parseFunctionDefinition(tokenBuffer):
                     symTable.addAVariable(varValueToAddToSymbolTable,varTypeToAddToSymbolTable,function)
             functionDefTree['Function-Definition'].update(declarator)
             declarationList = parseDeclarationList(tokenBuffer)
-            if declarationList:
+            if declarationList['Declaration-List'] != {}:
                 functionDefTree['Function-Definition'].update(declarationList)
-                compoundStatement = parseCompoundStatement(tokenBuffer)
-                if compoundStatement:
-                    functionDefTree['Function-Definition'].update(compoundStatement)
+            compoundStatement = parseCompoundStatement(tokenBuffer)
+            if compoundStatement:
+                functionDefTree['Function-Definition'].update(compoundStatement)
     return functionDefTree
 
 """
@@ -1030,11 +1039,11 @@ def parseDeclarator(tokenBuffer,definedInFunctionDef = False):
     """
     declaratorTree = {'Declarator':{}}
     pointer = parsePointer(tokenBuffer)
-    if pointer:
+    if pointer['Pointer'] != {}:
         declaratorTree['Declarator'].update(pointer)        
-        directDeclarator = parseDirectDeclarator(tokenBuffer,definedInFunctionDef)
-        if directDeclarator:
-            declaratorTree['Declarator'].update(directDeclarator)
+    directDeclarator = parseDirectDeclarator(tokenBuffer,definedInFunctionDef)
+    if directDeclarator['Direct-Declarator'] != {}:
+        declaratorTree['Declarator'].update(directDeclarator)
     return declaratorTree
 
 """
@@ -1073,14 +1082,14 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
             directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             consume(tokenToBeConsumed,tokenBuffer)
             declarator = parseDeclarator(tokenBuffer)
-            if declarator:
+            if declarator['Declarator'] != {}:
                 directDeclaratorTree['Direct-Declarator'].update(declarator)
                 tokenToBeConsumed = tokenBuffer[0]
                 if tokenToBeConsumed.type == 'RPAREN':
                     directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                     consume(tokenToBeConsumed,tokenBuffer)
                     directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
-                    if directDeclaratorP:
+                    if directDeclaratorP['Direct-Declarator-Prime'] != {}:
                         directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)        
                 else:
                     #error handling
@@ -1089,14 +1098,14 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
                 directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                 consume(tokenToBeConsumed,tokenBuffer)
                 directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
-                if directDeclaratorP:
+                if directDeclaratorP['Direct-Declarator-Prime'] != {}:
                     directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)      
     else:
         if tokenToBeConsumed.type == 'ID':
             directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             consume(tokenToBeConsumed,tokenBuffer)
             directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
-            if directDeclaratorP:
+            if directDeclaratorP['Direct-Declarator-Prime'] != {}:
                 directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)
     return directDeclaratorTree
 
@@ -1195,7 +1204,7 @@ def parseParameterList(tokenBuffer):
     if parameterDeclaration:
         parameterListTree['Parameter-List'].update(parameterDeclaration)
         parameterListPrime = parseParameterListPrime(tokenBuffer)
-        if parameterListPrime:
+        if parameterListPrime['Parameter-List-Prime'] != {}:
             parameterListTree['Parameter-List'].update(parameterListPrime)
     return parameterListTree
 
@@ -1223,7 +1232,7 @@ def parseParameterListPrime(tokenBuffer):
         if parameterDeclaration:
             parameterListPrimeTree['Parameter-List-Prime'].update(parameterDeclaration)
             parameterListPrime = parseParameterListPrime(tokenBuffer)
-            if parameterListPrime:
+            if parameterListPrime['Parameter-List-Prime'] != {}:
                 parameterListPrimeTree['Parameter-List-Prime'].update(parameterListPrime)
     return parameterListPrimeTree
 
@@ -1241,10 +1250,10 @@ def parseParameterDeclaration(tokenBuffer):
     """
     parameterDeclarationTree = {'Parameter-Declaration':{}}
     declarationSpecifiers = parseDeclarationSpecifiers(tokenBuffer)
-    if declarationSpecifiers:
+    if declarationSpecifiers['Declaration-Specifiers'] != {}:
         parameterDeclarationTree['Parameter-Declaration'].update(declarationSpecifiers)
         declarator = parseDeclarator(tokenBuffer)
-        if declarator:   
+        if declarator['Declarator'] != {}:   
             parameterDeclarationTree['Parameter-Declaration'].update(declarator)
     return parameterDeclarationTree
 """
@@ -1315,7 +1324,7 @@ def parseDeclarationList(tokenBuffer):
         tokenToBeConsumed = tokenBuffer[0]
         if tokenToBeConsumed.type != 'LBRACE':
             declarationList = parseDeclarationList(tokenBuffer)
-            if declarationList:
+            if declarationList['Declaration-List'] != {}:
                 declarationListTree['Declaration-List'].update(declarationList)
     return declarationListTree
 
@@ -1355,7 +1364,7 @@ def parseBlockItemList(tokenBuffer):
         if blockItem['Block-Item'] != {}:
             blockItemListTree['Block-Item-List'].update(blockItem)
             blockItemList = parseBlockItemList(tokenBuffer)
-            if blockItemList:
+            if blockItemList['Block-Item-List'] != {}:
                 blockItemListTree['Block-Item-List'].update(blockItemList)
     return blockItemListTree
 
