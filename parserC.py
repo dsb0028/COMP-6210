@@ -220,14 +220,25 @@ def createAST(parseTree):
     
     #print(astTree)
     #print(dictionaryItems)
-"""    
+"""  
+"""  
 # from https://stackoverflow.com/questions/39233973/get-all-keys-of-a-nested-dictionary
 def getDictionaryItems(parseTree):
-    for key, value in parseTree.items():
+    dictItems = []
+    for key,value in parseTree.items():
+        
         if type(value) is dict:
             yield from getDictionaryItems(value)
         else:
-            yield (key, value)
+            dictItems.append([key,value])
+    return dictItems
+"""
+#from https://stackoverflow.com/questions/43752962/how-to-iterate-through-a-nested-dict
+def get_all_keys(d):
+    for key, value in d.items():
+        yield key
+        if isinstance(value, dict):
+            yield from get_all_keys(value)
 """
 translation-unit:
     external-declaration translation-unit
@@ -323,6 +334,7 @@ def parseDeclaration(tokenBuffer):
             if tokenToBeConsumed.type == 'END':
                 declarationTree['Declaration'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                 consume(tokenToBeConsumed,tokenBuffer)
+    """
     else:
         tokenToBeConsumed = tokenBuffer[0]
         if tokenToBeConsumed.type == 'ID':
@@ -332,6 +344,7 @@ def parseDeclaration(tokenBuffer):
             if tokenToBeConsumed.type == 'END':
                 declarationTree['Declaration'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                 consume(tokenToBeConsumed,tokenBuffer)
+    """
     return declarationTree
 """
 declaration-specifiers:
@@ -445,9 +458,16 @@ def parseAssignmentExpression(tokenBuffer):
     """
     assignmentExpressionTree = {'Assignment-Expression':{}}
     conditionalExpr = parseConditionalExpression(tokenBuffer)
-    if conditionalExpr['Conditional-Expression'] != {}:
+    tokenToBeConsumed = tokenBuffer[0]
+    #checking to make sure that the next token to be consumed is not an assignmentOperator
+    assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
+    if conditionalExpr['Conditional-Expression'] != {} and tokenToBeConsumed.value not in assignmentOperator:
         assignmentExpressionTree['Assignment-Expression'].update(conditionalExpr)
     else:
+        if tokenToBeConsumed.value in assignmentOperator:
+            findTerminalNodes(conditionalExpr)
+            #print(assignmentExpressionTree)
+        #backtracking is necessary
         unaryExpr = parseUnaryExpression(tokenBuffer)
         if unaryExpr['Unary-Expression'] != {}:
             assignmentExpressionTree['Assignment-Expression'].update(unaryExpr)
@@ -455,7 +475,7 @@ def parseAssignmentExpression(tokenBuffer):
             #error handling
             pass
         tokenToBeConsumed = tokenBuffer[0]
-        assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
+        #assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
         if tokenToBeConsumed.value in assignmentOperator:
             assignmentExpressionTree['Assignment-Expression'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             assignExpr = parseAssignmentExpression(tokenBuffer)
@@ -1364,6 +1384,7 @@ def parseBlockItem(tokenBuffer):
 statement:
     compound-statement
     jump-statement
+    expression-statement
     selection-statement
 """
 def parseStatement(tokenBuffer):
@@ -1382,10 +1403,29 @@ def parseStatement(tokenBuffer):
         if jumpStatement['Jump-Statement'] != {}:
             statementTree['Statement'].update(jumpStatement)
         else:
-            selectionStatement = parseSelectionStatement(tokenBuffer)
-            if selectionStatement['Selection-Statement'] != {}:
-                statementTree['Statement'].update(selectionStatement)
+            exprStmt = parseExpressionStatement(tokenBuffer)
+            if exprStmt['Expression-Statement'] != {}:
+                statementTree['Statement'].update(exprStmt) 
+            else:
+                selectionStatement = parseSelectionStatement(tokenBuffer)
+                if selectionStatement['Selection-Statement'] != {}:
+                    statementTree['Statement'].update(selectionStatement)
     return statementTree
+
+"""
+expression-statement:
+    expressionopt;
+"""
+def parseExpressionStatement(tokenBuffer):
+    exprStmtTree = {'Expression-Statement':{}}
+    expression = parseExpression(tokenBuffer)
+    if expression['Expression'] != {}:
+        exprStmtTree['Expression-Statement'].update(expression)
+    tokenToBeConsumed = tokenBuffer[0]
+    if tokenToBeConsumed.type == 'END':
+        exprStmtTree['Expression-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        consume(tokenToBeConsumed,tokenBuffer)
+    return exprStmtTree
 
 """
 jump-statement:
@@ -1498,9 +1538,24 @@ def consume(currToken,tokenBuffer):
     consumed.append(currToken)
     tokenBuffer.pop(0)
 
+#ref https://datagy.io/python-nested-dictionary/
+terminalNodes = []
+def findTerminalNodes(dict_to_iterate):
+    for key, value in dict_to_iterate.items():
+        if type(value) == dict:
+            #print(key)
+            findTerminalNodes(value)
+        else:
+            #print(key + ":" + value)
+            global terminalNodes
+            terminalNodes.append(value)
+
 def main():
     #tokens = [(), (), (), ()]    
-    dict1 = {'Expr': {'Term': {'Factor': {'NUMBER': {4}}, 'TermP': {}}, 'ExprP': {}}}
-    
+    dict1 =  {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'b'}}}}, 'Multiplicative-Expression-Prime': {}}, 'Additive-Expression-Prime': {}}}}}}}}, 'Logical-AND-Expression-Prime': {}}, 'Logical-OR-Expression-Prime': {}}}}
+    dict2 = {'Translation-Unit': {'External-Declaration': {'Function-Definition': {'Declaration-Specifiers': {'type-specifier': 'int', 'Declaration-Specifiers-Prime': {}}, 'Declarator': {'Pointer': {}, 'Direct-Declarator': {'ID': 'main', 'Direct-Declarator-Prime': {'LPAREN': '(', 'Parameter-Type-List': {'Parameter-List': {'Parameter-Declaration': {'Declaration-Specifiers': {}, 'Declarator': {'Pointer': {}, 'Direct-Declarator': {}}}, 'Parameter-List-Prime': {}}}, 'RPAREN': ')'}}}, 'Declaration-List': {}, 'Compound-Statement': {'LBRACE': '{', 'Block-Item-List': {'Block-Item': {'Statement': {'Jump-Statement': {'return': 'return', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 0}}}}, 'Multiplicative-Expression-Prime': {}}, 'Additive-Expression-Prime': {}}}}}}}}, 'Logical-AND-Expression-Prime': {}}, 'Logical-OR-Expression-Prime': {}}}}}, 'END': ';'}}}, 'Block-Item-List': {}}, 'RBRACE': '}'}}}}}
+    findTerminalNodes(dict1)
+    print(terminalNodes)
+    #print(dictItems)
 if __name__ == '__main__':
     main()

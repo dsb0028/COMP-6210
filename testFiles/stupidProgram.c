@@ -1,6 +1,9 @@
 int main() {
-    int a=0;
     int b;
+    b = 4;
+    int c;
+    c /= 4;
+/*
     int c = 20;
     if(a<=2 && b>2) {
         a = 6;
@@ -10,5 +13,6 @@ int main() {
             b = 4;
         }
     }
+*/
     return 0; 
 }
