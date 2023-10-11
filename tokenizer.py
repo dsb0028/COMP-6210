@@ -44,7 +44,8 @@ def tokenize(code):
 
     tokens = []
     #Allows me to handle comments by treating them as single spaces
-    code = re.sub('\//.*|\/\*.*\*\/'," ", code, flags=re.DOTALL)
+    code = re.sub('\//.*'," ",code)
+    code = re.sub('\/\*.*\*\/'," ", code, flags=re.DOTALL)
     #stores instances of strings
     strings = re.findall('\'.*\'|\".*\"', code)
     #print(strings)

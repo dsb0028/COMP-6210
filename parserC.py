@@ -311,7 +311,6 @@ def parseExternalDeclarationPrime(tokenBuffer):
 """
 declaration:
     declaration-specifiers init-declarator-list;
-    ID initital-declarator;
     epsilon
 """
 
@@ -332,25 +331,22 @@ def parseDeclaration(tokenBuffer):
             declarationTree['Declaration'].update(initDeclaratorList)
             tokenToBeConsumed = tokenBuffer[0]
             if tokenToBeConsumed.type == 'END':
+                #print(declarationSpecifiers)
+                typeOfVar = declarationSpecifiers['Declaration-Specifiers']['type-specifier']
+                nameOfVar = initDeclaratorList['Init-Declarator-List']['Init-Declarator']['Declarator']['Direct-Declarator']['ID']
+                #print(initDeclaratorList)
+                if function_name != None:
+                    global symTable
+                    symTable.addAVariable(nameOfVar,typeOfVar,function_name)
                 declarationTree['Declaration'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                 consume(tokenToBeConsumed,tokenBuffer)
-    """
-    else:
-        tokenToBeConsumed = tokenBuffer[0]
-        if tokenToBeConsumed.type == 'ID':
-            initDecl = parseInitDeclarator(tokenBuffer)
-            declarationTree['Declaration'].update(initDecl)
-            tokenToBeConsumed = tokenBuffer[0]
-            if tokenToBeConsumed.type == 'END':
-                declarationTree['Declaration'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-                consume(tokenToBeConsumed,tokenBuffer)
-    """
     return declarationTree
 """
 declaration-specifiers:
     type-specifier declaration-specifers'
 """
-def parseDeclarationSpecifiers(tokenBuffer):
+return_type = None
+def parseDeclarationSpecifiers(tokenBuffer,isInFunction = False):
     """
     Description:
     Arguments:
@@ -361,7 +357,12 @@ def parseDeclarationSpecifiers(tokenBuffer):
     types = {'int', 'float','double'}
     #check if type-specifier is valid type
     if tokenToBeConsumed.type in types:
-        declarationSpecifiers['Declaration-Specifiers'].update({'type-specifier':tokenToBeConsumed.value})
+        if isInFunction != True:
+            declarationSpecifiers['Declaration-Specifiers'].update({'type-specifier':tokenToBeConsumed.value})
+        else:
+            declarationSpecifiers['Declaration-Specifiers'].update({'return-type':tokenToBeConsumed.value})
+            global return_type
+            return_type = tokenToBeConsumed.value
         consume(tokenToBeConsumed,tokenBuffer)
         declarationSpecifiersP = parseDeclarationSpecifiersPrime(tokenBuffer)
         if declarationSpecifiersP['Declaration-Specifiers-Prime'] != {}:
@@ -400,6 +401,7 @@ def parseInitDeclaratorList(tokenBuffer):
     """
     initDeclaratorListTree = {'Init-Declarator-List':{}} 
     initDeclarator = parseInitDeclarator(tokenBuffer)
+    #print(initDeclarator)
     if initDeclarator:
         initDeclaratorListTree['Init-Declarator-List'].update(initDeclarator)
         initDeclaratorListPrime = parseInitDeclaratorListPrime(tokenBuffer)
@@ -421,6 +423,7 @@ def parseInitDeclarator(tokenBuffer):
     declarator = parseDeclarator(tokenBuffer)
     initDeclaratorTree['Init-Declarator'].update(declarator)
     tokenToBeConsumed = tokenBuffer[0]
+    #print(declarator)
     if tokenToBeConsumed.value == '=':
         initDeclaratorTree['Init-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
@@ -996,7 +999,7 @@ def parseInitDeclaratorListPrime(tokenBuffer):
 function-definition:
     declaration-specifiers declarator declaration-list compound-statement
 """    
-
+function_name = None
 def parseFunctionDefinition(tokenBuffer):
     """
     Description:
@@ -1004,18 +1007,28 @@ def parseFunctionDefinition(tokenBuffer):
     Returns:
     """
     functionDefTree = {'Function-Definition':{}}
-    declarationSpecifiers = parseDeclarationSpecifiers(tokenBuffer)
+    declarationSpecifiers = parseDeclarationSpecifiers(tokenBuffer,isInFunction = True)
     if declarationSpecifiers:
         functionDefTree['Function-Definition'].update(declarationSpecifiers)
         declarator = parseDeclarator(tokenBuffer,definedInFunctionDef = True)
         if declarator:
-            function = declarator['Declarator']['Direct-Declarator']['ID']
-            symTable.addAFunction(function)
+            #function = declarator['Declarator']['Direct-Declarator']['ID']
+            #return_type = declarationSpecifiers['Declaration-Specifiers']['type-specifier']
+            #global symTable
+            #symTable.addAFunction(function,return_type)
+            #findTerminalNodes(declarator)
+            #print(terminalNodes)
+            """
             if declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime'].get('Parameter-Type-List'):
-                if declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers'] != {}:
+                if declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration'].get('Declaration-Specifiers') != None:
                     varTypeToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers']['type-specifier']
                     varValueToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['Direct-Declarator-Prime']['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declarator']['Direct-Declarator']['ID']
+                    #global symTable
                     symTable.addAVariable(varValueToAddToSymbolTable,varTypeToAddToSymbolTable,function)
+            """        
+            #terminalNodes.pop(0)
+            #terminalNodes.pop(0)
+            #print(terminalNodes)    
             functionDefTree['Function-Definition'].update(declarator)
             declarationList = parseDeclarationList(tokenBuffer)
             if declarationList['Declaration-List'] != {}:
@@ -1066,7 +1079,7 @@ direct-declarator:
     (declarator) direct-declarator'
 
 """
-
+function_name = None
 def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
     """
     Description:
@@ -1102,7 +1115,12 @@ def parseDirectDeclarator(tokenBuffer, definedInFunctionDef = False):
                     directDeclaratorTree['Direct-Declarator'].update(directDeclaratorP)      
     else:
         if tokenToBeConsumed.type == 'ID':
-            directDeclaratorTree['Direct-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            directDeclaratorTree['Direct-Declarator'].update({'function-name':tokenToBeConsumed.value})
+            if return_type != None:
+                global function_name
+                function_name = tokenToBeConsumed.value
+                global symTable
+                symTable.addAFunction(function_name,return_type)
             consume(tokenToBeConsumed,tokenBuffer)
             directDeclaratorP = parseDirectDeclaratorPrime(tokenBuffer,definedInFunctionDef)
             if directDeclaratorP['Direct-Declarator-Prime'] != {}:
@@ -1130,8 +1148,8 @@ def parseDirectDeclaratorPrime(tokenBuffer, isInFunDef = False):
         directDeclaratorPrimeTree['Direct-Declarator-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         parameterTypeList = parseParameterTypeList(tokenBuffer)
-        if parameterTypeList['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declaration-Specifiers'] == {}:
-            if parameterTypeList['Parameter-Type-List']['Parameter-List']['Parameter-Declaration']['Declarator']['Direct-Declarator'] != {}:
+        if parameterTypeList['Parameter-Type-List']['Parameter-List']['Parameter-Declaration'].get('Declaration-Specifiers') == None:
+            if parameterTypeList['Parameter-Type-List']['Parameter-List']['Parameter-Declaration'].get('Declarator') != None:
                 identifierList = parseIdentifierList(tokenBuffer)
                 if identifierList['Identifier-List']:
                     directDeclaratorPrimeTree['Direct-Declarator-Prime'].update(identifierList)
@@ -1202,6 +1220,7 @@ def parseParameterList(tokenBuffer):
     parameterListTree = {'Parameter-List':{}}
     parameterDeclaration = parseParameterDeclaration(tokenBuffer)
     if parameterDeclaration:
+        #print(parameterDeclaration)
         parameterListTree['Parameter-List'].update(parameterDeclaration)
         parameterListPrime = parseParameterListPrime(tokenBuffer)
         if parameterListPrime['Parameter-List-Prime'] != {}:
@@ -1255,6 +1274,11 @@ def parseParameterDeclaration(tokenBuffer):
         declarator = parseDeclarator(tokenBuffer)
         if declarator['Declarator'] != {}:   
             parameterDeclarationTree['Parameter-Declaration'].update(declarator)
+            varTypeToAddToSymbolTable = declarationSpecifiers['Declaration-Specifiers']['type-specifier']
+            varValueToAddToSymbolTable = declarator['Declarator']['Direct-Declarator']['ID']
+            global symTable
+            if function_name != None:
+                symTable.addAVariable(varValueToAddToSymbolTable,varTypeToAddToSymbolTable,function_name)
     return parameterDeclarationTree
 """
 identifier-list:
@@ -1386,6 +1410,7 @@ def parseBlockItem(tokenBuffer):
         if statement:
             blockItemTree['Block-Item'].update(statement)
     else:
+        #print(declaration)
         blockItemTree['Block-Item'].update(declaration)
     return blockItemTree
 
