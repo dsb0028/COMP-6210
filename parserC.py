@@ -1481,6 +1481,11 @@ def parseJumpStatement(tokenBuffer):
         if tokenToBeConsumed.type != 'END':
             expression = parseExpression(tokenBuffer)
             if expression:
+                #print("Expr", expression)
+                findTerminalNodes(expression)
+                type = symTable.lookUpVariable(terminalNodes[0],function_name)
+                if type != return_type:
+                    raise RuntimeError("type of variable being returned does not match return_type of function")
                 jumpStatementTree['Jump-Statement'].update(expression)
                 tokenToBeConsumed = tokenBuffer[0]
                 if tokenToBeConsumed.type == 'END':

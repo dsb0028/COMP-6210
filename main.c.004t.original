@@ -1,0 +1,13 @@
+
+;; Function main (null)
+;; enabled by -tree-original
+
+
+{
+  int d;
+
+    int d;
+  return d;
+}
+return 0;
+

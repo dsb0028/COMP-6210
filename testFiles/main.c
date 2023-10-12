@@ -1,11 +1,13 @@
-int main(double a, double b,int c)
+int main()
 {  
-    int d = 0;
-    
+    int d;
+    //int g = 4;
+    //double d = 1;
     //int d = 0;
     //double k = 4;
     //float j = 8;
     
-    return 0;
+    return d;
 }
+
 

@@ -1,8 +1,9 @@
 int main(int a,int b, int c) {
-    int a = 4;
-    int b = 2;
-    int c = 8;
-    int d = 9; 
+    int x = 4;
+    int y = x + 2;
+    
+    int d = (c+8)/(y);
+    /* 
     if (a > 2 || (b < 3 && c > 2) || (a<=2 && b>2)) {
         a = 6;
         if(b<10) {
@@ -10,10 +11,12 @@ int main(int a,int b, int c) {
         }
         else {
             if(d<20) {
+                //int q = 4;
                 b = 128;
              }
         }
     } 
+    */
 /*
     int c = 20;
     if(a<=2 && b>2) {
@@ -25,5 +28,5 @@ int main(int a,int b, int c) {
         }
     }
 */
-    return 0; 
+    return a; 
 }

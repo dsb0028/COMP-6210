@@ -1,11 +1,14 @@
 import argparse
 import tokenizer
 import parserC
+import ThreeAddressCode
+from pprint import pprint 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', action='store_true')
     parser.add_argument('-p', action='store_true')
+    parser.add_argument('-a',action='store_true')
     parser.add_argument('file', type=argparse.FileType('r'))
     args = parser.parse_args()
     #print(args)
@@ -22,5 +25,9 @@ def main():
     if args.p == True:    
         print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table)
     
+    threeAddressCode = ThreeAddressCode.createThreeAddressCode(parseTree,symbolTable)
+    if args.a == True:
+        pass
+        #print(threeAddressCode)
 if __name__ == "__main__":
     main()

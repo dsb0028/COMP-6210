@@ -6,22 +6,25 @@ class SymbolTable:
         self.table[name] = {}
         self.table[name]['Return_Type'] = return_type
         self.table[name]['Variables'] = {}
+    
     def addAVariable(self,name,type,function):
+        type1 = self.lookUpVariable(name,function)
+        if type1 == type:
+            raise SyntaxError(["Variable already has been defined",name])
         self.table[function]['Variables'][name] = type
          
     def lookUpVariable(self,name,function):
-        if name not in self.table[function]['Variables']:
-            raise SyntaxError("Variable not found")
-        else:
+        if self.table[function]['Variables'].get(name):
             return self.table[function]['Variables'][name]
+        else:
+            return None
 def main():
     symTable = SymbolTable()
     symTable.addAFunction("main","int")
     print(symTable.table)
     symTable.addAVariable("food","int","main")
-    print(symTable.table)
-    print(symTable.lookUpVariable("food","main"))
-    print(symTable.table)
+    symTable.lookUpVariable("food","main")
+    #print(symTable.table)
     #symTable.addAVariable("cream","double","main")
     #print(symTable.table)
     #symTable.addAFunction("bar","double")
