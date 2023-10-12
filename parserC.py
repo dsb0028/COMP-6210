@@ -445,7 +445,7 @@ def parseInitializer(tokenBuffer):
     Returns:
     """
     initializer = {'Initializer':{}}
-    assignmentExpr = parseAssignmentExpression(tokenBuffer)
+    assignmentExpr, astAssignExpr = parseAssignmentExpression(tokenBuffer)
     if assignmentExpr:
         initializer['Initializer'].update(assignmentExpr)
     return initializer
@@ -462,12 +462,14 @@ def parseAssignmentExpression(tokenBuffer):
     
     """
     assignmentExpressionTree = {'Assignment-Expression':{}}
-    conditionalExpr = parseConditionalExpression(tokenBuffer)
+    astAssignExprTree = {}
+    conditionalExpr, astCondExpr = parseConditionalExpression(tokenBuffer)
     tokenToBeConsumed = tokenBuffer[0]
     #checking to make sure that the next token to be consumed is not an assignmentOperator
     assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
     if conditionalExpr['Conditional-Expression'] != {} and tokenToBeConsumed.value not in assignmentOperator:
         assignmentExpressionTree['Assignment-Expression'].update(conditionalExpr)
+        astAssignExprTree.update(astCondExpr)
     else:
         if tokenToBeConsumed.value in assignmentOperator:
             findTerminalNodes(conditionalExpr)
@@ -478,6 +480,7 @@ def parseAssignmentExpression(tokenBuffer):
         unaryExpr = parseUnaryExpression(tokenBuffer)
         if unaryExpr['Unary-Expression'] != {}:
             assignmentExpressionTree['Assignment-Expression'].update(unaryExpr)
+            astAssignExprTree.update(unaryExpr)
         else:
             #error handling
             pass
@@ -485,17 +488,19 @@ def parseAssignmentExpression(tokenBuffer):
         #assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
         if tokenToBeConsumed.value in assignmentOperator:
             assignmentExpressionTree['Assignment-Expression'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            astAssignExprTree.update({tokenToBeConsumed.value:{}})
             consume(tokenToBeConsumed,tokenBuffer)
-            assignExpr = parseAssignmentExpression(tokenBuffer)
+            assignExpr, astAssignExpr = parseAssignmentExpression(tokenBuffer)
             if assignExpr['Assignment-Expression'] != {}:
                 assignmentExpressionTree['Assignment-Expression'].update(assignExpr)
+                astAssignExprTree.update(astAssignExpr)
             else:
                 #error handling
                 pass
         else:
             #error handling
             pass
-    return assignmentExpressionTree
+    return assignmentExpressionTree, astAssignExprTree
 
 """
 conditional-expression:
@@ -508,10 +513,12 @@ def parseConditionalExpression(tokenBuffer):
     Returns:
     """
     conditionalExprTree = {'Conditional-Expression':{}}
-    logicalOrExpression = parseLogicalOrExpression(tokenBuffer)
+    astConditionalExprTree = {}
+    logicalOrExpression, astOrExpr = parseLogicalOrExpression(tokenBuffer)
     if logicalOrExpression['Logical-OR-Expression'] != {}:
         conditionalExprTree['Conditional-Expression'].update(logicalOrExpression)
-    return conditionalExprTree
+        astConditionalExprTree.update(astOrExpr)
+    return conditionalExprTree, astConditionalExprTree
 
 
 
@@ -526,13 +533,16 @@ def parseLogicalOrExpression(tokenBuffer):
     Returns:
     """
     logicalOrExpressionTree = {'Logical-OR-Expression':{}}
-    logicalAndExpr = parseLogicalAndExpression(tokenBuffer)
+    astLogicalOrExpressionTree = {}
+    logicalAndExpr, astLogicalAndExpr = parseLogicalAndExpression(tokenBuffer)
     if logicalAndExpr['Logical-AND-Expression'] != {}:
         logicalOrExpressionTree['Logical-OR-Expression'].update(logicalAndExpr)
+        astLogicalOrExpressionTree.update(astLogicalAndExpr)
         logicalOrExprPrime = parseLogicalOrExpressionPrime(tokenBuffer)
         if logicalOrExprPrime['Logical-OR-Expression-Prime'] != {}:
             logicalOrExpressionTree['Logical-OR-Expression'].update(logicalOrExprPrime)
-    return logicalOrExpressionTree
+            astLogicalOrExpressionTree.update(logicalOrExprPrime)
+    return logicalOrExpressionTree, astLogicalOrExpressionTree
 
 """
 logical-OR-expression':
@@ -571,13 +581,16 @@ def parseLogicalAndExpression(tokenBuffer):
     Returns:
     """
     logicalAndExprTree = {'Logical-AND-Expression':{}}
-    inclusiveOrExpr = parseInclusiveOrExpression(tokenBuffer)
+    astLogicalAndExprTree = {}
+    inclusiveOrExpr, astInclOrExpr = parseInclusiveOrExpression(tokenBuffer)
     if inclusiveOrExpr['Inclusive-OR-Expression'] != {}:
         logicalAndExprTree['Logical-AND-Expression'].update(inclusiveOrExpr)
+        astLogicalAndExprTree.update(astInclOrExpr)
         logicalAndExprPrime = parseLogicalAndExpressionPrime(tokenBuffer)
         if logicalAndExprPrime['Logical-AND-Expression-Prime'] != {}:
             logicalAndExprTree['Logical-AND-Expression'].update(logicalAndExprPrime)
-    return logicalAndExprTree
+            astLogicalAndExprTree.update(logicalAndExprPrime)
+    return logicalAndExprTree, astLogicalAndExprTree
 
 """
 logical-AND-expression':
@@ -615,10 +628,12 @@ def parseInclusiveOrExpression(tokenBuffer):
     Returns:
     """
     inclusiveOrExprTree = {'Inclusive-OR-Expression':{}}
-    exclusiveOrExpr = parseExclusiveOrExpression(tokenBuffer)
+    astInclusiveOrExprTree = {}
+    exclusiveOrExpr, astExclOrExpr = parseExclusiveOrExpression(tokenBuffer)
     if exclusiveOrExpr['Exclusive-OR-Expression'] != {}:
         inclusiveOrExprTree['Inclusive-OR-Expression'].update(exclusiveOrExpr)
-    return inclusiveOrExprTree
+        astInclusiveOrExprTree.update(astExclOrExpr)
+    return inclusiveOrExprTree, astInclusiveOrExprTree
 
 """
 exclusive-OR-expression:
@@ -631,10 +646,12 @@ def parseExclusiveOrExpression(tokenBuffer):
     Returns:
     """
     exclusiveOrExprTree = {'Exclusive-OR-Expression':{}}
-    andExpression = parseAndExpression(tokenBuffer)
+    astExclusiveOrExprTree = {}
+    andExpression, astAndExpr = parseAndExpression(tokenBuffer)
     if andExpression['AND-Expression'] != {}:
         exclusiveOrExprTree['Exclusive-OR-Expression'].update(andExpression)
-    return exclusiveOrExprTree
+        astExclusiveOrExprTree.update(astAndExpr)
+    return exclusiveOrExprTree, astExclusiveOrExprTree
 
 """
 AND-expression:
@@ -647,10 +664,12 @@ def parseAndExpression(tokenBuffer):
     Returns:
     """
     andExprTree = {'AND-Expression':{}}
-    equalityExpression = parseEqualityExpression(tokenBuffer)
+    astAndExpr = {}
+    equalityExpression, astEqualExpr = parseEqualityExpression(tokenBuffer)
     if equalityExpression['Equality-Expression'] != {}:
         andExprTree['AND-Expression'].update(equalityExpression)
-    return andExprTree
+        astAndExpr.update(astEqualExpr)
+    return andExprTree, astAndExpr
 
 """
 equality-expression:
@@ -664,10 +683,13 @@ def parseEqualityExpression(tokenBuffer):
     
     """
     equalityExprTree = {'Equality-Expression':{}}
-    relationalExpression = parseRelationalExpression(tokenBuffer)
+    astEqualityExprTree = {}
+    relationalExpression, astRelatExpr = parseRelationalExpression(tokenBuffer)
     if relationalExpression['Relational-Expression'] != {}:
-        equalityExprTree['Equality-Expression'].update(relationalExpression)
-    return equalityExprTree
+        equalityExprTree['Equality-Expression'].update(astRelatExpr)
+        astEqualityExprTree.update(astRelatExpr)
+        print(astEqualityExprTree)
+    return equalityExprTree, astEqualityExprTree
 
 """
 relational-expression:
@@ -681,13 +703,16 @@ def parseRelationalExpression(tokenBuffer):
     Returns:
     """
     relationalExprTree = {'Relational-Expression':{}}
+    astRelationalExprTree = {}
     shiftExpression = parseShiftExpression(tokenBuffer)
     if shiftExpression['Shift-Expression'] != {}:
         relationalExprTree['Relational-Expression'].update(shiftExpression) 
-        relationalExpressionPrime = parseRelationalExpressionPrime(tokenBuffer)
+        astRelationalExprTree.update(shiftExpression)
+        relationalExpressionPrime, astRelationalExpressionPrime = parseRelationalExpressionPrime(tokenBuffer)
         if relationalExpressionPrime['Relational-Expression-Prime']:
             relationalExprTree['Relational-Expression'].update(relationalExpressionPrime)
-    return relationalExprTree
+            astRelationalExprTree.update(astRelationalExpressionPrime)
+    return relationalExprTree, astRelationalExprTree
 
 """
 relational-expression':
@@ -708,9 +733,11 @@ def parseRelationalExpressionPrime(tokenBuffer):
         relationalExpessionPrimeTree:
     """
     relationalExpressionPrimeTree = {'Relational-Expression-Prime':{}}
+    astRelationalExpressionPrimeTree = {}
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.value == '<':
         relationalExpressionPrimeTree['Relational-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        astRelationalExpressionPrimeTree.update({tokenToBeConsumed.value:{}})
         consume(tokenToBeConsumed,tokenBuffer)
         shiftExpression = parseShiftExpression(tokenBuffer)
         if shiftExpression['Shift-Expression'] != {}:
@@ -733,7 +760,7 @@ def parseRelationalExpressionPrime(tokenBuffer):
         shiftExpression = parseShiftExpression(tokenBuffer)
         if shiftExpression['Shift-Expression'] != {}:
             relationalExpressionPrimeTree['Relational-Expression-Prime'].update(shiftExpression)
-    return relationalExpressionPrimeTree
+    return relationalExpressionPrimeTree, astRelationalExpressionPrimeTree
 
 
 """
@@ -898,10 +925,12 @@ def parseExpression(tokenBuffer):
     Returns:
     """
     exprTree = {'Expression':{}}
-    assignmentExpr = parseAssignmentExpression(tokenBuffer)
+    astExprTree = {}
+    assignmentExpr, astAssignExpr = parseAssignmentExpression(tokenBuffer)
     if assignmentExpr['Assignment-Expression'] != {}:
         exprTree['Expression'].update(assignmentExpr)
-    return exprTree
+        astExprTree.update(astAssignExpr)
+    return exprTree, astExprTree
 
 """
 unary-expression:
@@ -965,7 +994,7 @@ def parsePrimaryExpression(tokenBuffer):
     elif tokenToBeConsumed.type == 'LPAREN':
         primaryExpressionTree['Primary-Expression'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
-        expression = parseExpression(tokenBuffer)
+        expression,astExpr = parseExpression(tokenBuffer)
         if expression:
             primaryExpressionTree['Primary-Expression'].update(expression)
         tokenToBeConsumed = tokenBuffer[0]
@@ -1409,7 +1438,7 @@ def parseBlockItem(tokenBuffer):
     blockItemTree = {'Block-Item':{}}
     declaration = parseDeclaration(tokenBuffer)
     if declaration['Declaration'].get('END') == None:
-        statement = parseStatement(tokenBuffer)
+        statement,astStmt = parseStatement(tokenBuffer)
         if statement:
             blockItemTree['Block-Item'].update(statement)
     else:
@@ -1431,23 +1460,27 @@ def parseStatement(tokenBuffer):
     Returns:
     """
     statementTree = {'Statement':{}}
-    #astStmtTree =  {'Statement'}
+    astStmtTree =  {'Statement':{}}
     compoundStatement = parseCompoundStatement(tokenBuffer)
     if compoundStatement['Compound-Statement'] != {}:
         statementTree['Statement'].update(compoundStatement)
+        astStmtTree['Statement'].update(compoundStatement)
     else:    
         jumpStatement = parseJumpStatement(tokenBuffer) 
         if jumpStatement['Jump-Statement'] != {}:
             statementTree['Statement'].update(jumpStatement)
+            astStmtTree['Statement'].update(jumpStatement)
         else:
-            exprStmt = parseExpressionStatement(tokenBuffer)
+            exprStmt,astExpr = parseExpressionStatement(tokenBuffer)
             if exprStmt['Expression-Statement'] != {}:
-                statementTree['Statement'].update(exprStmt) 
+                statementTree['Statement'].update(exprStmt)
+                astStmtTree['Statement'].update(astExpr) 
             else:
                 selectionStatement = parseSelectionStatement(tokenBuffer)
                 if selectionStatement['Selection-Statement'] != {}:
                     statementTree['Statement'].update(selectionStatement)
-    return statementTree
+                    astStmtTree['Statement'].update(selectionStatement)
+    return statementTree, astStmtTree
 
 """
 expression-statement:
@@ -1455,14 +1488,15 @@ expression-statement:
 """
 def parseExpressionStatement(tokenBuffer):
     exprStmtTree = {'Expression-Statement':{}}
-    expression = parseExpression(tokenBuffer)
+    astExprStmt = {'Expression-Statement':{}}
+    expression,astExpr = parseExpression(tokenBuffer)
     if expression['Expression'] != {}:
         exprStmtTree['Expression-Statement'].update(expression)
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type == 'END':
         exprStmtTree['Expression-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
-    return exprStmtTree
+    return exprStmtTree, astExprStmt
 
 """
 jump-statement:
@@ -1482,7 +1516,7 @@ def parseJumpStatement(tokenBuffer):
         consume(tokenToBeConsumed,tokenBuffer)
         tokenToBeConsumed = tokenBuffer[0]
         if tokenToBeConsumed.type != 'END':
-            expression = parseExpression(tokenBuffer)
+            expression,exprAst = parseExpression(tokenBuffer)
             if expression:
                 findTerminalNodes(expression)
                 for terminalNode in terminalNodes:
@@ -1517,30 +1551,36 @@ def parseSelectionStatement(tokenBuffer):
     
     """
     selectionStmtTree = {'Selection-Statement':{}}
+    astSelectionStmtTree = {}
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type == 'if':
         selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        astSelectionStmtTree.update({tokenToBeConsumed.value:{}})
+        print('\n',astSelectionStmtTree)
         consume(tokenToBeConsumed,tokenBuffer)
         tokenToBeConsumed = tokenBuffer[0]
         if tokenToBeConsumed.type == 'LPAREN':
             selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             consume(tokenToBeConsumed,tokenBuffer)
-            expression = parseExpression(tokenBuffer)
+            expression,exprAst = parseExpression(tokenBuffer)
             if expression:
                 selectionStmtTree['Selection-Statement'].update(expression)
+                astSelectionStmtTree['if'].update(exprAst)
+                print(astSelectionStmtTree)
                 tokenToBeConsumed = tokenBuffer[0]
                 if tokenToBeConsumed.type == 'RPAREN':
                     selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                     consume(tokenToBeConsumed,tokenBuffer)
-                    statement = parseStatement(tokenBuffer)
+                    statement,astStmt = parseStatement(tokenBuffer)
                     statement['Statement-1'] = statement.pop('Statement')
                     if statement['Statement-1']:
                         selectionStmtTree['Selection-Statement'].update(statement)
+                        astSelectionStmtTree.update(astStmt)
                         tokenToBeConsumed = tokenBuffer[0]
                         if tokenToBeConsumed.type == 'else':
                             selectionStmtTree['Selection-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                             consume(tokenToBeConsumed, tokenBuffer)
-                            statement = parseStatement(tokenBuffer)
+                            statement,astStmt = parseStatement(tokenBuffer)
                             statement['Statement-2'] = statement.pop('Statement')
                             if statement:
                                 selectionStmtTree['Selection-Statement'].update(statement)         

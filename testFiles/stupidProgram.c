@@ -1,8 +1,11 @@
-int main(int a,int b, int c) {
+int main() {
     int x = 4;
     int y = x + 2;
-    
-    int d = (c+8)/(y);
+    int d;
+    d = (8+x)/(y);
+    if (d < 20) {
+        int a = 20;
+    }
     /* 
     if (a > 2 || (b < 3 && c > 2) || (a<=2 && b>2)) {
         a = 6;
@@ -28,5 +31,5 @@ int main(int a,int b, int c) {
         }
     }
 */
-    return a; 
+    return 0; 
 }
