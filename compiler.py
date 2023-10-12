@@ -20,11 +20,11 @@ def main():
     # if c file just contains comments, there will be no tokens and no parse tree
     if not tokens:
         raise RuntimeError("Nothing to Parse")
-    parseTree,symbolTable = parserC.createParseTree(tokens)
+    parseTree,astTree,symbolTable = parserC.createParseTree(tokens)
     #ast = parserC.createAST(parseTree)
     if args.p == True:    
         print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table)
-    
+        print(astTree)
     threeAddressCode = ThreeAddressCode.createThreeAddressCode(parseTree,symbolTable)
     if args.a == True:
         pass
