@@ -24,10 +24,10 @@ def main():
     #ast = parserC.createAST(parseTree)
     if args.p == True:    
         print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table)
-        print(astTree)
-    threeAddressCode = ThreeAddressCode.createThreeAddressCode(parseTree,symbolTable)
+        print("AST",astTree)
+    threeAddressCode = ThreeAddressCode.createThreeAddressCode(astTree,symbolTable)
     if args.a == True:
         pass
-        #print(threeAddressCode)
+        print(threeAddressCode)
 if __name__ == "__main__":
     main()
