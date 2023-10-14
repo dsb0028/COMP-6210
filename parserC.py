@@ -330,14 +330,14 @@ def parseDeclaration(tokenBuffer):
     """
     
     declarationTree = {'Declaration':{}}
-    astDeclarationTree = {'Declaration':{}}
+    astDeclarationTree = {}
     declarationSpecifiers, astDeclSpecs = parseDeclarationSpecifiers(tokenBuffer)
     if declarationSpecifiers['Declaration-Specifiers'] != {}:
         declarationTree['Declaration'].update(declarationSpecifiers)
         initDeclaratorList, astInitDeclaratorList = parseInitDeclaratorList(tokenBuffer)
         if initDeclaratorList:
             declarationTree['Declaration'].update(initDeclaratorList)
-            astDeclarationTree['Declaration'].update(astInitDeclaratorList)
+            astDeclarationTree.update(astInitDeclaratorList)
             tokenToBeConsumed = tokenBuffer[0]
             if tokenToBeConsumed.type == 'END':
                 #print(declarationSpecifiers)
@@ -490,7 +490,14 @@ def parseAssignmentExpression(tokenBuffer):
     assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
     if conditionalExpr['Conditional-Expression'] != {} and tokenToBeConsumed.value not in assignmentOperator:
         assignmentExpressionTree['Assignment-Expression'].update(conditionalExpr)
-        astAssignExprTree.update(astCondExpr)
+        #print(astCondExpr)
+        if astAssignExprTree.get('='):
+            print("EQ sign",astCondExpr)
+            astAssignExprTree['='].update(astCondExpr)
+        else:
+            print("astA", astAssignExprTree)
+            print("A",astCondExpr)
+            astAssignExprTree.update(astCondExpr)
     else:
         if tokenToBeConsumed.value in assignmentOperator:
             findTerminalNodes(conditionalExpr)
@@ -499,6 +506,7 @@ def parseAssignmentExpression(tokenBuffer):
             #print(assignmentExpressionTree)
         #backtracking is necessary
         unaryExpr, astUnaryExpr = parseUnaryExpression(tokenBuffer)
+        operands = []
         if unaryExpr['Unary-Expression'] != {}:
             assignmentExpressionTree['Assignment-Expression'].update(unaryExpr)
             #astAssignExprTree.update(astUnaryExpr)
@@ -541,6 +549,7 @@ def parseConditionalExpression(tokenBuffer):
     conditionalExprTree = {'Conditional-Expression':{}}
     astConditionalExprTree = {}
     logicalOrExpression, astOrExpr = parseLogicalOrExpression(tokenBuffer)
+    print("AST LOG OR Expr",astOrExpr )
     if logicalOrExpression['Logical-OR-Expression'] != {}:
         conditionalExprTree['Conditional-Expression'].update(logicalOrExpression)
         astConditionalExprTree.update(astOrExpr)
@@ -678,6 +687,7 @@ def parseExclusiveOrExpression(tokenBuffer):
     andExpression, astAndExpr = parseAndExpression(tokenBuffer)
     if andExpression['AND-Expression'] != {}:
         exclusiveOrExprTree['Exclusive-OR-Expression'].update(andExpression)
+        print("astAND", astAndExpr)
         astExclusiveOrExprTree.update(astAndExpr)
     return exclusiveOrExprTree, astExclusiveOrExprTree
 
@@ -694,6 +704,7 @@ def parseAndExpression(tokenBuffer):
     andExprTree = {'AND-Expression':{}}
     astAndExpr = {}
     equalityExpression, astEqualExpr = parseEqualityExpression(tokenBuffer)
+    print("EQ in LOG-AND", astEqualExpr)
     if equalityExpression['Equality-Expression'] != {}:
         andExprTree['AND-Expression'].update(equalityExpression)
         astAndExpr.update(astEqualExpr)
@@ -714,9 +725,9 @@ def parseEqualityExpression(tokenBuffer):
     astEqualityExprTree = {}
     relationalExpression, astRelatExpr = parseRelationalExpression(tokenBuffer)
     if relationalExpression['Relational-Expression'] != {}:
-        equalityExprTree['Equality-Expression'].update(astRelatExpr)
+        equalityExprTree['Equality-Expression'].update(relationalExpression)
         astEqualityExprTree.update(astRelatExpr)
-        print(astEqualityExprTree)
+        print("EQ",astEqualityExprTree)
     return equalityExprTree, astEqualityExprTree
 
 """
@@ -838,10 +849,10 @@ def parseAdditiveExpression(tokenBuffer):
             additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
             if isNextTokMathOp == True:
                 astAdditiveExpressionTree.update(astAdditiveExpressionPrime)
-                print(astAdditiveExpressionTree)
-                print(operands[0])
-                print(math_op)
-                astAdditiveExpressionTree.update(operands[0])
+                print("AST AddExprTree",astAdditiveExpressionTree)
+                print("Operand 1",operands[0])
+                print("Math_op",math_op)
+                astAdditiveExpressionTree[math_op].append(operands[0])
     return additiveExpressionTree, astAdditiveExpressionTree
 
 """   
@@ -862,17 +873,17 @@ def parseAdditiveExpressionPrime(tokenBuffer):
         tokenToBeConsumed = tokenBuffer[0]
         if tokenToBeConsumed.value == '+':
             additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-            astAdditiveExpressionPrimeTree.update({tokenToBeConsumed.value:{}})
+            astAdditiveExpressionPrimeTree.update({tokenToBeConsumed.value:[]})
             consume(tokenToBeConsumed, tokenBuffer)
             castExpression, astCastExpr = parseCastExpression(tokenBuffer)
             if castExpression['Cast-Expression'] != {}:
                 additiveExpressionPrimeTree['Additive-Expression-Prime'].update(castExpression)
-                astAdditiveExpressionPrimeTree['+'].update(astCastExpr)
+                astAdditiveExpressionPrimeTree['+'].append(astCastExpr)
                 additiveExprPrime, astAddPrime = parseAdditiveExpressionPrime(tokenBuffer)
                 if additiveExprPrime['Additive-Expression-Prime'] != {}:
                     additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
                     #print(astAdditiveExpressionPrimeTree)
-                    astAdditiveExpressionPrimeTree['+'].update(astAddPrime)
+                    astAdditiveExpressionPrimeTree['+'].append(astAddPrime)
                     #print(astAdditiveExpressionPrimeTree)
         elif tokenToBeConsumed.value == '-':
             additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
@@ -1507,16 +1518,16 @@ block-item-list:
 """
 def parseBlockItemList(tokenBuffer):
     blockItemListTree = {'Block-Item-List':{}}
-    astBlockItemListTree = {}
+    astBlockItemListTree = {'Block-Item-List':[]}
     if tokenBuffer[0].type != 'RBRACE':
         blockItem, astBlockItem = parseBlockItem(tokenBuffer)
         if blockItem['Block-Item'] != {}:
             blockItemListTree['Block-Item-List'].update(blockItem)
-            astBlockItemListTree.update(astBlockItem)
+            astBlockItemListTree['Block-Item-List'].append(astBlockItem)
             blockItemList, astBlockItemList = parseBlockItemList(tokenBuffer)
             if blockItemList['Block-Item-List'] != {}:
                 blockItemListTree['Block-Item-List'].update(blockItemList)
-                astBlockItemListTree.update(astBlockItemList)
+                astBlockItemListTree['Block-Item-List'].append(astBlockItemList)
     return blockItemListTree, astBlockItemListTree
 
 """
@@ -1573,7 +1584,7 @@ def parseStatement(tokenBuffer):
             if exprStmt['Expression-Statement'] != {}:
                 statementTree['Statement'].update(exprStmt)
                 astStmtTree.update(astExprStmt)
-                print("EXPR",astExprStmt)
+                #print("EXPR",astExprStmt)
                 print(astStmtTree) 
             else:
                 selectionStatement = parseSelectionStatement(tokenBuffer)
