@@ -822,23 +822,30 @@ def parseAdditiveExpression(tokenBuffer):
     Returns:
     """
     additiveExpressionTree = {'Additive-Expression':{}}
+    #Initalzize a dictionary object to store children of additive-expression
     astAdditiveExpressionTree = {}
+    #returns the resulting mutliplicative expression for full parse tree and ast
     multiplicativeExpr, astMultExpr = parseMultiplicativeExpression(tokenBuffer)
+    #if there is a mutliplicatice expression, update the parse tree
     if multiplicativeExpr['Multiplicative-Expression'] != {}:
         additiveExpressionTree['Additive-Expression'].update(multiplicativeExpr)
         #astAdditiveExpressionTree.update(astMultExpr)
+        #if the next token to be consumed is a '+' or '-', 
+        # initialize list called operands to store the operands of the operator 
         if tokenBuffer[0].value in ['+','-']:
             operands = []
             math_op = tokenBuffer[0].value
             #print(math_op)
             operands.append(astMultExpr)
-            print(operands)
+            #print(operands)
             additiveExpressionPrime, astAdditiveExpressionPrime = parseAdditiveExpressionPrime(tokenBuffer)
             if additiveExpressionPrime['Additive-Expression-Prime'] != {}:
                 additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
-                astAdditiveExpressionTree.update(astAdditiveExpressionPrime)
-                print("AST ADD",astAdditiveExpressionTree)
-                astAdditiveExpressionTree[math_op].insert(0,operands[0])
+                operands.append(astAdditiveExpressionPrime)
+                print("operands",operands)
+                #astAdditiveExpressionTree.update(astAdditiveExpressionPrime)
+                #print("AST ADD",astAdditiveExpressionTree)
+                astAdditiveExpressionTree.update({math_op:[operands]})
         else:
             astAdditiveExpressionTree.update(astMultExpr)          
     return additiveExpressionTree, astAdditiveExpressionTree
