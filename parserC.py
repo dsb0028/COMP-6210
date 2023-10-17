@@ -339,7 +339,7 @@ def parseDeclaration(tokenBuffer):
         initDeclaratorList, astInitDeclaratorList = parseInitDeclaratorList(tokenBuffer)
         if initDeclaratorList:
             declarationTree['Declaration'].update(initDeclaratorList)
-            astDeclarationTree['Declaration'].append(astInitDeclaratorList)
+            #astDeclarationTree['Declaration'].append(astInitDeclaratorList)
             tokenToBeConsumed = tokenBuffer[0]
             if tokenToBeConsumed.type == 'END':
                 #print(declarationSpecifiers)
@@ -827,20 +827,20 @@ def parseAdditiveExpression(tokenBuffer):
     if multiplicativeExpr['Multiplicative-Expression'] != {}:
         additiveExpressionTree['Additive-Expression'].update(multiplicativeExpr)
         #astAdditiveExpressionTree.update(astMultExpr)
-        operands = []
-        isNextTokMathOp = False
-        math_op = tokenBuffer[0].value
-        if tokenBuffer[0].type == 'MATH_OP':
-            isNextTokMathOp = True
+        if tokenBuffer[0].value in ['+','-']:
+            operands = []
+            math_op = tokenBuffer[0].value
+            #print(math_op)
             operands.append(astMultExpr)
-        else:
-            astAdditiveExpressionTree.update(astMultExpr)
-        additiveExpressionPrime, astAdditiveExpressionPrime = parseAdditiveExpressionPrime(tokenBuffer)
-        if additiveExpressionPrime['Additive-Expression-Prime'] != {}:
-            additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
-            if isNextTokMathOp == True:
+            print(operands)
+            additiveExpressionPrime, astAdditiveExpressionPrime = parseAdditiveExpressionPrime(tokenBuffer)
+            if additiveExpressionPrime['Additive-Expression-Prime'] != {}:
+                additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
                 astAdditiveExpressionTree.update(astAdditiveExpressionPrime)
-                astAdditiveExpressionTree[math_op].append(operands[0])
+                print("AST ADD",astAdditiveExpressionTree)
+                astAdditiveExpressionTree[math_op].insert(0,operands[0])
+        else:
+            astAdditiveExpressionTree.update(astMultExpr)          
     return additiveExpressionTree, astAdditiveExpressionTree
 
 """   
@@ -863,6 +863,18 @@ def parseAdditiveExpressionPrime(tokenBuffer):
             additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             astAdditiveExpressionPrimeTree.update({tokenToBeConsumed.value:[]})
             consume(tokenToBeConsumed, tokenBuffer)
+            multiplicativeExprTree, astMultExprTree = parseMultiplicativeExpression(tokenBuffer)
+            print("MULT",astMultExprTree)
+            if multiplicativeExprTree['Multiplicative-Expression'] != {}:
+                additiveExpressionPrimeTree['Additive-Expression-Prime'].update(multiplicativeExprTree)
+                astAdditiveExpressionPrimeTree[tokenToBeConsumed.value].append(astMultExprTree)
+                additiveExprPrime, astAddPrime = parseAdditiveExpressionPrime(tokenBuffer)
+                if additiveExprPrime['Additive-Expression-Prime'] != {}:
+                    additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
+                    #print(astAdditiveExpressionPrimeTree)
+                    astAdditiveExpressionPrimeTree[tokenToBeConsumed.value].append(astAddPrime)
+            
+            """
             castExpression, astCastExpr = parseCastExpression(tokenBuffer)
             if castExpression['Cast-Expression'] != {}:
                 additiveExpressionPrimeTree['Additive-Expression-Prime'].update(castExpression)
@@ -873,6 +885,7 @@ def parseAdditiveExpressionPrime(tokenBuffer):
                     #print(astAdditiveExpressionPrimeTree)
                     astAdditiveExpressionPrimeTree['+'].append(astAddPrime)
                     #print(astAdditiveExpressionPrimeTree)
+            """
         elif tokenToBeConsumed.value == '-':
             additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             astAdditiveExpressionPrimeTree.update({tokenToBeConsumed.value:{}}) 
@@ -902,11 +915,20 @@ def parseMultiplicativeExpression(tokenBuffer):
     castExpr, astCastExpr = parseCastExpression(tokenBuffer)
     if castExpr['Cast-Expression'] != {}:
         multiplicativeExprTree['Multiplicative-Expression'].update(castExpr)
-        astMultiplicativeExprTree.update(astCastExpr)
-    multiplicativeExprPrime, astMultiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
-    if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
-        multiplicativeExprTree['Multiplicative-Expression'].update(multiplicativeExprPrime)
-        astMultiplicativeExprTree.update(astMultiplicativeExprPrime)
+        # astMultiplicativeExprTree.update(astCastExpr)
+        if tokenBuffer[0].value in ['*','/','%']:
+            operands = []
+            math_op = tokenBuffer[0].value
+            operands.append(astCastExpr)
+            #astMultiplicativeExprTree.update(astCastExpr)
+            multiplicativeExprPrime, astMultiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
+            if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
+                multiplicativeExprTree['Multiplicative-Expression'].update(multiplicativeExprPrime)
+                astMultiplicativeExprTree.update(astMultiplicativeExprPrime)
+                astMultiplicativeExprTree[math_op].insert(0,operands[0])
+                    #astMultiplicativeExprTree.update(astMultiplicativeExprPrime)
+        else:
+            astMultiplicativeExprTree.update(astCastExpr)
     return multiplicativeExprTree, astMultiplicativeExprTree
 
 """  
@@ -928,13 +950,16 @@ def parseMultiplicativeExpressionPrime(tokenBuffer):
         tokenToBeConsumed = tokenBuffer[0]
         if tokenToBeConsumed.value == '*':
             multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            astMultiplicativeExprPrimeTree.update({tokenToBeConsumed.value:[]})
             consume(tokenToBeConsumed, tokenBuffer)
-            castExpression = parseCastExpression(tokenBuffer)
+            castExpression, astCastExpr = parseCastExpression(tokenBuffer)
             if castExpression['Cast-Expression'] != {}:
                 multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(castExpression)
-                multiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
+                astMultiplicativeExprPrimeTree[tokenToBeConsumed.value].append(astCastExpr)
+                multiplicativeExprPrime, astMultiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
                 if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
                     multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(multiplicativeExprPrime)
+                    astMultiplicativeExprPrimeTree[tokenToBeConsumed.value].append(astMultiplicativeExprPrime)
         elif tokenToBeConsumed.value == '/':
             multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             consume(tokenToBeConsumed, tokenBuffer)
@@ -1766,6 +1791,7 @@ def main():
     dict3 = {'Translation-Unit': {'External-Declaration': {'Function-Definition': {'Declaration-Specifiers': {'return-type': 'int'}, 'Declarator': {'Direct-Declarator': {'function-name': 'main', 'Direct-Declarator-Prime': {'LPAREN': '(', 'Parameter-Type-List': {'Parameter-List': {'Parameter-Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Declarator': {'Direct-Declarator': {'ID': 'a'}}}, 'Parameter-List-Prime': {'COMMA': ',', 'Parameter-Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Declarator': {'Direct-Declarator': {'ID': 'b'}}}, 'Parameter-List-Prime': {'COMMA': ',', 'Parameter-Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Declarator': {'Direct-Declarator': {'ID': 'c'}}}}}}}, 'RPAREN': ')'}}}, 'Compound-Statement': {'LBRACE': '{', 'Block-Item-List': {'Block-Item': {'Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Init-Declarator-List': {'Init-Declarator': {'Declarator': {'Direct-Declarator': {'ID': 'x'}}, 'ASSIGN_OPS': '=', 'Initializer': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 4}}}}}}}}}}}}}}}}}}, 'Init-Declarator-List-Prime': {}}, 'END': ';'}}, 'Block-Item-List': {'Block-Item': {'Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Init-Declarator-List': {'Init-Declarator': {'Declarator': {'Direct-Declarator': {'ID': 'y'}}, 'ASSIGN_OPS': '=', 'Initializer': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'x'}}}}}, 'Additive-Expression-Prime': {'MATH_OP': '+', 'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 2}}}}}}}}}}}}}}}}}}, 'Init-Declarator-List-Prime': {}}, 'END': ';'}}, 'Block-Item-List': {'Block-Item': {'Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Init-Declarator-List': {'Init-Declarator': {'Declarator': {'Direct-Declarator': {'ID': 'd'}}, 'ASSIGN_OPS': '=', 'Initializer': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'LPAREN': '(', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'c'}}}}}, 'Additive-Expression-Prime': {'MATH_OP': '+', 'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 8}}}}}}}}}}}}}}}}}, 'RPAREN': ')'}}}}, 'Multiplicative-Expression-Prime': {'MATH_OP': '/', 'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'LPAREN': '(', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'y'}}}}}}}}}}}}}}}}}, 'RPAREN': ')'}}}}}}}}}}}}}}}}}}}, 'Init-Declarator-List-Prime': {}}, 'END': ';'}}, 'Block-Item-List': {'Block-Item': {'Statement': {'Jump-Statement': {'return': 'return', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'a'}}}}}}}}}}}}}}}}}, 'END': ';'}}}}}}}, 'RBRACE': '}'}}}}}
     dict4 = {'Translation-Unit': {'External-Declaration': {'Function-Definition': {'Declaration-Specifiers': {'return-type': 'int'}, 'Declarator': {'Direct-Declarator': {'function-name': 'main', 'Direct-Declarator-Prime': {'LPAREN': '(', 'Parameter-Type-List': {'Parameter-List': {'Parameter-Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Declarator': {'Direct-Declarator': {'ID': 'a'}}}, 'Parameter-List-Prime': {'COMMA': ',', 'Parameter-Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Declarator': {'Direct-Declarator': {'ID': 'b'}}}, 'Parameter-List-Prime': {'COMMA': ',', 'Parameter-Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Declarator': {'Direct-Declarator': {'ID': 'c'}}}}}}}, 'RPAREN': ')'}}}, 'Compound-Statement': {'LBRACE': '{', 'Block-Item-List': {'Block-Item': {'Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Init-Declarator-List': {'Init-Declarator': {'Declarator': {'Direct-Declarator': {'ID': 'x'}}, 'ASSIGN_OPS': '=', 'Initializer': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 4}}}}}}}}}}}}}}}}}}, 'Init-Declarator-List-Prime': {}}, 'END': ';'}}, 'Block-Item-List': {'Block-Item': {'Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Init-Declarator-List': {'Init-Declarator': {'Declarator': {'Direct-Declarator': {'ID': 'y'}}, 'ASSIGN_OPS': '=', 'Initializer': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'x'}}}}}, 'Additive-Expression-Prime': {'MATH_OP': '+', 'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 2}}}}}}}}}}}}}}}}}}, 'Init-Declarator-List-Prime': {}}, 'END': ';'}}, 'Block-Item-List': {'Block-Item': {'Declaration': {'Declaration-Specifiers': {'type-specifier': 'int'}, 'Init-Declarator-List': {'Init-Declarator': {'Declarator': {'Direct-Declarator': {'ID': 'd'}}, 'ASSIGN_OPS': '=', 'Initializer': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'LPAREN': '(', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'c'}}}}}, 'Additive-Expression-Prime': {'MATH_OP': '+', 'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 8}}}}}}}}}}}}}}}}}, 'RPAREN': ')'}}}}, 'Multiplicative-Expression-Prime': {'MATH_OP': '/', 'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'LPAREN': '(', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'y'}}}}}}}}}}}}}}}}}, 'RPAREN': ')'}}}}}}}}}}}}}}}}}}}, 'Init-Declarator-List-Prime': {}}, 'END': ';'}}, 'Block-Item-List': {'Block-Item': {'Statement': {'Jump-Statement': {'statement': 'return', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'ID': 'a'}}}}}}}}}}}}}}}}}, 'END': ';'}}}}}}}, 'RBRACE': '}'}}}}}
     dict5 = {'Translation-Unit': {'External-Declaration': {'Function-Definition': {'Declaration-Specifiers': {'return-type': 'int'}, 'Declarator': {'Direct-Declarator': {'function-name': 'main', 'Direct-Declarator-Prime': {'LPAREN': '(', 'Parameter-Type-List': {'Parameter-List': {'Parameter-Declaration': {}}}, 'RPAREN': ')'}}}, 'Compound-Statement': {'LBRACE': '{', 'Block-Item-List': {'Block-Item': {'Statement': {'Jump-Statement': {'statement': 'return', 'Expression': {'Assignment-Expression': {'Conditional-Expression': {'Logical-OR-Expression': {'Logical-AND-Expression': {'Inclusive-OR-Expression': {'Exclusive-OR-Expression': {'AND-Expression': {'Equality-Expression': {'Relational-Expression': {'Shift-Expression': {'Additive-Expression': {'Multiplicative-Expression': {'Cast-Expression': {'Unary-Expression': {'Postfix-Expression': {'Primary-Expression': {'NUMBER': 0}}}}}}}}}}}}}}}}}, 'END': ';'}}}}, 'RBRACE': '}'}}}}}
+    #{'main': {'LBRACE': '{', 'Declaration': [{'ID': 'd'}], 'Statement': [{'=': {'ID': 'd', 'NUMBER': 4}}, {'return': {'NUMBER': 0}}], 'RBRACE': '}'}}
     findTerminalNodes(dict2)
     #print(terminalNodes)
     """
