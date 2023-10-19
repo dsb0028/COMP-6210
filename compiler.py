@@ -1,7 +1,7 @@
 import argparse
 import tokenizer
 import parserC
-import ThreeAddressCode
+from ThreeAddressCode import *
 from pprint import pprint 
 
 def main():
@@ -25,8 +25,8 @@ def main():
     if args.p == True:    
         print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table,'\n')
         print("AST",astTree,'\n')
-    threeAddressCode = ThreeAddressCode.createThreeAddressCode(astTree,symbolTable)
+    threeAddressCode = createThreeAddressCode(astTree,symbolTable)
     if args.a == True:
-        print("Three Address Code",threeAddressCode)
+        print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
 if __name__ == "__main__":
     main()

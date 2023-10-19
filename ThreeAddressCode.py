@@ -3,45 +3,86 @@ from symboltable import *
 from collections import defaultdict
 
 
-"""
-Initalize a variable that is of the same type as the return type of each function
-For example, if the return_type of main() is of type int, 
-int A.####;, where #### is a 4-digit randomly generated number
-for each declaration
-"""
-
 class ThreeAddressCode:
     def __init__(self,operation,arg1,arg2,result):
-        self.operation = {'OP':operation}
+        self.operation = {'Operation':operation}
         self.arg1 = {'ARG1':arg1}
         self.arg2 = {'ARG2':arg2}
         self.result = {'RESULT':result}
+    
+    def __str__(self,threeAddressCodeDict):
+        for threeAddrCode in threeAddressCodeDict['Three Address Code']:
+            if threeAddrCode.operation['Operation'] != '=':
+                print(threeAddrCode.result['RESULT'],'='
+                      ,threeAddrCode.operation['Operation'],threeAddrCode.arg1['ARG1'])
+            else:
+                print(threeAddrCode.result['RESULT']
+                      ,threeAddrCode.operation['Operation'],threeAddrCode.arg1['ARG1'])
+
 
 
 threeAddressCodeDict = defaultdict(list)
 def createThreeAddressCode(astTree, symbolTable):
-    operator = None
-    arg1 = None
-    arg2 = None
-    result = None
     for item in recursive_items(astTree):
+        operation = None
+        arg1 = None
+        arg2 = None
+        result = None
         if item[0] == 'Statement':
             for stmt in astTree['main']['Statement']:
+                operation = None
+                arg1 = None
+                arg2 = None
+                result = None
+                """
+                a = 3
+                
+                t1 = umibus 3
+                a = t1
+                
+                a = 3 + 4
+                t1 = 3 + 4
+                a = t1 
+                """
+                
                 if stmt.get('='):
-                    operator = '='
-                    for operandType in stmt.get('='):
-                        if operandType == 'ID':
+                    #print(len(stmt.get('=')))
+                    numberOfOperands = len(stmt.get('='))
+                    ogVarName = None
+                    tempVarName = None                                        
+                    for i,operandType in enumerate(stmt.get('=')):      
+                        operation = 'omnibus'
+                        #print(i,operandType)
+                        if operandType == 'NUMBER':
                             if arg1 == None:
                                 arg1 = stmt['='][operandType]
                             elif arg2 == None:
                                 arg2 = stmt['='][operandType]
-                        elif operandType == 'NUMBER':
+                        elif operandType == 'ID':
+                            ogVarName = stmt['='][operandType]               
+                            #symbolTable.addAVariable(stmt['='][operandType],type,function)
+                            """
                             if arg1 == None:
                                 arg1 = stmt['='][operandType]
                             elif arg2 == None:
                                 arg2 = stmt['='][operandType]
-                    threeAdrCode = ThreeAddressCode(operator,arg1,arg2,None)
+                            """
+                        elif operandType == '+':
+                            #print("wow")
+                            pass
+                        tempVarName = "t"+str(i)
+                        threeAdrCode = ThreeAddressCode(operation,arg1,arg2,tempVarName)
+                        #varType = symbolTable.lookUpVariable(stmt['='][operandType],'main')
+                        symbolTable.addAVariable(tempVarName,None,'main')
+                    #print(symbolTable.table['main']['Variables']["t"+str(i)])
+                    
                     threeAddressCodeDict['Three Address Code'].append(threeAdrCode)
+                    #print(threeAdrCode.operation,threeAdrCode.arg1,threeAdrCode.arg2, threeAdrCode.result)
+                
+                    threeAdrCode = ThreeAddressCode('=',"t"+str(i),None,ogVarName)
+                    threeAddressCodeDict['Three Address Code'].append(threeAdrCode)
+                    #print(threeAdrCode.operation,threeAdrCode.arg1,threeAdrCode.arg2, threeAdrCode.result)
+                #print(len(threeAddressCodeDict['Three Address Code']))
     return threeAddressCodeDict
 
 

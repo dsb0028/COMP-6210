@@ -1,0 +1,355 @@
+ d = 5*6*5
+ a = 3+4*5
+
+ =
+d *
+  5 *
+    6 5
+
+
+AST {'main': {'LBRACE': '{', 'Statement': [{'=': {'ID': 'd', '*': [{'NUMBER': 5}, {'NUMBER': 6}, {'*': [{'NUMBER': 4}]}]}}, {'return': {'NUMBER': 0}}], 'RBRACE': '}'}}
+
+ = 
+d *
+ 5 6 *
+      4
+
+d = 5 * 6 + 4
+
+AST {'main': {'LBRACE': '{', 'Statement': [{'=': {'ID': 'd', '+': [{'NUMBER': 4}, {'*': [{'NUMBER': 5}, {'NUMBER': 6}]}]}}, {'return': {'NUMBER': 0}}], 'RBRACE': '}'}}   
+
+
+ =
+d  +
+  4 *
+   5 6
+
+
+d = 5 + 6 * 4
+
+
+
+d =  6+5*4+10;
+
+AST {'main': {'LBRACE': '{', 'Statement': [{'=': {'ID': 'd', '+': [{'NUMBER': 6}, {'*': [{'NUMBER': 5}, {'NUMBER': 4}]}, {'+': [{'NUMBER': 10}]}]}}, {'return': {'NUMBER': 0}}], 'RBRACE': '}'}}
+
+
+  = 
+d   +
+   * +
+  5 4 10
+
+
+
+ =
+d +
+ 6 +
+  5 5
+
+
+
+
+=
+d +
+  4 +
+     5 
+
+
+ = 
+d  +
+  4 +
+    4 5
+
+
+[{'=':{'ID':'d', '+':[{'NUMBER':4},'{+':[{'NUMBER':6}]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+d = 6+5+4;
+
+AST {'main': {'LBRACE': '{', 'Statement': [{'=': {'ID': 'd', '+': [{'NUMBER': 5}, {'+': [{'NUMBER': 4}]}, {'NUMBER': 6}]}}, {'return': {'NUMBER': 0}}], 'RBRACE': '}'}}   
+
+
+d = 6+5*4;
+
+AST {'main': {'LBRACE': '{', 'Statement': [{'=': {'ID': 'd', '+': [{'*': [{'NUMBER': 4}, {'NUMBER': 5}]}, {'NUMBER': 6}]}}, {'return': {'NUMBER': 0}}], 'RBRACE': '}'}} 
+
+
+additive-expression:
+    multiplicative-expression additive-expression'
+
+additive-expression':
+    + multiplicative-expression additive-expression'
+    - multiplicatice-expression additive-expression'
+    epsilon
+
+multiplicative-expression:
+    cast-expression multiplicative-expresssion'
+
+multiplicative-expresssion':
+    * cast-expression multiplicative-expresssion'
+    / cast-expression multiplicative-expresssion'
+    % cast-expression multiplicative-expresssion'
+    epsilon
+
+
+6 + 5 + 4
+
+additive-expression
+multiplicative-expression additive-expression'
+cast-expression multiplicative-expresssion' additive-expression'
+6 multiplicative-expresssion' additive-expression'
+6                             + multiplicative-expression additive-expression'
+6                             + cast-expression multiplicative-expresssion' additive-expression'
+6                             +    5                                        +  multiplicative-expression additive-expression'
+6                             +    5                                        +  cast-expression multiplicative-expresssion' additive-expression' 
+6                             +    5                                        +        4                                         
+
+
+
+
+6 * 5 + 4
+
+additive-expression
+multiplicative-expression additive-expression'
+cast-expression multiplicative-expresssion' additive-expression'
+6               * cast-expression multiplicative-expresssion' additive-expression'
+                       5                                      +  multiplicative-expression additive-expression'
+                                                                 cast-expression multiplicative-expresssion' additive-expression'
+							            4  
+
+
+
+
+a = 3+4*5
+r1 = 4*5
+
+a = 3 + r1
+
+
+
+
+
+ =
+a +
+ 3 *
+   4 5
+
+ =
+a +
+ 3 *
+   4 5
+
+need to find the last non-terminal node in the tree 
+
+
+
+
+
+
+
+
+
+AST {'main': {'LBRACE': '{', 'Statement': [{'=': {'ID': 'a', '+': [{'*': [{'NUMBER': 4}, {'NUMBER': 5}]}, [{'NUMBER': 3}]]}}
+
+
+
+ = 
+a  +
+  *  3
+4  5
+
+
+a = 3 + 4 + 5
+{'=': {'ID': 'a', '+': [{'NUMBER': 4}, {'+': [{'NUMBER': 5}]}, [{'NUMBER': 3}]]}}
+
+ =
+a  +
+   4 +
+    5 3
+
+
+{'=': {'ID': 'a', '+': [{'NUMBER': 4}, {'+': [{'NUMBER': 5}]}, {'NUMBER': 3}]}}
+
+{'=': {'ID': 'a', '+': [{'NUMBER': 3}, {'+': [{'NUMBER': 4},{'NUMBER': 5}]}]}}
+
+
+
+
+
+{'=': {'ID': 'a', '*': [{'NUMBER': 3}, {'NUMBER': 5}, {'*': [{'NUMBER': 6}]}]}}
+
+ =
+a *
+
+a = 3 + 4 + 5 + 6 + 7 + 8;
+
+
+r1 = 7 + 8
+
+r2 = 6 + r1
+
+r3 = 5 + r2
+
+r4 = 4 + r3
+
+a = 3 + r4  
+
+
+   =
+r2   +
+    6 r1
+
+
+   =
+r3  +
+   5 r2
+
+  =
+r4 +
+  4 r3
+
+  =
+a  +
+  3 r4
+   
+
+ 
+ =
+a +
+ 3 +
+  4 +
+   5 +
+    6 +
+     7 8   
+
+{'=': {'ID':'a','+':[{'NUMBER':3},r4]}}
+
+{'=': {'ID':'a','+':[{'NUMBER':3},{'+':[{'NUMBER':4},r3]}]}}
+
+{'=': {'ID':'a','+':[{'NUMBER':3},{'+':[{'NUMBER':4},{'+':[{'NUMBER':5},r2]}]}]}}
+
+{'=': {'ID':'a','+':[{'NUMBER':3},{'+':[{'NUMBER':4},{'+':[{'NUMBER':5},{'+':[{'NUMBER':6},r1]}]}]}]}}
+
+{'=': {'ID':'a','+':[{'NUMBER':3},{'+':[{'NUMBER':4},{'+':[{'NUMBER':5},{'+':[{'NUMBER':6},{'+':[{'NUMBER':7},{'NUMBER':8}]}]}]}]}]}}
+
+
+
+
+a = 3 + 4 + 5
+
+
+r1 = 4 + 5
+
+a = 3 + r1
+
+
+{'=': {'ID':'a','+':[{'NUMBER':3},r1]}}
+
+{'=': {'ID':'a','+':[{'NUMBER':3},{'+':[{'NUMBER':4},{'NUMBER':5}]}]}}
+
+
+a = 3 * 4 + 5
+
+
+r1 = 3 * 4
+
+a = r1 + 5
+
+
+  =
+a   +
+   * 5
+  3 4
+
+
+  = 
+a   + 
+  r1 5
+
+  =
+r1  *
+   3 4
+
+    
+{'=': {'ID':'a','+':[r1,{'NUMBER':5}]}}
+
+{'=': {'ID':'a','+':[{'*':[{'NUMBER':3},{'NUMBER':4}]},{'NUMBER':5}]}}
+
+
+
+a = 3 + 4 * 5
+
+r1 = 4 * 5 
+
+a = 3 + r1
+
+
+   =
+a    +
+   3   *
+      4 5 
+       
+ 
+    = 
+  a   +
+    3  r1
+
+     =
+  r1   *
+      4 5
+
+
+
+
+{'=': {'ID':'a','+':[{'NUMBER':3},{'*':[{'NUMBER':4},{'NUMBER':5}]}]}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

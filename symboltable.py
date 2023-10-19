@@ -8,9 +8,11 @@ class SymbolTable:
         self.table[name]['Variables'] = {}
     
     def addAVariable(self,name,type,function):
-        type1 = self.lookUpVariable(name,function)
+        #type1 = self.lookUpVariable(name,function)
+        """
         if type1 == type:
             raise SyntaxError(["Variable already has been defined",name])
+        """
         self.table[function]['Variables'][name] = type
          
     def lookUpVariable(self,name,function):

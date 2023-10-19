@@ -809,12 +809,14 @@ def parseShiftExpression(tokenBuffer):
     if additiveExpression['Additive-Expression'] != {}:
         shiftExprTree['Shift-Expression'].update(additiveExpression)
         astShiftExprTree.update(astAddExpr)
+        #print("Shift",astShiftExprTree)
     return shiftExprTree, astShiftExprTree
 
 """
 additive-expression:
     multiplicative-expression additive-expression'
 """
+#math_op = None
 def parseAdditiveExpression(tokenBuffer):
     """
     Description:
@@ -824,30 +826,26 @@ def parseAdditiveExpression(tokenBuffer):
     additiveExpressionTree = {'Additive-Expression':{}}
     #Initalzize a dictionary object to store children of additive-expression
     astAdditiveExpressionTree = {}
+    #operands = []
+    operators = ['+','-']
+    #math_op = None
     #returns the resulting mutliplicative expression for full parse tree and ast
     multiplicativeExpr, astMultExpr = parseMultiplicativeExpression(tokenBuffer)
     #if there is a mutliplicatice expression, update the parse tree
     if multiplicativeExpr['Multiplicative-Expression'] != {}:
         additiveExpressionTree['Additive-Expression'].update(multiplicativeExpr)
-        #astAdditiveExpressionTree.update(astMultExpr)
-        #if the next token to be consumed is a '+' or '-', 
-        # initialize list called operands to store the operands of the operator 
-        if tokenBuffer[0].value in ['+','-']:
-            operands = []
-            math_op = tokenBuffer[0].value
-            #print(math_op)
-            operands.append(astMultExpr)
-            #print(operands)
-            additiveExpressionPrime, astAdditiveExpressionPrime = parseAdditiveExpressionPrime(tokenBuffer)
-            if additiveExpressionPrime['Additive-Expression-Prime'] != {}:
-                additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
-                operands.append(astAdditiveExpressionPrime)
-                print("operands",operands)
-                #astAdditiveExpressionTree.update(astAdditiveExpressionPrime)
-                #print("AST ADD",astAdditiveExpressionTree)
-                astAdditiveExpressionTree.update({math_op:[operands]})
-        else:
-            astAdditiveExpressionTree.update(astMultExpr)          
+        astAdditiveExpressionTree.update(astMultExpr)
+        #print("MULT",astMultExpr)
+        #print(math_op)
+        if tokenBuffer[0].value in operators:
+            #math_op = tokenBuffer[0].value
+            #print("wow",math_op)
+            pass
+        additiveExpressionPrime, astAdditiveExpressionPrime = parseAdditiveExpressionPrime(tokenBuffer)
+        if additiveExpressionPrime['Additive-Expression-Prime'] != {}:
+            additiveExpressionTree['Additive-Expression'].update(additiveExpressionPrime)
+            print(astAdditiveExpressionPrime)
+            astAdditiveExpressionTree.update(astAdditiveExpressionPrime)         
     return additiveExpressionTree, astAdditiveExpressionTree
 
 """   
@@ -856,6 +854,10 @@ additive-expression':
     - multiplicatice-expression additive-expression'
     epsilon
 """       
+
+
+#astAdditiveExpressionPrimeTree = defaultdict(list)
+#math_op = None
 def parseAdditiveExpressionPrime(tokenBuffer):
     """
     Description:
@@ -866,51 +868,45 @@ def parseAdditiveExpressionPrime(tokenBuffer):
     astAdditiveExpressionPrimeTree = {}
     if tokenBuffer:
         tokenToBeConsumed = tokenBuffer[0]
+        if tokenToBeConsumed.value in ['+','-']:
+            math_op = tokenToBeConsumed.value
         if tokenToBeConsumed.value == '+':
+            operands = []
             additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             astAdditiveExpressionPrimeTree.update({tokenToBeConsumed.value:[]})
+            #print(astAdditiveExpressionPrimeTree)
             consume(tokenToBeConsumed, tokenBuffer)
             multiplicativeExprTree, astMultExprTree = parseMultiplicativeExpression(tokenBuffer)
-            print("MULT",astMultExprTree)
+            
             if multiplicativeExprTree['Multiplicative-Expression'] != {}:
                 additiveExpressionPrimeTree['Additive-Expression-Prime'].update(multiplicativeExprTree)
                 astAdditiveExpressionPrimeTree[tokenToBeConsumed.value].append(astMultExprTree)
+                #operators.append(astMultExprTree)
+                #print(astMultExprTree)
                 additiveExprPrime, astAddPrime = parseAdditiveExpressionPrime(tokenBuffer)
+                #print(math_op)
                 if additiveExprPrime['Additive-Expression-Prime'] != {}:
                     additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
-                    #print(astAdditiveExpressionPrimeTree)
                     astAdditiveExpressionPrimeTree[tokenToBeConsumed.value].append(astAddPrime)
-            
-            """
-            castExpression, astCastExpr = parseCastExpression(tokenBuffer)
-            if castExpression['Cast-Expression'] != {}:
-                additiveExpressionPrimeTree['Additive-Expression-Prime'].update(castExpression)
-                astAdditiveExpressionPrimeTree['+'].append(astCastExpr)
-                additiveExprPrime, astAddPrime = parseAdditiveExpressionPrime(tokenBuffer)
-                if additiveExprPrime['Additive-Expression-Prime'] != {}:
-                    additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
-                    #print(astAdditiveExpressionPrimeTree)
-                    astAdditiveExpressionPrimeTree['+'].append(astAddPrime)
-                    #print(astAdditiveExpressionPrimeTree)
-            """
         elif tokenToBeConsumed.value == '-':
-            additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-            astAdditiveExpressionPrimeTree.update({tokenToBeConsumed.value:{}}) 
-            consume(tokenToBeConsumed, tokenBuffer)
-            castExpression, astCastExpr = parseCastExpression(tokenBuffer)
-            if castExpression['Cast-Expression'] != {}:
-                additiveExpressionPrimeTree['Additive-Expression-Prime'].update(castExpression)
-                astAdditiveExpressionPrimeTree['-'].update(astCastExpr)
-                additiveExprPrime, astAddPrime = parseAdditiveExpressionPrime(tokenBuffer)
-                if additiveExprPrime['Additive-Expression-Prime'] != {}:
-                    additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
-                    astAdditiveExpressionPrimeTree['-'].update(astAddPrime)
+                additiveExpressionPrimeTree['Additive-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                astAdditiveExpressionPrimeTree.update({tokenToBeConsumed.value:[]})
+                consume(tokenToBeConsumed, tokenBuffer)
+                multiplicativeExprTree, astMultExprTree = parseMultiplicativeExpression(tokenBuffer)
+                if multiplicativeExprTree['Multiplicative-Expression'] != {}:
+                    additiveExpressionPrimeTree['Additive-Expression-Prime'].update(multiplicativeExprTree)
+                    astAdditiveExpressionPrimeTree[tokenToBeConsumed.value].append(astMultExprTree)
+                    additiveExprPrime, astAddPrime = parseAdditiveExpressionPrime(tokenBuffer)
+                    if additiveExprPrime['Additive-Expression-Prime'] != {}:
+                        additiveExpressionPrimeTree['Additive-Expression-Prime'].update(additiveExprPrime)
+                        astAdditiveExpressionPrimeTree[tokenToBeConsumed.value].append(astAddPrime)
     return additiveExpressionPrimeTree, astAdditiveExpressionPrimeTree
 
 """ 
 multiplicative-expression:
     cast-expression multiplicative-expresssion'
 """
+#math_op = None
 def parseMultiplicativeExpression(tokenBuffer):
     """
     Description:
@@ -920,22 +916,17 @@ def parseMultiplicativeExpression(tokenBuffer):
     multiplicativeExprTree = {'Multiplicative-Expression':{}}
     astMultiplicativeExprTree = {}
     castExpr, astCastExpr = parseCastExpression(tokenBuffer)
+    if tokenBuffer[0].value in ['+','-','*','/','%']:
+        #global math_op
+        #math_op = tokenBuffer[0].value
+        pass
     if castExpr['Cast-Expression'] != {}:
         multiplicativeExprTree['Multiplicative-Expression'].update(castExpr)
-        # astMultiplicativeExprTree.update(astCastExpr)
-        if tokenBuffer[0].value in ['*','/','%']:
-            operands = []
-            math_op = tokenBuffer[0].value
-            operands.append(astCastExpr)
-            #astMultiplicativeExprTree.update(astCastExpr)
-            multiplicativeExprPrime, astMultiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
-            if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
-                multiplicativeExprTree['Multiplicative-Expression'].update(multiplicativeExprPrime)
-                astMultiplicativeExprTree.update(astMultiplicativeExprPrime)
-                astMultiplicativeExprTree[math_op].insert(0,operands[0])
-                    #astMultiplicativeExprTree.update(astMultiplicativeExprPrime)
-        else:
-            astMultiplicativeExprTree.update(astCastExpr)
+        astMultiplicativeExprTree.update(astCastExpr)
+        multiplicativeExprPrime, astMultiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
+        if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
+            multiplicativeExprTree['Multiplicative-Expression'].update(multiplicativeExprPrime)
+            astMultiplicativeExprTree.update(astMultiplicativeExprPrime)
     return multiplicativeExprTree, astMultiplicativeExprTree
 
 """  
@@ -969,13 +960,16 @@ def parseMultiplicativeExpressionPrime(tokenBuffer):
                     astMultiplicativeExprPrimeTree[tokenToBeConsumed.value].append(astMultiplicativeExprPrime)
         elif tokenToBeConsumed.value == '/':
             multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+            astMultiplicativeExprPrimeTree.update({tokenToBeConsumed.value:[]})
             consume(tokenToBeConsumed, tokenBuffer)
-            castExpression = parseCastExpression(tokenBuffer)
+            castExpression,astCastExpr = parseCastExpression(tokenBuffer)
             if castExpression['Cast-Expression'] != {}:
                 multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(castExpression)
-                multiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
+                astMultiplicativeExprPrimeTree[tokenToBeConsumed.value].append(astCastExpr)
+                multiplicativeExprPrime, astMultiplicativeExprPrime = parseMultiplicativeExpressionPrime(tokenBuffer)
                 if multiplicativeExprPrime['Multiplicative-Expression-Prime'] != {}:
                     multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update(multiplicativeExprPrime)
+                    astMultiplicativeExprPrimeTree[tokenToBeConsumed.value].append(astMultiplicativeExprPrime)
         elif tokenToBeConsumed.value == '%':
             multiplicativeExprPrimeTree['Multiplicative-Expression-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
             consume(tokenToBeConsumed, tokenBuffer)
