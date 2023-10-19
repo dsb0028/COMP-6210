@@ -51,7 +51,7 @@ def createThreeAddressCode(astTree, symbolTable):
                     ogVarName = None
                     tempVarName = None                                        
                     for i,operandType in enumerate(stmt.get('=')):      
-                        operation = 'omnibus'
+                        operation = 'umibus'
                         #print(i,operandType)
                         if operandType == 'NUMBER':
                             if arg1 == None:
