@@ -27,6 +27,7 @@ def main():
         print("AST",astTree,'\n')
     threeAddressCode = createThreeAddressCode(astTree,symbolTable)
     if args.a == True:
-        print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
+        print(threeAddressCode)
+        #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
 if __name__ == "__main__":
     main()

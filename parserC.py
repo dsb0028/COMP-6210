@@ -647,7 +647,7 @@ def parseLogicalAndExpressionPrime(tokenBuffer):
             if logicalAndExprPrime['Logical-AND-Expression-Prime'] != {}:
                 logicalAndExpressionPrimeTree['Logical-AND-Expression-Prime'].update(logicalAndExprPrime)
     return logicalAndExpressionPrimeTree, astLogicalAndExpressionPrimeTree
-    pass
+
 """
 inclusive-OR-expression:
     exclusive-OR-expression

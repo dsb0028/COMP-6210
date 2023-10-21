@@ -12,162 +12,99 @@ class ThreeAddressCode:
     
     def __str__(self,threeAddressCodeDict):
         for threeAddrCode in threeAddressCodeDict['Three Address Code']:
+            isArg2 = False            
+            #print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2, threeAddrCode.result)
+            if threeAddrCode.arg2['ARG2'] != None:
+                isArg2 = True
             if threeAddrCode.operation['Operation'] != '=':
                 print(threeAddrCode.result['RESULT'],'='
                       ,threeAddrCode.operation['Operation'],threeAddrCode.arg1['ARG1'])
             else:
-                print(threeAddrCode.result['RESULT']
+                if isArg2 == False:
+                    print(threeAddrCode.result['RESULT']
                       ,threeAddrCode.operation['Operation'],threeAddrCode.arg1['ARG1'])
-
-
-
+                else:
+                    print(threeAddrCode.result['RESULT'], '=',
+                      threeAddrCode.arg1['ARG1'],threeAddrCode.operation['Operation'],
+                      threeAddrCode.arg1['ARG2'])
+    
 threeAddressCodeDict = defaultdict(list)
+ogVarName = None
 def createThreeAddressCode(astTree, symbolTable):
-    for item in recursive_items(astTree):
-        operation = None
-        arg1 = None
-        arg2 = None
-        result = None
-        if item[0] == 'Statement':
-            for stmt in astTree['main']['Statement']:
-                operation = None
-                arg1 = None
-                arg2 = None
-                result = None
-                """
-                a = 3
-                
-                t1 = umibus 3
-                a = t1
-                
-                a = 3 + 4
-                t1 = 3 + 4
-                a = t1 
-                """
-                
-                if stmt.get('='):
-                    #print(len(stmt.get('=')))
-                    numberOfOperands = len(stmt.get('='))
-                    ogVarName = None
-                    tempVarName = None                                        
-                    for i,operandType in enumerate(stmt.get('=')):      
-                        operation = 'umibus'
-                        #print(i,operandType)
-                        if operandType == 'NUMBER':
-                            if arg1 == None:
-                                arg1 = stmt['='][operandType]
-                            elif arg2 == None:
-                                arg2 = stmt['='][operandType]
-                        elif operandType == 'ID':
-                            ogVarName = stmt['='][operandType]               
-                            #symbolTable.addAVariable(stmt['='][operandType],type,function)
-                            """
-                            if arg1 == None:
-                                arg1 = stmt['='][operandType]
-                            elif arg2 == None:
-                                arg2 = stmt['='][operandType]
-                            """
-                        elif operandType == '+':
-                            #print("wow")
-                            pass
-                        tempVarName = "t"+str(i)
-                        threeAdrCode = ThreeAddressCode(operation,arg1,arg2,tempVarName)
-                        #varType = symbolTable.lookUpVariable(stmt['='][operandType],'main')
-                        symbolTable.addAVariable(tempVarName,None,'main')
-                    #print(symbolTable.table['main']['Variables']["t"+str(i)])
-                    
-                    threeAddressCodeDict['Three Address Code'].append(threeAdrCode)
-                    #print(threeAdrCode.operation,threeAdrCode.arg1,threeAdrCode.arg2, threeAdrCode.result)
-                
-                    threeAdrCode = ThreeAddressCode('=',"t"+str(i),None,ogVarName)
-                    threeAddressCodeDict['Three Address Code'].append(threeAdrCode)
-                    #print(threeAdrCode.operation,threeAdrCode.arg1,threeAdrCode.arg2, threeAdrCode.result)
-                #print(len(threeAddressCodeDict['Three Address Code']))
+    function_name = 'main'
+    statementList = astTree[function_name]['Statement']
+    for statement in statementList: 
+        if '=' in statement:
+            NUMBER_OF_CHILDREN = len(statement['=']) - 1
+            #print(NUMBER_OF_CHILDREN)
+            if NUMBER_OF_CHILDREN == 1:
+                og_variable = list(statement['='].values())[-2]
+                left_child = list(statement['='].values())[-1]
+                threeAddrCode = ThreeAddressCode('=',left_child,None,og_variable)
+                threeAddressCodeDict['Three_Address_Code'].append(threeAddrCode)
+            else:
+                og_variable = statement['='].pop('ID')
+                threeAddressCodeDict = walk_through_ast(statement['='])
+                #print(list(statement['='].values())[-1])
+                #threeAddrCode = ThreeAddressCode('=', '')
+                #threeAddressCodeDict['Three Address Code'].append
     return threeAddressCodeDict
 
 
-
-
-"""
-threeAddressCode = defaultdict(list)
-assignStmtAddrCode = []
-returnVariable = None
-def createThreeAddressCode(astTree,symbolTable):
-    for item in recursive_items(astTree):
-        if item == 'main':
-            threeAddressCode['function'] = item
-            threeAddressCode['LBRACE'].append('{')
-        elif item[1] == '{':
-            #print(item)
-            threeAddressCode['LBRACE'].append(item[1])
-            #print(threeAddressCode)
-        elif item[0] == 'Declaration':
-            for decl in astTree['main']['Declaration']:
-                #print("Decl",decl)
-                if decl.get('='):
-                    var = None
-                    var_type = None
-                    for operandType in decl.get('='):
-                        if operandType == 'ID':
-                            var = decl['='][operandType]
-                            var_type = symbolTable.lookUpVariable(var,'main') 
-                            #global assignStmtAddrCode
-                            assignStmtAddrCode.extend([var_type,decl['='][operandType],';'])
-                            
-                            threeAddressCode['Assign'].append(assignStmtAddrCode)
-                else:
-                    var = None
-                    var_type = None
-                    for operandType in decl:
-                        if operandType == 'ID':
-                            var = decl[operandType]
-                            var_type = symbolTable.lookUpVariable(var,'main') 
-                            #global assignStmtAddrCode
-                            assignStmtAddrCode.append([var_type,decl[operandType],';'])
-                            threeAddressCode['Assign'].append(assignStmtAddrCode)
-        
-        elif item[0] == 'Statement':
-            for stmt in astTree['main']['Statement']:
-                if stmt.get('='):
-                    for operandType in stmt.get('='):
-                        if operandType == 'ID':
-                            assignStmtAddrCode.append([stmt['='][operandType],'='])
-                        elif operandType == 'NUMBER':
-                            assignStmtAddrCode.append([stmt['='][operandType],';'])
-                if stmt.get('return'):
-                    for operandType in stmt.get('return'):
-                        if operandType == 'NUMBER':
-                            if type(stmt['return'][operandType]) == int:
-                                global returnVariable
-                                returnVariable = 'D.1914'
-                                assignStmtAddrCode.append([returnVariable,'=',stmt['return'][operandType],';'])
-                                assignStmtAddrCode.append(['return',returnVariable,';'])
-                                threeAddressCode['LBRACE'].append(['int', returnVariable,';'])
-            #print(threeAddressCode)
-        elif item[1] == '}':
-            #print(item)
-            threeAddressCode['RBRACE'].append(item)
-            threeAddressCode['main'].append([assignStmtAddrCode[-2], assignStmtAddrCode[-1]])
-            
-            print(threeAddressCode)
-        print(item)
+visited_elements = []
+def walk_through_ast(astSubTree):
+    print("TREE",astSubTree)
+    NUMBER_OF_CHILDREN = len(astSubTree)
+    print("Children",NUMBER_OF_CHILDREN)
+    #right_child = list(astSubTree.keys())[-1]
+    #print(right_child)
+    if type(astSubTree) is dict:
+        left_child = list(astSubTree.keys())[-2]
+        visited_elements.append(left_child)
+        right_child = list(astSubTree.keys())[-1]
+        visited_elements.append(right_child)
+        #print(left_child,right_child)
+    else:
+        left_child = astSubTree[0]
+        right_child = astSubTree[1]
+    internal_nodes = ['+','-','*','/','%']
     
-    for key,val in astTree.items():
-        print(key, val)
-    
-    #terminalNodes.clear()
-    #findTerminalNodes(astTree)
-    #print(terminalNodes)
-    return threeAddressCode
+    if NUMBER_OF_CHILDREN == 2:
+        print("right",right_child)
+        if right_child in internal_nodes:
+           
+           return walk_through_ast(astSubTree[right_child])
+           print(astSubTree[right_child])
+           l_child = astSubTree[right_child][0]
+           r_child = astSubTree[right_child][1]
+           print("Left",l_child,"Right",r_child)  
+        elif '+' in right_child:
+           return walk_through_ast(right_child['+'])
+           """
+           r1_child = astSubTree[right_child][1]['+']
+           print(len(r1_child))
+           
+           l2_child = astSubTree[right_child][1]['+'][0]
+           r2_child = astSubTree[right_child][1]['+'][1]
+           
+           print(r1_child)
+           print("Left",l2_child,"Right",r2_child)
+          
+           l3_child = astSubTree[right_child][1]['+'][1]['+'][0]
+           r3_child = astSubTree[right_child][1]['+'][1]['+'][1]
+           
+           print("Left",l3_child,"Right",r3_child)
+           
 
-"""
-def recursive_items(dictionary):
-    for key, value in dictionary.items():
-        if type(value) is dict:
-            yield key
-            yield from recursive_items(value)
-        else:
-            yield (key, value)
+           #print(type(astSubTree['+']))
+           #print(astSubTree[left_child])
+           
+           #print(astSubTree[right_child][0]['NUMBER'])
+           #return walk_through_ast(astSubTree[right_child][0])
+           """
+
+
+
 def main():
     #threeAddressCodeDict = list()
     #threeAddressCode = ThreeAddressCode("=","4",None,'d')
@@ -179,6 +116,7 @@ def main():
     threeAddressCode = list()
     operatorsFound = []
     operators = ['+','-','*','/']
+    """
     for item in recursive_items(astTree):
         if item[0] == '=':
             for operand in astTree[item].items():
@@ -194,7 +132,7 @@ def main():
                             pass
                 else:
                     threeAddressCode.append(operand[1])
-    
+    """
     print(threeAddressCode) 
     print(operatorsFound)
     print(astTree)
