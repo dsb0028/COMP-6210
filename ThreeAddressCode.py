@@ -60,11 +60,23 @@ def walk_through_ast(astSubTree):
     if NUMBER_OF_CHILDREN == 1:
         if '*' in astSubTree[0] or '/' in astSubTree[0] or '%' in astSubTree[0]:
             NUMBER_OF_CHILDREN = NUMBER_OF_CHILDREN + 1
+            print("Uh")
     print("Children",NUMBER_OF_CHILDREN)
+    
     if type(astSubTree) is dict:
+        
+
         left_child = list(astSubTree.values())[-2]
-        visited_elements.append(left_child)
+        
         right_child = list(astSubTree.keys())[-1]
+        if NUMBER_OF_CHILDREN == 3:
+            NUMBER_OF_CHILDREN = NUMBER_OF_CHILDREN - 1
+            left_child = list(astSubTree.values())[-3]
+            #right_child = list(astSubTree.values())[-2]
+            right_child = '*'
+        visited_elements.append(left_child)
+       
+        print("HMM",left_child,right_child)
         #visited_elements.append(right_child)
         #print(left_child,right_child)
     else:
@@ -72,15 +84,16 @@ def walk_through_ast(astSubTree):
         if list(visited_elements[-1])[0] != 't':
             visited_elements.append(left_child)
         
-        if NUMBER_OF_CHILDREN > 1:
+        if NUMBER_OF_CHILDREN == 2:
             if '*' in astSubTree[0] or '/' in astSubTree[0] or '%' in astSubTree[0]:
-                print("P",astSubTree[0]['*'])
+                #print("P",astSubTree[0]['*'])
                 right_child = {'*':astSubTree[0]['*']}
-                print(right_child)
+                #print("R",right_child)
                 #right_child =  dict(astSubTree[0]['*'].pop())
                 #right_child =  astSubTree[0]
             else:
                 right_child = astSubTree[1]
+                #print("R",right_child)
         else:
             #print("wee")
             right_child = None
@@ -110,21 +123,24 @@ def walk_through_ast(astSubTree):
             print(visited_elements)
             i = i + 1
             return walk_through_ast(astSubTree)
-
+    
+    
     if NUMBER_OF_CHILDREN == 2:
-        #print("right",right_child)
+        print("right",right_child)
         if type(right_child) is not str: 
             operator_type = list(right_child.keys())[0]
         if right_child in internal_nodes:
            #print("wow")
            visited_elements.append(right_child)
            #i = i + 1
-           return walk_through_ast(astSubTree[right_child])            
+           print("H",astSubTree[right_child])
+           return walk_through_ast(astSubTree[right_child]) 
+           #return walk_through_ast(astSubTree)           
 
         elif operator_type in internal_nodes:
             #print("wo1")
            visited_elements.append(operator_type)
-           print(visited_elements)
+           print("V",visited_elements)
            #i = i + 1
            return walk_through_ast(right_child[operator_type])
          
