@@ -3,16 +3,19 @@
 
 main ()
 {
-  int d;
-  int D.1914;
+  int c;
+  int b;
+  int a;
+  int D.1916;
 
-  d = 4;
-  D.1914 = 0;
-  goto <D.1915>;
-  D.1914 = 0;
-  goto <D.1915>;
-  <D.1915>:
-  return D.1914;
+  a = 12;
+  b = 9;
+  D.1916 = 0;
+  goto <D.1917>;
+  D.1916 = 0;
+  goto <D.1917>;
+  <D.1917>:
+  return D.1916;
 }
 
 

@@ -26,31 +26,21 @@ def main():
         print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table,'\n')
         print("AST",astTree,'\n')
     threeAddressCode = createThreeAddressCode(astTree,symbolTable)
+    print(threeAddressCode)
     if args.a == True:
-        print(threeAddressCode['Three_Address_Code'][0].operation,
-              threeAddressCode['Three_Address_Code'][0].arg1,
-              threeAddressCode['Three_Address_Code'][0].arg2,
-              threeAddressCode['Three_Address_Code'][0].result)
         
-        print(threeAddressCode['Three_Address_Code'][1].operation,
-              threeAddressCode['Three_Address_Code'][1].arg1,
-              threeAddressCode['Three_Address_Code'][1].arg2,
-              threeAddressCode['Three_Address_Code'][1].result)
-        
-        print(threeAddressCode['Three_Address_Code'][2].operation,
-              threeAddressCode['Three_Address_Code'][2].arg1,
-              threeAddressCode['Three_Address_Code'][2].arg2,
-              threeAddressCode['Three_Address_Code'][2].result)
-        
-        print(threeAddressCode['Three_Address_Code'][3].operation,
-              threeAddressCode['Three_Address_Code'][3].arg1,
-              threeAddressCode['Three_Address_Code'][3].arg2,
-              threeAddressCode['Three_Address_Code'][3].result)
-        
-        print(threeAddressCode['Three_Address_Code'][4].operation,
-              threeAddressCode['Three_Address_Code'][4].arg1,
-              threeAddressCode['Three_Address_Code'][4].arg2,
-              threeAddressCode['Three_Address_Code'][4].result)
+        for threeAddrCode in threeAddressCode['Three_Address_Code']:
+            #print(threeAddressCode)
+            #print(threeAddrCode.statement)
+            #if threeAddrCode.statement == 'Assignment_Statement':
+            if threeAddrCode.statement['STATEMENT'] == 'return':
+                print(threeAddrCode.statement,threeAddrCode.arg1)
+            else:
+                  print(threeAddrCode.operation, threeAddrCode.arg1, threeAddrCode.arg2, 
+                      threeAddrCode.result, threeAddrCode.statement)
+            #elif threeAddrCode.statement == 'return':
+            #    pass
+           
         #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
 if __name__ == "__main__":
     main()

@@ -17,17 +17,20 @@ IPA function summary for main/0
 
 main ()
 {
-  int d;
-  int D.1914;
-  int _2;
+  int c;
+  int b;
+  int a;
+  int D.1916;
+  int _3;
 
   <bb 2> :
-  d_1 = 4;
-  _2 = 0;
+  a_1 = 12;
+  b_2 = 9;
+  _3 = 0;
 
   <bb 3> :
 <L0>:
-  return _2;
+  return _3;
 
 }
 

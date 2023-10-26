@@ -1,16 +1,19 @@
 main ()
 {
-  int D.1914;
+  int D.1916;
 
   {
-    int d;
+    int a;
+    int b;
+    int c;
 
-    d = 4;
-    D.1914 = 0;
-    return D.1914;
+    a = 12;
+    b = 9;
+    D.1916 = 0;
+    return D.1916;
   }
-  D.1914 = 0;
-  return D.1914;
+  D.1916 = 0;
+  return D.1916;
 }
 
 

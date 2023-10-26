@@ -4,10 +4,15 @@
 
 
 {
-  int d;
+  int a;
+  int b;
+  int c;
 
-    int d;
-  d = 4;
+    int a;
+    int b;
+    int c;
+  a = 12;
+  b = 9;
   return 0;
 }
 return 0;
