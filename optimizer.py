@@ -8,13 +8,16 @@ def performOptimizations(threeAddressCode):
     optimizedCode = executeConstProp(threeAddressCode)
     #print(len(optimizedCode))
     optimizedCode = executeConstFolding(optimizedCode)
+    """
     for threeAddrCode in optimizedCode:
         print(threeAddrCode.operation,threeAddrCode.arg1, 
               threeAddrCode.arg2, 
               threeAddrCode.result, threeAddrCode.statement)
+    """
     return optimizedCode
 
 def executeConstFolding(optimizedCode):
+    optimizedThreeAddrCode = []
     for threeAddrCode in optimizedCode:
         if (threeAddrCode.operation['Operation']  == '+'
             and type(threeAddrCode.arg1['ARG1']) == int
@@ -24,7 +27,8 @@ def executeConstFolding(optimizedCode):
                      + str(threeAddrCode.arg2['ARG2']))
                 threeAddrCode.operation['Operation'] = '='
                 threeAddrCode.arg2['ARG2'] = None
-    return optimizedCode
+        optimizedThreeAddrCode.append(threeAddrCode)
+    return optimizedThreeAddrCode
 
 def executeConstProp(threeAddressCode):
     optimizedThreeAddrCode = []

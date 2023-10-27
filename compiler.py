@@ -37,10 +37,14 @@ def main():
                       threeAddrCode.result, threeAddrCode.statement)
             #elif threeAddrCode.statement == 'return':
             #    pass
+        print('\n')
            
         #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
     optimizedCode = optimizer.performOptimizations(threeAddressCode['Three_Address_Code'])
     if args.O2 == True:
-        pass
+        for threeAddrCode in optimizedCode:
+            print(threeAddrCode.operation,threeAddrCode.arg1, 
+              threeAddrCode.arg2, 
+              threeAddrCode.result, threeAddrCode.statement)
 if __name__ == "__main__":
     main()
