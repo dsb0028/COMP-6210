@@ -1,6 +1,7 @@
 import argparse
 import tokenizer
 import parserC
+import optimizer
 from ThreeAddressCode import *
 from pprint import pprint 
 
@@ -9,6 +10,7 @@ def main():
     parser.add_argument('-t', action='store_true')
     parser.add_argument('-p', action='store_true')
     parser.add_argument('-a',action='store_true')
+    parser.add_argument('-O2',action='store_true')
     parser.add_argument('file', type=argparse.FileType('r'))
     args = parser.parse_args()
     #print(args)
@@ -26,13 +28,8 @@ def main():
         print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table,'\n')
         print("AST",astTree,'\n')
     threeAddressCode = createThreeAddressCode(astTree,symbolTable)
-    print(threeAddressCode)
     if args.a == True:
-        
         for threeAddrCode in threeAddressCode['Three_Address_Code']:
-            #print(threeAddressCode)
-            #print(threeAddrCode.statement)
-            #if threeAddrCode.statement == 'Assignment_Statement':
             if threeAddrCode.statement['STATEMENT'] == 'return':
                 print(threeAddrCode.statement,threeAddrCode.arg1)
             else:
@@ -42,5 +39,8 @@ def main():
             #    pass
            
         #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
+    optimizedCode = optimizer.performOptimizations(threeAddressCode['Three_Address_Code'])
+    if args.O2 == True:
+        pass
 if __name__ == "__main__":
     main()

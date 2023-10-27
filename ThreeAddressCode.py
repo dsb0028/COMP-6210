@@ -19,6 +19,8 @@ class ThreeAddressCode:
             self.statement = {'STATEMENT':statement}
             #self.statement = {'STATEMENT':statement}
             #self.arg1 = {'ARG1':arg1}
+    
+        
     """
     def __str__(self,threeAddressCodeDict):
         for threeAddrCode in threeAddressCodeDict['Three Address Code']:
@@ -50,12 +52,20 @@ def createThreeAddressCode(astTree, symbolTable):
         if '=' in statement:
             global statement_type
             statement_type = 'Assignment_Statement'
+            #print(statement['='])
             global og_variable
-            og_variable = statement['='].pop('ID')
-            print(og_variable)
+            
+            og_variable = statement['='][0].pop('ID')
+            #print(og_variable)
+            #print(statement['='][1])
+            statement['='][0] = statement['='][1]
+            statement['='].pop(1)
+            #print(statement['='])
             #global threeAddressCodeDict
+            #breakpoint()
             threeAddressCodeDict = walk_through_ast(statement['='])
-            print(threeAddressCodeDict)
+            #print("Dict",threeAddressCodeDict)
+            #breakpoint()
         elif 'return' in statement:
             statement_type = 'return'
             threeAddressCode1 = walk_through_ast(statement['return'])
@@ -63,19 +73,25 @@ def createThreeAddressCode(astTree, symbolTable):
 
 visited_elements = []
 i = 1
-isMultOperation = False
-lastElem = None
+
 def walk_through_ast(astSubTree):
-    print("TREE",astSubTree)
-    NUMBER_OF_CHILDREN = len(astSubTree)
-    print(NUMBER_OF_CHILDREN)
+    #print("TREE",astSubTree)
+    #NUMBER_OF_CHILDREN = len(astSubTree)
+    #print(NUMBER_OF_CHILDREN)
+    #breakpoint()
+    if type(astSubTree) is list:
+        NUMBER_OF_CHILDREN = len(astSubTree[0])
+    else:
+        NUMBER_OF_CHILDREN = len(astSubTree)
+    #breakpoint()
     if NUMBER_OF_CHILDREN == 1:
        if type(astSubTree) is list:
         if '*' in astSubTree[0] or '/' in astSubTree[0] or '%' in astSubTree[0]:
             NUMBER_OF_CHILDREN = NUMBER_OF_CHILDREN + 1
-    print("Children",NUMBER_OF_CHILDREN)
+    #print("Children",NUMBER_OF_CHILDREN)
     
-    if type(astSubTree) is dict:       
+    if type(astSubTree) is dict:
+        #right_child = None       
         if NUMBER_OF_CHILDREN == 2:
             left_child = list(astSubTree.values())[-2]
             visited_elements.append(left_child)
@@ -85,60 +101,30 @@ def walk_through_ast(astSubTree):
             left_child = list(astSubTree.values())[-1]
             visited_elements.append(left_child)
             right_child = None
-        #if right_child:
-            
-        #print(right_child)
-        if NUMBER_OF_CHILDREN == 3:
-            #NUMBER_OF_CHILDREN = NUMBER_OF_CHILDREN - 1
-            left_child = list(astSubTree.values())[-3]
-            visited_elements.append(left_child)
-            #print(visited_elements)
-            #print(list(astSubTree.keys())[-2])
-            #right_child = list(astSubTree.values())[-2]
-            right_child = list(astSubTree.keys())[-2]
-            #visited_elements.append(right_child)
-            #print(visited_elements)
-            NUMBER_OF_CHILDREN = NUMBER_OF_CHILDREN - 1
-        #visited_elements.append(left_child)
-
+        
     else:
         left_child = list(astSubTree[0].values())[0]
-        if list(visited_elements[-1])[0] != 't':
+        if visited_elements and list(visited_elements[-1])[0] != 't':
             visited_elements.append(left_child)
-        
+        elif visited_elements == []:
+            visited_elements.append(left_child)
         if NUMBER_OF_CHILDREN == 2:
             if '*' in astSubTree[0] or '/' in astSubTree[0] or '%' in astSubTree[0]:
                 right_child = {'*':astSubTree[0]['*']}
             else:
-                right_child = astSubTree[1]
+                right_child = list(astSubTree[0].keys())[1]
+                #right_child = astSubTree[1]
                 #print("r",right_child)
         elif NUMBER_OF_CHILDREN == 1:
-            """
-            global isMultOperation
-            if isMultOperation == True:
-                print("l",len(list(astSubTree)))
-                #visited_elements.append('+')
-            """
+            #left_child = list(astSubTree[0].values())[0]
+            #visited_elements.append(left_child)
             right_child = None
         
     internal_nodes = ['+','-','*','/','%']
     
     if right_child == None and NUMBER_OF_CHILDREN == 1:
-        print(visited_elements)
-        """
-        global lastElem
-        if lastElem:
-            visited_elements.append(lastElem[0]['NUMBER'])
-            print("v", visited_elements)
-        """
-        """
-        if statement_type == 'return':
-            threeAddressCode =  ThreeAddressCode(None, 
-                                                 visited_elements[0],
-                                                 None,
-                                                 None,statement_type)
-            #return threeAddressCodeDict
-        """
+        #print(visited_elements)
+       
         global statement_type
         if len(visited_elements) == 3:
             threeAddressCode  = ThreeAddressCode(visited_elements[1],
@@ -159,7 +145,7 @@ def walk_through_ast(astSubTree):
             visited_elements[-3] = "t" + str(i)
             visited_elements.pop(-2)
             visited_elements.pop(-1)
-            print(visited_elements)
+            #print(visited_elements)
             #lastElem = None
             i = i + 1
             return walk_through_ast(astSubTree)
@@ -184,24 +170,15 @@ def walk_through_ast(astSubTree):
         if right_child in internal_nodes:
             #print(right_child)
             visited_elements.append(right_child)
-            print(astSubTree[right_child])
-            print("Length",len(list(astSubTree.values())), visited_elements
-                 ,list(astSubTree.keys())[-1])
-            if len(list(astSubTree.values())) == 3:
-                isMultOperation = True
-                lastElem = list(astSubTree.keys())[-1]
-                """
-                if '+' in astSubTree or '-' in astSubTree:
-                    visited_elements.append('+')
-                    #return walk_through_ast(right_child['*'])
-                """
-            return walk_through_ast(astSubTree[right_child])            
+            #print(astSubTree[right_child])
+            #breakpoint()
+            return walk_through_ast(astSubTree[0][right_child])            
 
         elif operator_type in internal_nodes:
            #print("p",operator_type)
            visited_elements.append(operator_type)
            return walk_through_ast(right_child[operator_type])
-         
+ 
 def main():
     #threeAddressCodeDict = list()
     #threeAddressCode = ThreeAddressCode("=","4",None,'d')

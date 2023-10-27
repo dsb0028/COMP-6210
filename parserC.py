@@ -477,6 +477,7 @@ assignment-expression:
     conditional-expression
     unary-expression assignment-operator assignment-expression
 """
+
 def parseAssignmentExpression(tokenBuffer):
     """
     Description:
@@ -490,6 +491,7 @@ def parseAssignmentExpression(tokenBuffer):
     tokenToBeConsumed = tokenBuffer[0]
     #checking to make sure that the next token to be consumed is not an assignmentOperator
     assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
+    #breakpoint()
     if conditionalExpr['Conditional-Expression'] != {} and tokenToBeConsumed.value not in assignmentOperator:
         assignmentExpressionTree['Assignment-Expression'].update(conditionalExpr)
         #print(astCondExpr)
@@ -512,16 +514,21 @@ def parseAssignmentExpression(tokenBuffer):
             #error handling
             pass
         tokenToBeConsumed = tokenBuffer[0]
+        #breakpoint()
         #assignmentOperator = {'=', '*=', '/=','%=', '+=', '-=', '<<=', '>>=', '&=', '^=', '|='}
         if tokenToBeConsumed.value in assignmentOperator:
             assignmentExpressionTree['Assignment-Expression'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-            astAssignExprTree.update({tokenToBeConsumed.value:{}})
+            astAssignExprTree.update({tokenToBeConsumed.value:[]})
             consume(tokenToBeConsumed,tokenBuffer)
+            #breakpoint()
+            #astAssignExprTree['='].append(astUnaryExpr)
+            #breakpoint()
             assignExpr, astAssignExpr = parseAssignmentExpression(tokenBuffer)
             if assignExpr['Assignment-Expression'] != {}:
                 assignmentExpressionTree['Assignment-Expression'].update(assignExpr)
-                astAssignExprTree['='].update(astUnaryExpr)
-                astAssignExprTree['='].update(astAssignExpr)
+                astAssignExprTree['='].append(astUnaryExpr)
+                #breakpoint()
+                astAssignExprTree['='].append(astAssignExpr)
                 
             else:
                 #error handling
@@ -1073,6 +1080,7 @@ def parsePrimaryExpression(tokenBuffer):
     if tokenToBeConsumed.type == 'ID':
         primaryExpressionTree['Primary-Expression'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         astPrimExprTree.update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        #breakpoint()
         consume(tokenToBeConsumed,tokenBuffer)
         tokenToBeConsumed = tokenBuffer[0]
     elif tokenToBeConsumed.type == 'NUMBER':
