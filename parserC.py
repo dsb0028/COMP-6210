@@ -557,35 +557,19 @@ def parseExpr(tokenBuffer):
             operator2 = list(list(astExprPrime[operator1])[0].keys())[0]
             if operator2 in operations:
                 print(operator1,operator2)
-                #print(astExprPrime['+'][0].keys())           
-                astExprPrime[operator1][0][operator2].insert(0,astTerm)
+                op3 = list(astExprPrime[operator1][0][operator2][0].keys())[0]
+                if op3 in operations:
+                    op4 = list(astExprPrime[operator1][0][operator2][0][op3][0].keys())[0]
+                    if op4 in operations:
+                        astExprPrime[operator1][0][operator2][0][op3][0][op4].insert(0,astTerm)
+                    else:    
+                        astExprPrime[operator1][0][operator2][0][op3].insert(0,astTerm)
+                else:           
+                    astExprPrime[operator1][0][operator2].insert(0,astTerm)
             else:
                 astExprPrime[operator1].insert(0,astTerm)
             astExprTree.popitem()
             astExprTree.update(astExprPrime)
-        """
-        if '+' in astExprPrime:
-            astExprPrime['+'].insert(0,astTerm)
-            astExprTree.popitem()
-            astExprTree.update(astExprPrime)
-        elif '-' in astExprPrime:
-            astExprPrime['-'].insert(0,astTerm)
-            astExprTree.popitem()
-            astExprTree.update(astExprPrime)
-        """
-    #print("ExprP",astExprPrime)
-    #breakpoint()
-    """
-    if astExprPrime != {}:
-        astExprPrime['+'][1]['+'].append(astTerm)
-        astExprTree.update(astExprPrime)
-        
-    else:
-        astExprTree.update(astTerm)
-        #astExprTree.update(astExprPrime)
-    """
-    #print("exprTree['Expr']['ExprP'] =>", exprTree['Expr']['ExprP'], '\n')
-    #print("Exiting Expr")
     return exprTree,astExprTree
 
 def parseTerm(tokenBuffer):
@@ -666,10 +650,11 @@ def parseFactor(tokenBuffer):
         if leafNode.type == 'LPAREN':
             factorTree['Factor'].update({leafNode.type:leafNode.value})
             consume(tokenToBeConsumed,tokenBuffer)
-            expr = parseExpr(tokenBuffer)
+            breakpoint()
+            expr,astExpr = parseExpr(tokenBuffer)
             if expr:
                 factorTree['Factor'].update(expr)
-                #astFactorTree.update(expr)
+                astFactorTree.update(astExpr)
             tokenToBeConsumed = tokenBuffer[0]
             leafNode = match(tokenToBeConsumed, terminalNodes,True)
             if leafNode.type == 'RPAREN':
@@ -739,35 +724,55 @@ def parseExprPrime(tokenBuffer):
                 exprPrimeTree['ExprP'].update(term)
                 astExprPrimeTree[leafNode.value].append(astTerm)
                 print(astExprPrimeTree)
-            breakpoint()
+            #breakpoint()
             exprPrime,astExprPrime = parseExprPrime(tokenBuffer)
             if exprPrime:
                 exprPrimeTree['ExprP'].update(exprPrime)
                 #astExprPrimeTree[leafNode.value].append(astExprPrime)
             if astExprPrime != {}:
                 if astExprPrimeTree != {}:
-                    breakpoint()
-                    print(astExprPrime,astExprPrimeTree)
-                    operator1 = list(astExprPrime.keys())[0]
-                    operator2 = list(astExprPrimeTree.keys())[0]
-                    print(operator1,operator2)
-                    astExprPrime[operator1].insert(0,astExprPrimeTree)
                     #breakpoint()
-                    #astExprPrime[operator2]
-                    #astExprPrime[operator1].insert(0,astExprPrimeTree[operator2][0])
+                    #print(astExprPrime,astExprPrimeTree)
+                    key1 = list(astExprPrime.keys())[0]
+                    operator2 = list(astExprPrimeTree.keys())[0]
+                    #breakpoint()
+                    #print(key1,operator2)
+                    op2 = list(astExprPrimeTree[operator2][0].keys())[0]
+                    #if the next key in astExprPrimeTree is a '*' or '/' operation 
+                    op3 = list(astExprPrime[key1][0].keys())[0]
+                    if (op2 not in terminalNodes and 
+                        (op2 != 'NUMBER' and op2 != 'ID')):
+                        #check if the next key in astExprPrime is a '+' or '-'
+                        if op3 in terminalNodes:
+                            breakpoint()
+                            astExprPrime[key1][0][op3].insert(0,astExprPrimeTree)
+                        else:
+                            breakpoint()
+                            astExprPrime[key1].insert(0,astExprPrimeTree)
+                        #astExprPrimeTree = astExprPrime
+                    elif (op3 not in terminalNodes and 
+                        (op3 != 'NUMBER' and op3 != 'ID')):
+                        astExprPrime[key1].insert(0,astExprPrimeTree)
+                            #astExprPrimeTree = astExprPrime
+                    elif op3 in terminalNodes:
+                        op5 = list(astExprPrime[key1][0][op3][0].keys())[0]
+                        if op5 in terminalNodes:
+                            astExprPrime[key1][0][op3][0][op5].insert(0,astExprPrimeTree)
+                        else:     
+                            astExprPrime[key1][0][op3].insert(0,astExprPrimeTree)
+                            #astExprPrimeTree = astExprPrime
+                    else:
+                        breakpoint()
+                        astExprPrime[key1].insert(0,astExprPrimeTree)
+                            #astExprPrimeTree = astExprPrime
+                    
                     astExprPrimeTree = astExprPrime
-                    breakpoint()
-                    #astExprPrime['+'].insert(0,astExprPrimeTree)
-                    #astExprPrimeTree = astExprPrime
                 else:
                     astExprPrimeTree[leafNode.value].append(astExprPrime)
-                
-                #astExprPrimeTree[leafNode.value].append(astExprPrime)
                 print("AST ExprPrime",astExprPrimeTree)
-                    
-                #astExprPrimeTree[leafNode.value].append(astTerm)
     #print("Exiting Expr'")        
     return exprPrimeTree,astExprPrimeTree
+
 
 def parseTermPrime(tokenBuffer):
     """
