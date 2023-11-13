@@ -5,6 +5,7 @@ class SymbolTable:
     def addAFunction(self,name,return_type):
         self.table[name] = {}
         self.table[name]['Return_Type'] = return_type
+        self.table[name]['Parameters'] = {}
         self.table[name]['Variables'] = {}
     
     def addAVariable(self,name,type,function):
@@ -14,6 +15,9 @@ class SymbolTable:
             raise SyntaxError(["Variable already has been defined",name])
         """
         self.table[function]['Variables'][name] = type
+    
+    def addAParameter(self,name,type,function):
+        self.table[function]['Parameters'][name] = type
          
     def lookUpVariable(self,name,function):
         if self.table[function]['Variables'].get(name):

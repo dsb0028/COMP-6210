@@ -8,6 +8,17 @@ def performOptimizations(threeAddressCode):
     optimizedCode = executeConstProp(threeAddressCode)
     #print(len(optimizedCode))
     optimizedCode = executeConstFolding(optimizedCode)
+    
+    optimizedCode = executeConstProp(threeAddressCode)
+    #print(len(optimizedCode))
+    optimizedCode = executeConstFolding(optimizedCode)
+    optimizedCode = executeConstProp(threeAddressCode)
+    optimizedCode = executeConstFolding(optimizedCode)
+    optimizedCode = executeConstProp(threeAddressCode)
+    optimizedCode = executeConstFolding(optimizedCode)
+    optimizedCode = executeConstProp(threeAddressCode)
+    #print(len(optimizedCode))
+    #optimizedCode = executeConstFolding(optimizedCode)
     """
     for threeAddrCode in optimizedCode:
         print(threeAddrCode.operation,threeAddrCode.arg1, 
@@ -18,8 +29,9 @@ def performOptimizations(threeAddressCode):
 
 def executeConstFolding(optimizedCode):
     optimizedThreeAddrCode = []
+    operations = ['+','-','*','/']
     for threeAddrCode in optimizedCode:
-        if (threeAddrCode.operation['Operation']  == '+'
+        if (threeAddrCode.operation['Operation'] in operations
             and type(threeAddrCode.arg1['ARG1']) == int
             and type(threeAddrCode.arg2['ARG2']) == int):
                 threeAddrCode.arg1['ARG1'] = eval(str(threeAddrCode.arg1['ARG1'])
@@ -73,11 +85,16 @@ def isSimpleAssignmentStmt(threeAddressCodeStmt):
     result = False
     #print(type(threeAddressCodeStmt.arg1['ARG1']))
     #print(threeAddressCodeStmt.arg2['ARG2'])
-    if (type(threeAddressCodeStmt.arg1['ARG1']) == int
+    if ((type(threeAddressCodeStmt.arg1['ARG1']) == int
+         or type(threeAddressCodeStmt.arg1['ARG1']) == float)
         and threeAddressCodeStmt.arg2['ARG2'] == None
         and threeAddressCodeStmt.operation['Operation'] == '='):
         result = True
         #print(result)
+    return result
+
+def isOptimized(threeAddressCode):
+    result = False
     return result
 
     
