@@ -553,6 +553,8 @@ def parseExpr(tokenBuffer):
         breakpoint()
         if astExprPrime != {}:
             operations = ['+','-']
+            """
+            operations = ['+','-']
             operator1 = list(astExprPrime.keys())[0]
             operator2 = list(list(astExprPrime[operator1])[0].keys())[0]
             if operator2 in operations:
@@ -570,6 +572,9 @@ def parseExpr(tokenBuffer):
                 astExprPrime[operator1].insert(0,astTerm)
             astExprTree.popitem()
             astExprTree.update(astExprPrime)
+            """
+            breakpoint()
+            astExprTree = new_func(astExprPrime,operations,astExprPrime)
     return exprTree,astExprTree
 
 def parseTerm(tokenBuffer):
@@ -695,7 +700,8 @@ def generateErrorString(tokenBuffer, isParseTreeGenerated = False):
     # that contains the values of the tokens that remain in the token buffer 
     errorString = consumedString + tokensBufferString
     return errorString
-    
+
+
 def parseExprPrime(tokenBuffer):
     """
     Description:
@@ -734,6 +740,7 @@ def parseExprPrime(tokenBuffer):
                     #breakpoint()
                     #print(astExprPrime,astExprPrimeTree)
                     astExprPrimeTree = new_func(astExprPrimeTree, terminalNodes, astExprPrime)
+                    astExprPrimeTree = astExprPrime
                 else:
                     astExprPrimeTree[leafNode.value].append(astExprPrime)
                 print("AST ExprPrime",astExprPrimeTree)
@@ -741,30 +748,22 @@ def parseExprPrime(tokenBuffer):
     return exprPrimeTree,astExprPrimeTree
 
 def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
+    breakpoint()
     #assuming key1 is always a '+' or '-'
     operator1 = list(astExprPrime.keys())[0]
-    operator2 = list(astExprPrimeTree.keys())[0]
-    op2 = list(astExprPrimeTree[operator2][0].keys())[0]
-    op3 = list(astExprPrime[operator1][0].keys())[0]
-    #if the next key in astExprPrimeTree is a '*' or '/' operation 
-    #or the next operation from astExprPrime following the 
-    # '+' or '-' operation is also a '+' or '-' operation,check to see if the
-    # the next operation in astExprPrime is a '+' or '-' operation
-    if ((op2 not in terminalNodes and 
-                        (op2 != 'NUMBER' and op2 != 'ID')) or
-                        op3 in terminalNodes):
-        breakpoint()
-        return new_func(astExprPrimeTree[operator2][0],terminalNodes,astExprPrime[operator1][0])
-        op5 = list(astExprPrime[operator1][0][op3][0].keys())[0]
-        breakpoint()
-        if op5 in terminalNodes:
-            astExprPrime[operator1][0][op3][0][op5].insert(0,astExprPrimeTree)
-        else:     
-            astExprPrime[operator1][0][op3].insert(0,astExprPrimeTree)
+    if astExprPrimeTree == astExprPrime:
+        operator2 = list(list(astExprPrime[operator1])[0].keys())[0]
     else:
+        operator2 = list(astExprPrimeTree.keys())[0]
+  
+    print(operator1,operator2)
+    if list(astExprPrime[operator1][0].keys())[0] == 'NUMBER' \
+        or list(astExprPrime[operator1][0].keys())[0] == 'ID':
         astExprPrime[operator1].insert(0,astExprPrimeTree)
-                    
-    astExprPrimeTree = astExprPrime
+        astExprPrimeTree = astExprPrime
+
+    else:
+        return new_func(astExprPrimeTree,terminalNodes,astExprPrime[operator1][0])
     return astExprPrimeTree
 
 
