@@ -553,8 +553,6 @@ def parseExpr(tokenBuffer):
         breakpoint()
         if astExprPrime != {}:
             operations = ['+','-']
-            """
-            operations = ['+','-']
             operator1 = list(astExprPrime.keys())[0]
             operator2 = list(list(astExprPrime[operator1])[0].keys())[0]
             if operator2 in operations:
@@ -572,9 +570,7 @@ def parseExpr(tokenBuffer):
                 astExprPrime[operator1].insert(0,astTerm)
             astExprTree.popitem()
             astExprTree.update(astExprPrime)
-            """
-            breakpoint()
-            astExprTree = new_func(astExprPrime,operations,astExprPrime)
+            
     return exprTree,astExprTree
 
 def parseTerm(tokenBuffer):

@@ -3,6 +3,7 @@ import tokenizer
 import parserC
 import optimizer
 from ThreeAddressCode import *
+import x86
 from pprint import pprint
 
 def main():
@@ -11,6 +12,7 @@ def main():
     parser.add_argument('-p', action='store_true')
     parser.add_argument('-a',action='store_true')
     parser.add_argument('-O2',action='store_true')
+    parser.add_argument('-S',action='store_true')
     parser.add_argument('file', type=argparse.FileType('r'))
     args = parser.parse_args()
     #print(args)
@@ -64,5 +66,22 @@ def main():
             #elif threeAddrCode.statement == 'return':
             #    pass
         print('\n')
+    assembly =  x86.createAssemblyCode(optimizedCode)
+    if args.S == True:
+        for line in assembly:
+            if line.label != None:
+                if len(line.operands) == 2:
+                    print(line.mnemonic,line.label,line.operands[0],','
+                        ,line.operands[1])
+                else:
+                    print(line.mnemonic,line.operands)
+            else:
+                if len(line.operands) == 2:
+                    print(line.mnemonic,line.operands[0],','
+                        ,line.operands[1])
+                elif len(line.operands) == 1:
+                    print(line.mnemonic,line.operands[0])
+                elif line.operands == []:
+                    print(line.mnemonic)
 if __name__ == "__main__":
     main()
