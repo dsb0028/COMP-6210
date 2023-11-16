@@ -10,7 +10,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', action='store_true')
     parser.add_argument('-p', action='store_true')
-    parser.add_argument('-a',action='store_true')
+    parser.add_argument('-O1',action='store_true')
     parser.add_argument('-O2',action='store_true')
     parser.add_argument('-S',action='store_true')
     parser.add_argument('file', type=argparse.FileType('r'))
@@ -37,7 +37,8 @@ def main():
         #print("AST",astTree,'\n')
     breakpoint()
     threeAddressCode = createThreeAddressCode(astTree,symbolTable)
-    if args.a == True:
+    print(threeAddressCode)
+    if args.O1 == True:
         for threeAddrCode in threeAddressCode['Three_Address_Code']:
             if threeAddrCode.statement['STATEMENT'] == 'return':
                 print(threeAddrCode.statement,threeAddrCode.arg1)
@@ -49,8 +50,9 @@ def main():
         print('\n')
            
         #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
-    optimizedCode = optimizer.performOptimizations(threeAddressCode['Three_Address_Code'])
+    optimizedCode = None
     if args.O2 == True:
+        optimizedCode = optimizer.performOptimizations(threeAddressCode['Three_Address_Code'])
         """
         for threeAddrCode in optimizedCode:
             print(threeAddrCode.operation,threeAddrCode.arg1, 
@@ -66,12 +68,22 @@ def main():
             #elif threeAddrCode.statement == 'return':
             #    pass
         print('\n')
-    assembly =  x86.createAssemblyCode(optimizedCode)
+    if args.O2 == True:
+        assembly =  x86.createAssemblyCode(optimizedCode)
+    else:
+        breakpoint()
+        assembly =  x86.createAssemblyCode(threeAddressCode['Three_Address_Code'])
+
     if args.S == True:
         for line in assembly:
             if line.label != None:
                 if len(line.operands) == 2:
-                    print(line.mnemonic,line.label,line.operands[0],','
+                    #print(line.operands[0],line.operands[1])
+                    if line.operands[0].startswith('['):
+                        print(line.mnemonic,line.label,line.operands[0],','
+                        ,line.operands[1])
+                    else:
+                        print(line.mnemonic,line.operands[0],',',line.label
                         ,line.operands[1])
                 else:
                     print(line.mnemonic,line.operands)
