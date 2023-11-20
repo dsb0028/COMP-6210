@@ -1,7 +1,7 @@
 from CustomError import *
 from symboltable import *
 from collections import defaultdict
-
+import copy
 
 """
 Program:
@@ -47,6 +47,16 @@ statement:
 
 assignment-statement:
     ID = expr;
+
+Expr -> Term Expr'
+
+Expr' -> + Term Expr' | - Term Expr' | epsilon
+
+Term -> Factor Term' 
+
+Term' -> * Factor Term' | / Factor Term' | epsilon
+
+Factor -> ( Expr )  | + num |- num |num  | ID
 
 return-statement:
     return expropt;
@@ -645,6 +655,16 @@ def parseFactor(tokenBuffer):
     """
     terminalNodes = {'LPAREN','RPAREN','NUMBER','ID'}
     #determines if the token to be consumed matches the type of one of the terminal nodes from Factor productions
+    breakpoint()
+    signs = ['+','-']
+    sign = ''
+    breakpoint()
+    """
+    if tokenToBeConsumed.value in signs:
+        sign = copy.deepcopy(tokenToBeConsumed.value)
+        consume(tokenToBeConsumed,tokenBuffer)
+        tokenToBeConsumed = tokenBuffer[0] 
+    """
     leafNode = match(tokenToBeConsumed, terminalNodes,isFactor=True)
     # if a match exists, check to see if the type is a LPAREN
     if leafNode:
@@ -666,7 +686,8 @@ def parseFactor(tokenBuffer):
                 errorString = generateErrorString(tokenBuffer)
                 raise MissingFactorError(errorString,"Expected an Identifier or Number",
                                  {'line': consumed[len(consumed)-1].line, 'column': consumed[len(consumed)-1].column+1})             
-            factorTree['Factor'].update({leafNode.type:leafNode.value})
+            factorTree['Factor'].update({leafNode.type:sign+str(leafNode.value)})
+            #astFactorTree.update({leafNode.type:sign+str(leafNode.value)})
             astFactorTree.update({leafNode.type:leafNode.value})
             consume(tokenToBeConsumed,tokenBuffer)
     else:

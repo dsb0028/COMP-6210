@@ -17,6 +17,7 @@ def main():
     args = parser.parse_args()
     #print(args)
     s = args.file.read()
+    breakpoint()
     tokens = tokenizer.tokenize(s)
     #if -t is passed, print tokens
     if  args.t == True:
