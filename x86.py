@@ -159,7 +159,8 @@ def createAssemblyCode(optimizedCode):
             if as5 != None:
                 assembly.append(as5)
             breakpoint()
-            
+
+            """
             for offset_var in offset_var_pairs:
                 print(offset_var[0],line.result['RESULT'])
                 if offset_var[0] != line.result['RESULT']:
@@ -167,7 +168,13 @@ def createAssemblyCode(optimizedCode):
                     offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
                 elif offset_var[0] == line.result['RESULT']:
                     break
-            
+            """
+            """
+            if offset_var_pairs != []:
+                dest_offset = [offset_var for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
+                print("Dest",len(dest_offset))
+            """
+            breakpoint()
             if offset_var_pairs == []:
                 offset = offset + 4
                 offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
@@ -310,10 +317,20 @@ def createAssemblyCode(optimizedCode):
                 if offset_var[0] != line.result['RESULT']:
                     offset = offset + 4
                     offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
+                elif offset_var[0] == line.result['RESULT']:
                     break
-           
+            
+            if offset_var_pairs == []:
+                offset = offset + 4
+                offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
+            breakpoint()
+            dest_offset = None
+            for offset_var in offset_var_pairs:
+                if offset_var[0] == line.result['RESULT']:
+                    dest_offset = offset_var[1]
             as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
-                            operands=['[ebp - '+str(offset)+']',register1],comments=None)
+                            operands=[dest_offset,register1],comments=None)
+            # use the result part of the three-address code structure to find the destination operand
             assembly.append(as9)
         if line.statement['STATEMENT'] == 'return':
             ret_var_offset = None
