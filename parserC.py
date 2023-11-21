@@ -560,7 +560,7 @@ def parseExpr(tokenBuffer):
     if exprPrime['ExprP']:
         exprTree['Expr'].update(exprPrime)
         #astExprTree.update(astExprPrime)
-        breakpoint()
+        #breakpoint()
         if astExprPrime != {}:
             operations = ['+','-']
             operator1 = list(astExprPrime.keys())[0]
@@ -655,10 +655,10 @@ def parseFactor(tokenBuffer):
     """
     terminalNodes = {'LPAREN','RPAREN','NUMBER','ID'}
     #determines if the token to be consumed matches the type of one of the terminal nodes from Factor productions
-    breakpoint()
+    #breakpoint()
     signs = ['+','-']
     sign = ''
-    breakpoint()
+    #breakpoint()
     """
     if tokenToBeConsumed.value in signs:
         sign = copy.deepcopy(tokenToBeConsumed.value)
@@ -671,7 +671,7 @@ def parseFactor(tokenBuffer):
         if leafNode.type == 'LPAREN':
             factorTree['Factor'].update({leafNode.type:leafNode.value})
             consume(tokenToBeConsumed,tokenBuffer)
-            breakpoint()
+            #breakpoint()
             expr,astExpr = parseExpr(tokenBuffer)
             if expr:
                 factorTree['Factor'].update(expr)
@@ -765,7 +765,7 @@ def parseExprPrime(tokenBuffer):
     return exprPrimeTree,astExprPrimeTree
 
 def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
-    breakpoint()
+    #breakpoint()
     #assuming key1 is always a '+' or '-'
     operator1 = list(astExprPrime.keys())[0]
     if astExprPrimeTree == astExprPrime:

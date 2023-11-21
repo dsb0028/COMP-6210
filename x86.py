@@ -160,7 +160,6 @@ def createAssemblyCode(optimizedCode):
                 assembly.append(as5)
             breakpoint()
 
-            """
             for offset_var in offset_var_pairs:
                 print(offset_var[0],line.result['RESULT'])
                 if offset_var[0] != line.result['RESULT']:
@@ -168,12 +167,10 @@ def createAssemblyCode(optimizedCode):
                     offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
                 elif offset_var[0] == line.result['RESULT']:
                     break
-            """
-            """
             if offset_var_pairs != []:
                 dest_offset = [offset_var for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
                 print("Dest",len(dest_offset))
-            """
+
             breakpoint()
             if offset_var_pairs == []:
                 offset = offset + 4

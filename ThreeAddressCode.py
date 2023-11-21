@@ -90,7 +90,7 @@ def walk_through_ast(astSubTree):
             print(dict_key)
             global statement_type
             if dict_key in internal_nodes:
-                breakpoint()
+                #breakpoint()
                 left_child = list(list(astSubTree.values())[0][0].values())[0]
                 visited_elements.append(left_child)
                 visited_elements.append(dict_key)
@@ -122,7 +122,7 @@ def walk_through_ast(astSubTree):
                     visited_elements[-3] = "t" + str(i)
                     visited_elements.pop(-2)
                     visited_elements.pop(-1)
-                    breakpoint()
+                    #breakpoint()
                     #print(visited_elements)
                     #lastElem = None
                     i = i + 1
