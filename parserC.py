@@ -560,10 +560,11 @@ def parseExpr(tokenBuffer):
     if exprPrime['ExprP']:
         exprTree['Expr'].update(exprPrime)
         #astExprTree.update(astExprPrime)
-        #breakpoint()
+        breakpoint()
         if astExprPrime != {}:
-            operations = ['+','-']
-            operator1 = list(astExprPrime.keys())[0]
+            
+            #operator2 = list(list(astExprPrime[operator1])[0].keys())[0]    
+            """
             operator2 = list(list(astExprPrime[operator1])[0].keys())[0]
             if operator2 in operations:
                 print(operator1,operator2)
@@ -578,6 +579,10 @@ def parseExpr(tokenBuffer):
                     astExprPrime[operator1][0][operator2].insert(0,astTerm)
             else:
                 astExprPrime[operator1].insert(0,astTerm)
+            """
+            breakpoint()
+            other_function(astExprPrime,astTerm,operations=['+','-'])
+            print("ok",astExprPrime)
             astExprTree.popitem()
             astExprTree.update(astExprPrime)
             
@@ -609,7 +614,8 @@ def parseTerm(tokenBuffer):
     if termPrime:
         termTree['Term'].update(termPrime)
     
-    if astTermPrime != {}:    
+    if astTermPrime != {}:
+        """    
         #astTermTree.update(astTermPrime)
         if '*' in astTermPrime:
             astTermPrime['*'].insert(0,astFactor)
@@ -620,6 +626,13 @@ def parseTerm(tokenBuffer):
             astTermPrime['/'].insert(0,astFactor)
             astTermTree.popitem()
             astTermTree.update(astTermPrime)
+        """
+        breakpoint()
+        print(astTermPrime)
+        other_function(astTermPrime,astFactor,operations=['*','/'])
+        #print(astTermTree)
+        astTermTree.popitem()
+        astTermTree.update(astTermPrime)
     #print("Exiting Term")
     return termTree,astTermTree
 
@@ -758,6 +771,7 @@ def parseExprPrime(tokenBuffer):
                     #print(astExprPrime,astExprPrimeTree)
                     astExprPrimeTree = new_func(astExprPrimeTree, terminalNodes, astExprPrime)
                     astExprPrimeTree = astExprPrime
+                    #other_function(astExprPrimeTree,astExprPrime,terminalNodes)
                 else:
                     astExprPrimeTree[leafNode.value].append(astExprPrime)
                 print("AST ExprPrime",astExprPrimeTree)
@@ -783,6 +797,16 @@ def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
         return new_func(astExprPrimeTree,terminalNodes,astExprPrime[operator1][0])
     return astExprPrimeTree
 
+def other_function(astExprPrime,astTerm,operations):
+    #operations = ['+','-','*','/']
+    operator1 = list(astExprPrime.keys())[0]
+    if operator1 in operations:
+        operator2 = list(astExprPrime[operator1][0].keys())[0]
+        if operator2 in operations:
+            return other_function(astExprPrime[operator1][0],astTerm,operations)
+        else:
+           breakpoint()
+           astExprPrime[operator1].insert(0,astTerm) 
 
 def parseTermPrime(tokenBuffer):
     """
@@ -815,7 +839,12 @@ def parseTermPrime(tokenBuffer):
             if termPrime:
                 termPrimeTree['TermP'].update(termPrime)
             if astTermPrime != {}:
-                astTermPrimeTree[leafNode.value].append(astTermPrime)
+                if astTermPrimeTree != {}:
+                    
+                    astTermPrimeTree = new_func(astTermPrimeTree,terminalNodes,astTermPrime)
+                    astTermPrimeTree = astTermPrime
+                else:
+                    astTermPrimeTree[leafNode.value].append(astTermPrime)
     #print("Exiting Term'")
     return termPrimeTree, astTermPrimeTree
 

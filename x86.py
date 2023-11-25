@@ -17,6 +17,7 @@ def createAssemblyCode(optimizedCode):
     offset_var_pairs = []
     register_var_pairs = []
     registers = ['eax','ebx','edx']
+    lab = None
     for line in optimizedCode:
         breakpoint()
         if line.operation['Operation'] == '=':
@@ -56,6 +57,7 @@ def createAssemblyCode(optimizedCode):
                                  
 
         elif line.operation['Operation'] == '+':
+            breakpoint()
             source_operand1 =  None
             source_operand2 = None
             for offset_var in offset_var_pairs:
@@ -77,8 +79,6 @@ def createAssemblyCode(optimizedCode):
                     register2 = 'edx'
                     as7 = Assembly(mnemonic='mov',label='DWORD PTR',operands=[register2,source_operand2],comments=None)
                 assembly.append(as7)
-            #print("R1",register1,"R2",register2)
-            #breakpoint()
             as5 = None
             if register2 != None:
                 as5 = Assembly(mnemonic='add',label=None,operands=[register1,register2],comments=None)
@@ -104,10 +104,19 @@ def createAssemblyCode(optimizedCode):
 
             if as5 != None:
                 assembly.append(as5)
-            offset = offset + 4
-            offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
+            dest_offset = None
+            if offset_var_pairs != []:
+                dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
+                if dest_offset != []:
+                    dest_offset = dest_offset[0]                  
+            if dest_offset == None or dest_offset == []:
+                offset = offset + 4
+                offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
+                dest_offset = '[ebp - '+str(offset)+']'
+            #offset = offset + 4
+            #offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
             as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
-                            operands=['[ebp - '+str(offset)+']',register1],comments=None)
+                            operands=[dest_offset,register1],comments=None)
             assembly.append(as9)
         elif line.operation['Operation'] == '-':
             source_operand1 =  None
@@ -159,27 +168,17 @@ def createAssemblyCode(optimizedCode):
             if as5 != None:
                 assembly.append(as5)
             breakpoint()
-
-            for offset_var in offset_var_pairs:
-                print(offset_var[0],line.result['RESULT'])
-                if offset_var[0] != line.result['RESULT']:
-                    offset = offset + 4
-                    offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-                elif offset_var[0] == line.result['RESULT']:
-                    break
+            
+            dest_offset = None
             if offset_var_pairs != []:
-                dest_offset = [offset_var for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
-                print("Dest",len(dest_offset))
-
-            breakpoint()
-            if offset_var_pairs == []:
+                dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
+                if dest_offset != []:
+                    dest_offset = dest_offset[0]                  
+            if dest_offset == None or dest_offset == []:
                 offset = offset + 4
                 offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-            breakpoint()
-            dest_offset = None
-            for offset_var in offset_var_pairs:
-                if offset_var[0] == line.result['RESULT']:
-                    dest_offset = offset_var[1]
+                dest_offset = '[ebp - '+str(offset)+']'
+            print("Dest",dest_offset)
             as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
                             operands=[dest_offset,register1],comments=None)
             # use the result part of the three-address code structure to find the destination operand
@@ -208,8 +207,7 @@ def createAssemblyCode(optimizedCode):
                     register2 = 'edx'
                     as7 = Assembly(mnemonic='mov',label='DWORD PTR',operands=[register2,source_operand2],comments=None)
                 assembly.append(as7)
-            #print("R1",register1,"R2",register2)
-            #breakpoint()
+           
             as5 = None
             if register2 != None:
                 as5 = Assembly(mnemonic='mul',label=None,operands=[register1,register2],comments=None)
@@ -236,23 +234,17 @@ def createAssemblyCode(optimizedCode):
             if as5 != None:
                 assembly.append(as5)
             breakpoint()
-            
-            for offset_var in offset_var_pairs:
-                print(offset_var[0],line.result['RESULT'])
-                if offset_var[0] != line.result['RESULT']:
-                    offset = offset + 4
-                    offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-                elif offset_var[0] == line.result['RESULT']:
-                    break
-            
-            if offset_var_pairs == []:
+            dest_offset = None
+            if offset_var_pairs != []:
+                dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
+                if dest_offset != []:
+                    dest_offset = dest_offset[0]                  
+            if dest_offset == None or dest_offset == []:
                 offset = offset + 4
                 offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-            breakpoint()
-            dest_offset = None
-            for offset_var in offset_var_pairs:
-                if offset_var[0] == line.result['RESULT']:
-                    dest_offset = offset_var[1]
+                dest_offset = '[ebp - '+str(offset)+']'
+            print("Dest",dest_offset)
+           
             as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
                             operands=[dest_offset,register1],comments=None)
             # use the result part of the three-address code structure to find the destination operand
@@ -309,22 +301,17 @@ def createAssemblyCode(optimizedCode):
             if as5 != None:
                 assembly.append(as5)
             
-            for offset_var in offset_var_pairs:
-                print(offset_var[0],line.result['RESULT'])
-                if offset_var[0] != line.result['RESULT']:
-                    offset = offset + 4
-                    offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-                elif offset_var[0] == line.result['RESULT']:
-                    break
-            
-            if offset_var_pairs == []:
+            dest_offset = None
+            if offset_var_pairs != []:
+                dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
+                if dest_offset != []:
+                    dest_offset = dest_offset[0]                  
+            if dest_offset == None or dest_offset == []:
                 offset = offset + 4
                 offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-            breakpoint()
-            dest_offset = None
-            for offset_var in offset_var_pairs:
-                if offset_var[0] == line.result['RESULT']:
-                    dest_offset = offset_var[1]
+                dest_offset = '[ebp - '+str(offset)+']'
+            print("Dest",dest_offset)
+        
             as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
                             operands=[dest_offset,register1],comments=None)
             # use the result part of the three-address code structure to find the destination operand
