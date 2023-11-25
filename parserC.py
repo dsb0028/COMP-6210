@@ -788,11 +788,15 @@ def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
         operator2 = list(astExprPrimeTree.keys())[0]
   
     print(operator1,operator2)
+    """
     if list(astExprPrime[operator1][0].keys())[0] == 'NUMBER' \
         or list(astExprPrime[operator1][0].keys())[0] == 'ID':
         astExprPrime[operator1].insert(0,astExprPrimeTree)
         astExprPrimeTree = astExprPrime
-
+    """
+    if len(astExprPrime[operator1]) == 1:
+        astExprPrime[operator1].insert(0,astExprPrimeTree)
+        astExprPrimeTree = astExprPrime
     else:
         return new_func(astExprPrimeTree,terminalNodes,astExprPrime[operator1][0])
     return astExprPrimeTree
