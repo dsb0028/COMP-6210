@@ -537,6 +537,7 @@ def parseReturnStatement(tokenBuffer):
                 consume(tokenToBeConsumed,tokenBuffer)
     return returnStmtTree, astReturnStmtTree
 
+isFactorExpr = False
 def parseExpr(tokenBuffer):
     """
     Description:
@@ -581,7 +582,7 @@ def parseExpr(tokenBuffer):
                 astExprPrime[operator1].insert(0,astTerm)
             """
             breakpoint()
-            other_function(astExprPrime,astTerm,operations=['+','-'])
+            other_function(astExprPrime,astTerm,operations=['+','-'],isExprinParens=isFactorExpr)
             print("ok",astExprPrime)
             astExprTree.popitem()
             astExprTree.update(astExprPrime)
@@ -629,7 +630,7 @@ def parseTerm(tokenBuffer):
         """
         breakpoint()
         print(astTermPrime)
-        other_function(astTermPrime,astFactor,operations=['*','/'])
+        other_function(astTermPrime,astFactor,operations=['*','/'],isExprinParens=isFactorExpr)
         #print(astTermTree)
         astTermTree.popitem()
         astTermTree.update(astTermPrime)
@@ -694,6 +695,8 @@ def parseFactor(tokenBuffer):
             if leafNode.type == 'RPAREN':
                 factorTree['Factor'].update({leafNode.type:leafNode.value})
                 consume(tokenToBeConsumed,tokenBuffer)
+                global isFactorExpr
+                isFactorExpr = True
         else:
             if leafNode.type == 'RPAREN':
                 errorString = generateErrorString(tokenBuffer)
@@ -801,16 +804,24 @@ def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
         return new_func(astExprPrimeTree,terminalNodes,astExprPrime[operator1][0])
     return astExprPrimeTree
 
-def other_function(astExprPrime,astTerm,operations):
+def other_function(astExprPrime,astTerm,operations,isExprinParens=False):
     #operations = ['+','-','*','/']
     operator1 = list(astExprPrime.keys())[0]
     if operator1 in operations:
         operator2 = list(astExprPrime[operator1][0].keys())[0]
-        if operator2 in operations:
-            return other_function(astExprPrime[operator1][0],astTerm,operations)
+        breakpoint()
+        if isExprinParens != True:
+            if operator2 in operations:
+                return other_function(astExprPrime[operator1][0],astTerm,operations,isExprinParens)
+            else:
+                breakpoint()
+                astExprPrime[operator1].insert(0,astTerm)
         else:
-           breakpoint()
-           astExprPrime[operator1].insert(0,astTerm) 
+            if operator2 in operations and len(astExprPrime[operator1][0][operator2])!=2:
+                return other_function(astExprPrime[operator1][0],astTerm,operations,isExprinParens)
+            else:
+                breakpoint()
+                astExprPrime[operator1].insert(0,astTerm)
 
 def parseTermPrime(tokenBuffer):
     """
