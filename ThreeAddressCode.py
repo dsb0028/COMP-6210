@@ -77,9 +77,52 @@ visited_elements = []
 i = 1
 
 def walk_through_ast(astSubTree):
+    breakpoint()
+    internal_nodes = ['+','-','*','/']
+    root_key = list(astSubTree.keys())[0]
+
+    if root_key not in internal_nodes:
+        root_value = astSubTree[root_key]
+        visited_elements.append(root_value)
+        threeAddressCode  = ThreeAddressCode('=',
+                                              visited_elements[0],
+                                              None,
+                                              og_variable,statement_type)
+        threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)    
+        return threeAddressCodeDict
+    else:
+        children = astSubTree[root_key]
+        NUM_OF_CHILDREN = len(children)
+        if NUM_OF_CHILDREN == 2:
+            l_child = children[0]
+            r_child = children[1]    
+            l_child_type = list(l_child.keys())[0]
+            r_child_type = list(r_child.keys())[0]
+            if l_child_type not in internal_nodes  \
+                and r_child_type not in internal_nodes:
+                visited_elements.append(l_child[l_child_type])
+                visited_elements.append(root_key)
+                visited_elements.append(r_child[r_child_type])
+                threeAddressCode  = ThreeAddressCode(visited_elements[1],
+                                              visited_elements[0],
+                                              visited_elements[2],
+                                              og_variable,statement_type)
+                threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)    
+                return threeAddressCodeDict
+            if l_child_type in internal_nodes:
+                return walk_through_ast(astSubTree[l_child_type][0])
+                #visited_elements.append(root_key)
+            breakpoint()
+            if r_child_type in internal_nodes:
+                return walk_through_ast(astSubTree[r_child_type][0])
+                
+"""
+def walk_through_ast(astSubTree):
+    breakpoint()
     NUMBER_OF_CHILDREN = len(astSubTree)
     left_child = None
     right_child = None
+    breakpoint()
     if type(astSubTree) is dict:
         #right_child = None
         internal_nodes = ['+','-','*','/']       
@@ -183,6 +226,8 @@ def walk_through_ast(astSubTree):
                                               og_variable,statement_type)
             threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)    
             return threeAddressCodeDict    
+
+"""
 """
 def walk_through_ast(astSubTree):
     #print("TREE",astSubTree)

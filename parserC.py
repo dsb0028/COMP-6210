@@ -561,7 +561,7 @@ def parseExpr(tokenBuffer):
     if exprPrime['ExprP']:
         exprTree['Expr'].update(exprPrime)
         #astExprTree.update(astExprPrime)
-        breakpoint()
+        #breakpoint()
         if astExprPrime != {}:
             
             #operator2 = list(list(astExprPrime[operator1])[0].keys())[0]    
@@ -581,7 +581,7 @@ def parseExpr(tokenBuffer):
             else:
                 astExprPrime[operator1].insert(0,astTerm)
             """
-            breakpoint()
+            #breakpoint()
             other_function(astExprPrime,astTerm,operations=['+','-'],isExprinParens=isFactorExpr)
             print("ok",astExprPrime)
             astExprTree.popitem()
@@ -616,19 +616,6 @@ def parseTerm(tokenBuffer):
         termTree['Term'].update(termPrime)
     
     if astTermPrime != {}:
-        """    
-        #astTermTree.update(astTermPrime)
-        if '*' in astTermPrime:
-            astTermPrime['*'].insert(0,astFactor)
-            #breakpoint()
-            astTermTree.popitem()
-            astTermTree.update(astTermPrime)
-        elif '/' in astTermPrime:
-            astTermPrime['/'].insert(0,astFactor)
-            astTermTree.popitem()
-            astTermTree.update(astTermPrime)
-        """
-        breakpoint()
         print(astTermPrime)
         other_function(astTermPrime,astFactor,operations=['*','/'],isExprinParens=isFactorExpr)
         #print(astTermTree)
@@ -809,18 +796,18 @@ def other_function(astExprPrime,astTerm,operations,isExprinParens=False):
     operator1 = list(astExprPrime.keys())[0]
     if operator1 in operations:
         operator2 = list(astExprPrime[operator1][0].keys())[0]
-        breakpoint()
+        #breakpoint()
         if isExprinParens != True:
             if operator2 in operations:
                 return other_function(astExprPrime[operator1][0],astTerm,operations,isExprinParens)
             else:
-                breakpoint()
+                #breakpoint()
                 astExprPrime[operator1].insert(0,astTerm)
         else:
             if operator2 in operations and len(astExprPrime[operator1][0][operator2])!=2:
                 return other_function(astExprPrime[operator1][0],astTerm,operations,isExprinParens)
             else:
-                breakpoint()
+                #breakpoint()
                 astExprPrime[operator1].insert(0,astTerm)
 
 def parseTermPrime(tokenBuffer):
