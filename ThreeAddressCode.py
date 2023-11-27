@@ -56,7 +56,6 @@ def createThreeAddressCode(astTree, symbolTable):
     for statement in statementList: 
         global visited_elements
         visited_elements = []
-        """
         global parentNode
         parentNode = None
         global left_branch_temp
@@ -66,7 +65,6 @@ def createThreeAddressCode(astTree, symbolTable):
         global branch1,branch2
         branch1 = None
         branch2 = None
-        """
         if '=' in statement:
             global statement_type
             statement_type = 'Assignment_Statement'
@@ -98,89 +96,6 @@ l_temp = None
 r_temp = None
 temp_root = None
 i = 1
-
-def walk_through_ast(root):
-    internal_nodes = ['+','-','*','/']
-    if root:
-        root_key = list(root.keys())[0]
-        if root_key in internal_nodes:
-            children = root[root_key]
-            #check the types of the children
-            left = children[0]
-            breakpoint()
-            walk_through_ast(left)
-            breakpoint()
-            #visited = visited_elements
-            #print(visited)
-            if len(children) == 2:
-                right = children[1]
-            
-            visited_elements.append(root_key)
-            if left != None and right != None:
-                global i
-                breakpoint()
-                m = [item for item in temp_dicts.items() if item[1] == left]
-                if list(left.keys())[0] in internal_nodes:
-                    if m == []:
-                        breakpoint()
-                        temp_dicts.update({"t"+str(i):left})
-                        root[root_key][0] = "t"+str(i)
-                        left = root[root_key][0]
-                        i = i + 1
-
-                m1 = [item for item in temp_dicts.items() if item[1] == right]
-                if list(right.keys())[0] in internal_nodes:
-                    if m1 == []:
-                        breakpoint()
-                        temp_dicts.update({"t"+str(i):right})
-                        root[root_key][1] = "t"+str(i)
-                        right = root[root_key][1]
-                        i = i + 1
-                """
-                if temp_dicts != {}:
-                    for key, val in temp_dicts.items():
-                        breakpoint()
-                        if list(left.keys())[0] in internal_nodes:
-                            if temp_dicts[key] == left:
-                                root[root_key][0] = key
-                                left = root[root_key][0]
-                        breakpoint()
-                        if list(right.keys())[0] in internal_nodes:
-                            m = [item for item in temp_dicts.items() if item[1] == right]
-                            if m == []:
-                                temp_dicts.update({"t"+str(i):right})
-                                i = i+1
-                            
-                        
-                """     
-                breakpoint()
-                print(left,right,root_key)
-                print(root)
-            walk_through_ast(right)
-            #print(visited_elements)
-           
-        else:
-            breakpoint()
-            visited_elements.append(root[root_key])
-            """
-            global i
-            if len(visited_elements) == 3:
-                temps.append( "t" + str(i))
-                threeAddressCode  = ThreeAddressCode(visited_elements[1],
-                                              visited_elements[0],
-                                              visited_elements[2],
-                                              "t" + str(i),statement_type)
-                threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)
-                                
-                visited_elements[-3] = "t" + str(i)
-                visited_elements.pop(-2)
-                visited_elements.pop(-1)             
-                i = i + 1
-            """
-    pass
-
-
-
 """
 def walk_through_ast(root):
     left = None
@@ -197,12 +112,53 @@ def walk_through_ast(root):
         if root_key in internal_nodes:
             children = root[root_key]
             left = children[0]
+            right = children[1]
+            if list(left.keys())[0] == 'NUMBER' \
+                and list(right.keys())[0] == 'NUMBER':
+                temp_dicts.update({"t"+str(i):root})
             breakpoint()
+            walk_through_ast(left)
+            if branch1 == left:
+                print("cool")
+                global left_branch_temp
+                
+            breakpoint()
+            walk_through_ast(right)
+            if branch2 == right:
+                global right_branch_temp
+                
+            #print(visited_elements)
+           
+        else:
+            breakpoint()
+            print(branch1,left_branch_temp)
+"""
+                        
+"""
+def walk_through_ast(root):
+    left = None
+    right = None
+    internal_nodes = ['+','-','*','/']
+    if root:
+        root_key = list(root.keys())[0]
+        global parentNode,branch1,branch2
+
+        if parentNode == None:
+            parentNode = (root_key, root[root_key])
+            branch1 = root[root_key][0]
+            branch2 = root[root_key][1]
+        if root_key in internal_nodes:
+            children = root[root_key]
+            left = children[0]
+            right = children[1]
+            breakpoint()
+            
             l_key = list(left.keys())[0] 
             if l_key in internal_nodes \
                 and left[l_key][0] not in internal_nodes \
                 and left[l_key][1] not in internal_nodes:
                 left[l_key] = 't1'
+        
             walk_through_ast(left)
             if branch1 == left:
                 print("cool")
@@ -212,9 +168,19 @@ def walk_through_ast(root):
             breakpoint()
             #visited = visited_elements
             #print(visited)
+            
             if len(children) == 2:
                 right = children[1]
+            
             if visited_elements != []:
+                if len(visited_elements) == 1:
+                    if type(visited_elements[0]) is str \
+                        and root_key in internal_nodes:
+                        m = [item for item in temp_dicts.items() if item[1] == left]
+                        if m != []:
+                            root[root_key][0] = m[0][0]
+                            left = m[0][0]
+                            
                 visited_elements.append(root_key)
             walk_through_ast(right)
             if branch2 == right:
@@ -232,7 +198,7 @@ def walk_through_ast(root):
             visited_elements.append(root[root_key])
             global i
             if len(visited_elements) == 3:
-                temps.append( "t" + str(i))
+                #temps.append( "t" + str(i))
                 threeAddressCode  = ThreeAddressCode(visited_elements[1],
                                               visited_elements[0],
                                               visited_elements[2],
@@ -243,14 +209,20 @@ def walk_through_ast(root):
                 visited_elements.pop(-2)
                 visited_elements.pop(-1)             
                 i = i + 1
+    
+    if len(visited_elements) == 1:
+        if type(visited_elements[0]) is str \
+            and root_key in internal_nodes:
+            temp_dicts.update({visited_elements[0]:root}) 
+    
     if left_branch_temp != None and right_branch_temp != None:
         threeAddressCode  = ThreeAddressCode(root_key,
                                               left_branch_temp,
                                               right_branch_temp,
                                               og_variable,statement_type)
         threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)
+   """
 
-"""
 """
 def walk_through_ast(astSubTree,left=None,right=None):
     breakpoint()
