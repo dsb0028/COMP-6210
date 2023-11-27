@@ -43,12 +43,27 @@ class ThreeAddressCode:
 threeAddressCodeDict = defaultdict(list)
 og_variable = None
 statement_type = None
+parentNode  = None
+branch1 = None
+branch2 = None
+left_branch_temp = None
+right_branch_temp = None
+
 def createThreeAddressCode(astTree, symbolTable):
     function_name = 'main'
     statementList = astTree[function_name]['Statement']
     for statement in statementList: 
         global visited_elements
         visited_elements = []
+        global parentNode
+        parentNode = None
+        global left_branch_temp
+        left_branch_temp = None
+        global right_branch_temp
+        right_branch_temp = None
+        global branch1,branch2
+        branch1 = None
+        branch2 = None
         if '=' in statement:
             global statement_type
             statement_type = 'Assignment_Statement'
@@ -63,24 +78,101 @@ def createThreeAddressCode(astTree, symbolTable):
             #print(statement['='])
             #global threeAddressCodeDict
             #breakpoint()
-            threeAddressCodeDict = walk_through_ast(statement['='][0])
+            walk_through_ast(statement['='][0])
             #print("Dict",threeAddressCodeDict)
             #breakpoint()
         elif 'return' in statement:
             statement_type = 'return'
-            threeAddressCode1 = walk_through_ast(statement['return'][0])
+            #walk_through_ast(statement['return'][0])
+            pass
     return threeAddressCodeDict
 
 
 
 visited_elements = []
+temps = []
+visited = None
 i = 1
+def walk_through_ast(root):
+    left = None
+    right = None
+    internal_nodes = ['+','-','*','/']
+    if root:
+        root_key = list(root.keys())[0]
+        global parentNode,branch1,branch2
 
-def walk_through_ast(astSubTree):
+        if parentNode == None:
+            parentNode = (root_key, root[root_key])
+            branch1 = root[root_key][0]
+            branch2 = root[root_key][1]
+        if root_key in internal_nodes:
+            children = root[root_key]
+            left = children[0]
+            breakpoint()
+            l_key = list(left.keys())[0] 
+            if l_key in internal_nodes \
+                and left[l_key][0] not in internal_nodes \
+                and left[l_key][1] not in internal_nodes:
+                left[l_key] = 't1'
+            walk_through_ast(left)
+            if branch1 == left:
+                print("cool")
+                global left_branch_temp
+                left_branch_temp = visited_elements[0]
+                visited_elements.clear()
+            breakpoint()
+            #visited = visited_elements
+            #print(visited)
+            if len(children) == 2:
+                right = children[1]
+            if visited_elements != []:
+                visited_elements.append(root_key)
+            walk_through_ast(right)
+            if branch2 == right:
+                global right_branch_temp
+                print("way cooler")
+                print(visited_elements)
+                right_branch_temp = visited_elements[0]
+                visited_elements.clear()
+            #print(visited_elements)
+           
+        else:
+            breakpoint()
+            print(branch1,left_branch_temp)
+            
+            visited_elements.append(root[root_key])
+            global i
+            if len(visited_elements) == 3:
+                temps.append( "t" + str(i))
+                threeAddressCode  = ThreeAddressCode(visited_elements[1],
+                                              visited_elements[0],
+                                              visited_elements[2],
+                                              "t" + str(i),statement_type)
+                threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)
+                                
+                visited_elements[-3] = "t" + str(i)
+                visited_elements.pop(-2)
+                visited_elements.pop(-1)             
+                i = i + 1
+    if left_branch_temp != None and right_branch_temp != None:
+        threeAddressCode  = ThreeAddressCode(root_key,
+                                              left_branch_temp,
+                                              right_branch_temp,
+                                              og_variable,statement_type)
+        threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)
+    """
+    else:
+        #return threeAddressCodeDict
+        breakpoint()
+        pass
+    """
+pass
+"""
+def walk_through_ast(astSubTree,left=None,right=None):
     breakpoint()
     internal_nodes = ['+','-','*','/']
     root_key = list(astSubTree.keys())[0]
-
+    
     if root_key not in internal_nodes:
         root_value = astSubTree[root_key]
         visited_elements.append(root_value)
@@ -109,12 +201,14 @@ def walk_through_ast(astSubTree):
                                               og_variable,statement_type)
                 threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)    
                 return threeAddressCodeDict
+            
             if l_child_type in internal_nodes:
-                return walk_through_ast(astSubTree[l_child_type][0])
-                #visited_elements.append(root_key)
-            breakpoint()
+                walk_through_ast(l_child)
+            
             if r_child_type in internal_nodes:
-                return walk_through_ast(astSubTree[r_child_type][0])
+                walk_through_ast(r_child)
+                #visited_elements.append(root_key)
+"""
                 
 """
 def walk_through_ast(astSubTree):
@@ -398,11 +492,13 @@ def main():
     #threeAddressCodeDict.append(threeAddressCode)
     #threeAddressCode = ThreeAddressCode()
     #print(threeAddressCode.operation,threeAddressCode.arg1, threeAddressCode.arg2,threeAddressCode.result)
-    astTree = {'=': {'ID': 'a', '+': [{'NUMBER': 3}, {'*': [{'NUMBER': 4}, {'NUMBER': 5}]}]}}
+    #astTree = {'=': {'ID': 'a', '+': [{'NUMBER': 3}, {'*': [{'NUMBER': 4}, {'NUMBER': 5}]}]}}
     #astTree = {'main': {'LBRACE': '{', 'Statement': [{'=': {'ID': 'a', '+': [{'NUMBER': 3}, {'*': [{'NUMBER': 4}, {'NUMBER': 5}]}]}}, {'return': {'NUMBER': 0}}], 'RBRACE': '}'}} 
     threeAddressCode = list()
     operatorsFound = []
     operators = ['+','-','*','/']
+    astTree = {'+': [{'+': [{'NUMBER': 4}, {'NUMBER': 5}]},
+                                      {'NUMBER': 8}]}
     """
     for item in recursive_items(astTree):
         if item[0] == '=':
@@ -420,16 +516,30 @@ def main():
                 else:
                     threeAddressCode.append(operand[1])
     """
-    print(threeAddressCode) 
-    print(operatorsFound)
+    #print(threeAddressCode) 
+    #print(operatorsFound)
+    branches = []
+    print(astTree)  
+    print(astTree['+']) #root
+    print(astTree['+'][0]) #root.left
+    
+    print(astTree['+'][0]['+']) 
+    print(list(astTree['+'][0].keys())[0],astTree['+'][0]['+'][0],astTree['+'][0]['+'][1]) 
+    t1 = astTree['+'][0]
+    branches.append(t1)
+    astTree['+'][0] = 't1'
     print(astTree)
-    print(astTree['=']['+'][1])
-    r1 = astTree['=']['+'][1]
-    astTree['=']['+'][1] = "r1"
-    print("r1",r1)
-    print(astTree)
-
-    threeAddressCode = [[{'=':{"tempVar","r1"}},r1],astTree]
+    """
+    print(astTree['+'][0]['+'][0]) #root.left.left
+    print(astTree['+'][0]['+'][1]) #root.left.right
+    print(astTree['+'][1]) #root.right
+    #print(astTree['=']['+'][1])
+    #r1 = astTree['=']['+'][1]
+    #astTree['=']['+'][1] = "r1"
+    #print("r1",r1)
+    #print(astTree)
+    """
+    #threeAddressCode = [[{'=':{"tempVar","r1"}},r1],astTree]
     #iterate through the astTree and log all operations in the order that they have been visited
     #find the index of the last operation to be found in the astTree
     #assign the ast at that index to a temporary variable r1
@@ -437,6 +547,6 @@ def main():
     #need to be able to replace the last operation found in the ast with the tempoerary variable
     #,which points to the subtree being replaced.
     # an ast will be created from the temporary variable along with the values that it is pointing too 
-    print(threeAddressCode)
+    #print(threeAddressCode)
 if __name__ == "__main__":
     main()
