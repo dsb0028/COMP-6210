@@ -117,17 +117,23 @@ def createThreeAddressCode(astTree, symbolTable):
             else:
                 stmt = 'Assignment_Statement'
                 operator = list(item[1].keys())[0]
-                op2 = item[1][operator][1]
-                if type(op2) is dict:
-                    key = list(op2.keys())[0]
-                    op2 = op2[key]
+                if operator in ['+','-','*','/']:
+                    op1 = item[1][operator][0]
+                    if type(op1) is dict:
+                        key = list(op1.keys())[0]
+                        op1 = op1[key]
+                    op2 = item[1][operator][1]
+                    if type(op2) is dict:
+                        key = list(op2.keys())[0]
+                        op2 = op2[key]
+                else:
+                    val_type = list(item[1].keys())[0]
+                    op1 = item[1][val_type]
+                    operator = '='
+                    breakpoint
                 res = item[0]
                 #breakpoint()
-                op1 = item[1][operator][0]
-                if type(op1) is dict:
-                    key = list(op1.keys())[0]
-                    op1 = op1[key]
-           
+               
             
             threeAddressCode =  \
                 ThreeAddressCode(operation=operator

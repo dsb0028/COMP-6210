@@ -318,11 +318,18 @@ def createAssemblyCode(optimizedCode):
             assembly.append(as9)
         if line.statement['STATEMENT'] == 'return':
             ret_var_offset = None
-            for offset_var in offset_var_pairs:
-                print(offset_var,line.arg1['ARG1'])
-                if offset_var[0] == line.arg1['ARG1']:
-                    ret_var_offset = offset_var[1]
-            as3 = Assembly(mnemonic='mov',label='DWORD PTR',operands=['eax',ret_var_offset],comments=None)
+            #breakpoint()
+            if offset_var_pairs != []:
+                for offset_var in offset_var_pairs:
+                    print(offset_var,line.arg1['ARG1'])
+                    if offset_var[0] == line.arg1['ARG1']:
+                        ret_var_offset = offset_var[1]
+                lab = 'DWORD PTR'
+            else:
+                lab = None
+                ret_var_offset = line.arg1['ARG1']
+
+            as3 = Assembly(mnemonic='mov',label=lab,operands=['eax',ret_var_offset],comments=None)
             assembly.append(as3)
             as4 = Assembly(mnemonic='pop',label=None,operands=['ebp'],comments=None)
             assembly.append(as4)

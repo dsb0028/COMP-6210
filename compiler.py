@@ -53,6 +53,7 @@ def main():
         #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
     optimizedCode = None
     if args.O2 == True:
+        breakpoint()
         optimizedCode = optimizer.performOptimizations(threeAddressCode['Three_Address_Code'])
         """
         for threeAddrCode in optimizedCode:

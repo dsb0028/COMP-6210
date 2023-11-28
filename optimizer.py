@@ -8,10 +8,23 @@ def performOptimizations(threeAddressCode):
     optimizedCode = None
     breakpoint()
     while isOptimized(threeAddressCode) == False:
+        for threeAddrCode in threeAddressCode:
+            print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
+        #breakpoint()
         optimizedCode = executeConstProp(threeAddressCode)
+        for threeAddrCode in optimizedCode:
+            print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
         #print(len(optimizedCode))
+        #breakpoint()
         optimizedCode = executeConstFolding(optimizedCode)
+        #breakpoint()
+        for threeAddrCode in optimizedCode:
+            print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
+        #breakpoint()
         optimizedCode = deadCodeRemoval(optimizedCode)
+        #breakpoint()
+        for threeAddrCode in optimizedCode:
+            print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
         threeAddressCode = optimizedCode
         #print(stmt)
         #print(otherAssignments)
@@ -128,17 +141,38 @@ def deadCodeRemoval(threeAddressCode):
     linesToRemove = []
     optimizedCode = None
     global simpleAssignments
-    if simpleAssignments != {}:
+    for threeAddrCode in threeAddressCode:
+        isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
+        if isSimpleAssign == True:
+            threeAddrCode.statement['STATEMENT'] = 'Simple_Assignment_Statement'
+            simpleAssignments.add(threeAddrCode)
+            #print(isSimpleAssign) 
+            continue
+    """
+    for threeAddrCode in threeAddressCode:
+        print(threeAddrCode.operation,threeAddrCode.arg1,
+              threeAddrCode.arg2,threeAddrCode.result,threeAddrCode.statement)
+    print('\n','\n')
+    for simpleAssign in simpleAssignments:
+        print(simpleAssign.operation,simpleAssign.arg1,
+              simpleAssign.arg2,simpleAssign.result,simpleAssign.statement)
+    """
+    #breakpoint()
+    if simpleAssignments != set():
+
         otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
         """
         for oA in otherAssignments:
-            print(oA.operation,oA.arg1,oA.arg2,oA.result)
+            print(oA.operation,oA.arg1,oA.arg2,oA.result,oA.statement)
         """
+        #breakpoint()
         lines_with_irrelevant_vars = 0
         for simpleAssign in simpleAssignments:
             for stmt in otherAssignments:    
                 #print(simpleAssign.operation, simpleAssign.arg1, simpleAssign.arg2, simpleAssign.result)
-                #print(stmt.operation,stmt.arg1,stmt.arg2,stmt.result)    
+                #print(stmt.operation,stmt.arg1,stmt.arg2,stmt.result)
+                #print('\n\n')    
+                #breakpoint()
                 if simpleAssign.result['RESULT'] != stmt.result['RESULT'] \
                     and simpleAssign.result['RESULT'] != simpleAssign.arg1['ARG1'] \
                     and simpleAssign.result['RESULT'] != simpleAssign.arg2['ARG2'] \
@@ -149,6 +183,7 @@ def deadCodeRemoval(threeAddressCode):
                 lines_with_irrelevant_vars = 0
                 linesToRemove.append(simpleAssign)
     if linesToRemove != []:
+        breakpoint()
         optimizedCode = list(set(threeAddressCode).difference(set(linesToRemove)))
         simpleAssignments = simpleAssignments.difference(set(linesToRemove))
     else:
