@@ -1,7 +1,7 @@
 from symboltable import *
 #from parserC import *
 from collections import defaultdict
-
+import copy
 
 class ThreeAddressCode:
     def __init__(self,operation,arg1,arg2,result, statement):
@@ -43,6 +43,7 @@ class ThreeAddressCode:
 threeAddressCodeDict = defaultdict(list)
 og_variable = None
 statement_type = None
+temps = []
 """
 parentNode  = None
 branch1 = None
@@ -79,13 +80,28 @@ def createThreeAddressCode(astTree, symbolTable):
             #print(statement['='])
             #global threeAddressCodeDict
             #breakpoint()
+            global number_of_nodes
+            number_of_nodes = totalNodes(statement['='][0])
             walk_through_ast(statement['='][0])
+            #breakpoint()
+            if temp_dicts != {}:
+                last_temp_var = list(temp_dicts)[-1]
+                temp_dicts[og_variable] = temp_dicts.pop(last_temp_var)
+            else:
+                temp_dicts.update({og_variable:statement['='][0]})
             #print("Dict",threeAddressCodeDict)
             #breakpoint()
+            breakpoint()
+            print(temp_dicts)
         elif 'return' in statement:
             statement_type = 'return'
-            #walk_through_ast(statement['return'][0])
-            pass
+            number_of_nodes = totalNodes(statement['return'][0])
+            walk_through_ast(statement['return'][0])
+        temps.append(copy.deepcopy(temp_dicts))
+        temp_dicts.clear()
+    breakpoint()
+    for temp in temps:
+        print(temp)
     return threeAddressCodeDict
 
 
@@ -96,6 +112,10 @@ l_temp = None
 r_temp = None
 temp_root = None
 i = 1
+
+
+
+
 """
 def walk_through_ast(root):
     left = None
@@ -133,7 +153,56 @@ def walk_through_ast(root):
             breakpoint()
             print(branch1,left_branch_temp)
 """
-                        
+isLeftTerminalNode = False
+isRightTerminalNode = False
+def walk_through_ast(root):
+    internal_nodes = ['+','-','*','/']
+    left = None
+    right = None
+    if root:
+        root_key = list(root.keys())[0]
+        if root_key in internal_nodes:
+            children = root[root_key]
+            left = children[0]
+            right = children[1]
+            walk_through_ast(left)
+            visited_elements.append(root_key)
+            walk_through_ast(right)
+            global i
+            #breakpoint()
+            """
+            if number_of_nodes == len(visited_elements):
+                temp_dicts.update({og_variable:root})
+            """
+            m = [item for item in temp_dicts.items() if item[1] == left]
+            if list(left.keys())[0] in internal_nodes:
+                if m != []:
+                    root[root_key][0] = m[0][0]
+                    left = root[root_key][0]
+            m1 = [item for item in temp_dicts.items() if item[1] == right]
+            if list(right.keys())[0] in internal_nodes:
+                if m1 != []:
+                    root[root_key][1] = m1[0][0]
+                    right = root[root_key][1]
+            global isLeftTerminalNode,isRightTerminalNode
+            if type(left) is str or list(left.keys())[0] not in internal_nodes:
+                isLeftTerminalNode = True 
+            if type(right) is str or list(right.keys())[0] not in internal_nodes:
+                isRightTerminalNode = True
+            if isLeftTerminalNode == True and isRightTerminalNode == True:
+                temp_dicts.update({"t"+str(i):root})
+                i = i + 1
+                isLeftTerminalNode = False
+                isRightTerminalNode = False 
+        else:
+            visited_elements.append(root[root_key])
+            if number_of_nodes == len(visited_elements):
+                if statement_type == 'return':
+                    temp_dicts.update({statement_type:root})
+                """
+                else:
+                    temp_dicts.update({og_variable:root})
+                """
 """
 def walk_through_ast(root):
     left = None
@@ -542,6 +611,26 @@ def walk_through_ast(astSubTree):
            visited_elements.append(operator_type)
            return walk_through_ast(right_child[operator_type])
 """    
+# from https://www.geeksforgeeks.org/count-number-of-nodes-in-a-complete-binary-tree/
+# Function to get the count of nodes
+# in complete binary tree
+def totalNodes(root):
+  # Base case
+    internal_nodes = ['+','-','*','/']
+    if(root == None):
+        return 0
+    # Find the left height and the
+    # right heights
+    root_type = list(root.keys())[0]
+    if root_type not in internal_nodes:
+        l = 0
+        r = 0
+    else:
+        l = totalNodes(root[root_type][0])
+        r = totalNodes(root[root_type][1])
+ 
+    return 1 + l + r
+
 def main():
     #threeAddressCodeDict = list()
     #threeAddressCode = ThreeAddressCode("=","4",None,'d')
