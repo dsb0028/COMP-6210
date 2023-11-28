@@ -8,7 +8,7 @@ class Assembly:
         
 def createAssemblyCode(optimizedCode):
     # setting up esp/ebp
-    breakpoint()
+    #breakpoint()
     asm = Assembly(mnemonic='push',label=None,operands=['ebp'],comments=None)
     assembly.append(asm)
     asm1 = Assembly(mnemonic='mov',label=None,operands=['ebp','esp'],comments=None)
@@ -19,7 +19,7 @@ def createAssemblyCode(optimizedCode):
     registers = ['eax','ebx','edx']
     lab = None
     for line in optimizedCode:
-        breakpoint()
+        #breakpoint()
         if line.operation['Operation'] == '=':
             if type(line.arg1['ARG1']) == int:
                 lab = 'DWORD PTR'
@@ -57,7 +57,7 @@ def createAssemblyCode(optimizedCode):
                                  
 
         elif line.operation['Operation'] == '+':
-            breakpoint()
+            #breakpoint()
             source_operand1 =  None
             source_operand2 = None
             for offset_var in offset_var_pairs:
@@ -167,7 +167,7 @@ def createAssemblyCode(optimizedCode):
 
             if as5 != None:
                 assembly.append(as5)
-            breakpoint()
+            #breakpoint()
             
             dest_offset = None
             if offset_var_pairs != []:
@@ -233,7 +233,7 @@ def createAssemblyCode(optimizedCode):
 
             if as5 != None:
                 assembly.append(as5)
-            breakpoint()
+            #breakpoint()
             dest_offset = None
             if offset_var_pairs != []:
                 dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
@@ -274,7 +274,7 @@ def createAssemblyCode(optimizedCode):
                     as7 = Assembly(mnemonic='mov',label='DWORD PTR',operands=[register2,source_operand2],comments=None)
                 assembly.append(as7)
             #print("R1",register1,"R2",register2)
-            breakpoint()
+            #breakpoint()
             as5 = None
             if register2 != None:
                 as5 = Assembly(mnemonic='div',label=None,operands=[register1,register2],comments=None)

@@ -4,7 +4,7 @@ from collections import defaultdict
 import copy
 
 class ThreeAddressCode:
-    def __init__(self,operation,arg1,arg2,result, statement):
+    def __init__(self,operation,arg1,arg2,result,statement):
         if (statement == 'Assignment_Statement'):
             self.operation = {'Operation':operation}
             self.arg1 = {'ARG1':arg1}
@@ -91,7 +91,7 @@ def createThreeAddressCode(astTree, symbolTable):
                 temp_dicts.update({og_variable:statement['='][0]})
             #print("Dict",threeAddressCodeDict)
             #breakpoint()
-            breakpoint()
+            #breakpoint()
             print(temp_dicts)
         elif 'return' in statement:
             statement_type = 'return'
@@ -99,9 +99,40 @@ def createThreeAddressCode(astTree, symbolTable):
             walk_through_ast(statement['return'][0])
         temps.append(copy.deepcopy(temp_dicts))
         temp_dicts.clear()
-    breakpoint()
+    #breakpoint()
     for temp in temps:
-        print(temp)
+        #print(temp)
+        for item in temp.items():
+            stmt = None
+            operator = None
+            op1 = None
+            op2 = None
+            res = None
+            if item[0] == 'return':
+                stmt = 'return'
+                operator = list(item[1].keys())[0]
+                if operator not in ['+','-','*','/']:
+                    op1 = item[1][operator]
+            else:
+                stmt = 'Assignment_Statement'
+                operator = list(item[1].keys())[0]
+                op2 = item[1][operator][1]
+                if type(op2) is dict:
+                    key = list(op2.keys())[0]
+                    op2 = op2[key]
+                res = item[0]
+                #breakpoint()
+                op1 = item[1][operator][0]
+                if type(op1) is dict:
+                    key = list(op1.keys())[0]
+                    op1 = op1[key]
+           
+            
+            threeAddressCode =  \
+                ThreeAddressCode(operation=operator
+                                 ,arg1=op1,arg2=op2,result=res,statement=stmt)
+            threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)
+    print(threeAddressCodeDict)
     return threeAddressCodeDict
 
 
