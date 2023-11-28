@@ -2,29 +2,17 @@
 
 #optimizedCode = [] 
 #table = {'Assignment'}
-simpleAssignments = []
+simpleAssignments = set()
 
 def performOptimizations(threeAddressCode):
-    optimizedCode = executeConstProp(threeAddressCode)
-    #print(len(optimizedCode))
-    optimizedCode = executeConstFolding(optimizedCode)
-    
-    optimizedCode = executeConstProp(threeAddressCode)
-    #print(len(optimizedCode))
-    optimizedCode = executeConstFolding(optimizedCode)
-    optimizedCode = executeConstProp(threeAddressCode)
-    optimizedCode = executeConstFolding(optimizedCode)
-    optimizedCode = executeConstProp(threeAddressCode)
-    optimizedCode = executeConstFolding(optimizedCode)
-    optimizedCode = executeConstProp(threeAddressCode)
-    #print(len(optimizedCode))
-    #optimizedCode = executeConstFolding(optimizedCode)
-    """
-    for threeAddrCode in optimizedCode:
-        print(threeAddrCode.operation,threeAddrCode.arg1, 
-              threeAddrCode.arg2, 
-              threeAddrCode.result, threeAddrCode.statement)
-    """
+    optimizedCode = None
+    while isOptimized(threeAddressCode) == False:
+        optimizedCode = executeConstProp(threeAddressCode)
+        #print(len(optimizedCode))
+        optimizedCode = executeConstFolding(optimizedCode)
+        optimizedCode = deadCodeRemoval(optimizedCode)
+        #print(stmt)
+        #print(otherAssignments)
     return optimizedCode
 
 def executeConstFolding(optimizedCode):
@@ -42,6 +30,17 @@ def executeConstFolding(optimizedCode):
         optimizedThreeAddrCode.append(threeAddrCode)
     return optimizedThreeAddrCode
 
+def isConstFoldingPossible(optmizedCode):
+    result = False
+    operations = ['+','-','*','/']
+    for threeAddrCode in optmizedCode:
+        if (threeAddrCode.operation['Operation'] in operations
+            and type(threeAddrCode.arg1['ARG1']) == int
+            and type(threeAddrCode.arg2['ARG2']) == int):
+            result = True
+            break
+    return result
+
 def executeConstProp(threeAddressCode):
     optimizedThreeAddrCode = []
     for threeAddrCode in threeAddressCode:
@@ -53,7 +52,7 @@ def executeConstProp(threeAddressCode):
         isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
         if isSimpleAssign == True:
             threeAddrCode.statement['STATEMENT'] = 'Simple_Assignment_Statement'
-            simpleAssignments.append(threeAddrCode)
+            simpleAssignments.add(threeAddrCode)
             #print(isSimpleAssign)
             optimizedThreeAddrCode.append(threeAddrCode)
             continue
@@ -80,6 +79,36 @@ def executeConstProp(threeAddressCode):
         #      threeAddrCode.statement
         optimizedThreeAddrCode.append(threeAddrCode)
     return optimizedThreeAddrCode
+
+def isConstPropPossible(threeAddressCode):
+    result = False
+    for threeAddrCode in threeAddressCode:
+        isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
+        if isSimpleAssign == True:
+            threeAddrCode.statement['STATEMENT'] = 'Simple_Assignment_Statement'
+            simpleAssignments.add(threeAddrCode)
+            #print(isSimpleAssign)
+            continue
+        if type(threeAddrCode.arg1['ARG1']) == str: 
+            if threeAddrCode.arg1['ARG1'].isidentifier():
+                #check if variable is listed in simple_assignment_statement
+                #if so, extract the value of it and then change matching var to its value
+                for simple_assignment in simpleAssignments:
+                    if simple_assignment.result['RESULT'] == threeAddrCode.arg1['ARG1']:
+                        result = True
+                        break
+        if type(threeAddrCode.arg2['ARG2']) == str:
+            if threeAddrCode.arg2['ARG2'].isidentifier():
+                #check if variable is listed in simple_assignment_statement
+                #if so, extract the value of it and then change matching var to its value
+                for simple_assignment in simpleAssignments:
+                    if simple_assignment.result['RESULT'] == threeAddrCode.arg2['ARG2']:
+                        result = True
+                        break
+        if result == True:
+            break
+    return result
+
 # ID = NUMBER
 def isSimpleAssignmentStmt(threeAddressCodeStmt): 
     result = False
@@ -93,8 +122,65 @@ def isSimpleAssignmentStmt(threeAddressCodeStmt):
         #print(result)
     return result
 
+def deadCodeRemoval(threeAddressCode):
+    linesToRemove = []
+    optimizedCode = None
+    if simpleAssignments != {}:
+        otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
+        """
+        for oA in otherAssignments:
+            print(oA.operation,oA.arg1,oA.arg2,oA.result)
+        """
+        lines_with_irrelevant_vars = 0
+        for simpleAssign in simpleAssignments:
+            for stmt in otherAssignments:    
+                #print(simpleAssign.operation, simpleAssign.arg1, simpleAssign.arg2, simpleAssign.result)
+                #print(stmt.operation,stmt.arg1,stmt.arg2,stmt.result)    
+                if simpleAssign.result['RESULT'] != stmt.result['RESULT'] \
+                    and simpleAssign.result['RESULT'] != simpleAssign.arg1['ARG1'] \
+                    and simpleAssign.result['RESULT'] != simpleAssign.arg2['ARG2'] \
+                    and simpleAssign.result['RESULT'] != stmt.arg1['ARG1'] \
+                    and simpleAssign.result['RESULT'] != stmt.arg2['ARG2']:
+                    lines_with_irrelevant_vars = lines_with_irrelevant_vars + 1
+            if lines_with_irrelevant_vars == len(otherAssignments):
+                lines_with_irrelevant_vars = 0
+                linesToRemove.append(simpleAssign)
+    if linesToRemove != []:
+        optimizedCode = list(set(threeAddressCode).difference(set(linesToRemove)))
+    else:
+        optimizedCode = threeAddressCode
+    return optimizedCode    
+
+def isdeadCodeRemovalPossible(threeAddressCode):
+    result = False
+    if simpleAssignments != {}:
+        otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
+        """
+        for oA in otherAssignments:
+            print(oA.operation,oA.arg1,oA.arg2,oA.result)
+        """
+        lines_with_irrelevant_vars = 0
+        for simpleAssign in simpleAssignments:
+            for stmt in otherAssignments:    
+                #print(simpleAssign.operation, simpleAssign.arg1, simpleAssign.arg2, simpleAssign.result)
+                #print(stmt.operation,stmt.arg1,stmt.arg2,stmt.result)    
+                if simpleAssign.result['RESULT'] != stmt.result['RESULT'] \
+                    and simpleAssign.result['RESULT'] != simpleAssign.arg1['ARG1'] \
+                    and simpleAssign.result['RESULT'] != simpleAssign.arg2['ARG2'] \
+                    and simpleAssign.result['RESULT'] != stmt.arg1['ARG1'] \
+                    and simpleAssign.result['RESULT'] != stmt.arg2['ARG2']:
+                    lines_with_irrelevant_vars = lines_with_irrelevant_vars + 1
+            if lines_with_irrelevant_vars == len(otherAssignments):
+                result = True
+                break
+    return result
+
 def isOptimized(threeAddressCode):
     result = False
+    if isConstFoldingPossible(threeAddressCode) == False \
+        and isConstPropPossible(threeAddressCode) == False \
+        and isdeadCodeRemovalPossible(threeAddressCode) == False:
+        result = True
     return result
 
     

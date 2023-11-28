@@ -113,6 +113,7 @@ def createThreeAddressCode(astTree, symbolTable):
                 operator = list(item[1].keys())[0]
                 if operator not in ['+','-','*','/']:
                     op1 = item[1][operator]
+                    operator = None
             else:
                 stmt = 'Assignment_Statement'
                 operator = list(item[1].keys())[0]
