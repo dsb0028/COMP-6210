@@ -133,7 +133,7 @@ def createThreeAddressCode(astTree, symbolTable):
                 ThreeAddressCode(operation=operator
                                  ,arg1=op1,arg2=op2,result=res,statement=stmt)
             threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)
-    print(threeAddressCodeDict)
+    #print(threeAddressCodeDict)
     return threeAddressCodeDict
 
 

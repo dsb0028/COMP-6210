@@ -38,7 +38,7 @@ def main():
         #print("AST",astTree,'\n')
     breakpoint()
     threeAddressCode = createThreeAddressCode(astTree,symbolTable)
-    print(threeAddressCode)
+    #print(threeAddressCode)
     if args.O1 == True:
         for threeAddrCode in threeAddressCode['Three_Address_Code']:
             if threeAddrCode.statement['STATEMENT'] == 'return':
@@ -60,6 +60,7 @@ def main():
               threeAddrCode.arg2, 
               threeAddrCode.result, threeAddrCode.statement)
         """
+        print("Optimized",'\n')
         for threeAddrCode in optimizedCode:
             if threeAddrCode.statement['STATEMENT'] == 'return':
                 print(threeAddrCode.statement,threeAddrCode.arg1)

@@ -6,11 +6,13 @@ simpleAssignments = set()
 
 def performOptimizations(threeAddressCode):
     optimizedCode = None
+    breakpoint()
     while isOptimized(threeAddressCode) == False:
         optimizedCode = executeConstProp(threeAddressCode)
         #print(len(optimizedCode))
         optimizedCode = executeConstFolding(optimizedCode)
         optimizedCode = deadCodeRemoval(optimizedCode)
+        threeAddressCode = optimizedCode
         #print(stmt)
         #print(otherAssignments)
     return optimizedCode
@@ -125,6 +127,7 @@ def isSimpleAssignmentStmt(threeAddressCodeStmt):
 def deadCodeRemoval(threeAddressCode):
     linesToRemove = []
     optimizedCode = None
+    global simpleAssignments
     if simpleAssignments != {}:
         otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
         """
@@ -147,6 +150,7 @@ def deadCodeRemoval(threeAddressCode):
                 linesToRemove.append(simpleAssign)
     if linesToRemove != []:
         optimizedCode = list(set(threeAddressCode).difference(set(linesToRemove)))
+        simpleAssignments = simpleAssignments.difference(set(linesToRemove))
     else:
         optimizedCode = threeAddressCode
     return optimizedCode    
