@@ -581,8 +581,10 @@ def parseExpr(tokenBuffer):
             else:
                 astExprPrime[operator1].insert(0,astTerm)
             """
-            #breakpoint()
+            breakpoint()
+            global isFactorExpr
             other_function(astExprPrime,astTerm,operations=['+','-'],isExprinParens=isFactorExpr)
+            isFactorExpr = False
             print("ok",astExprPrime)
             astExprTree.popitem()
             astExprTree.update(astExprPrime)
@@ -617,7 +619,10 @@ def parseTerm(tokenBuffer):
     
     if astTermPrime != {}:
         print(astTermPrime)
+        breakpoint()
+        global isFactorExpr
         other_function(astTermPrime,astFactor,operations=['*','/'],isExprinParens=isFactorExpr)
+        isFactorExpr = False
         #print(astTermTree)
         astTermTree.popitem()
         astTermTree.update(astTermPrime)
@@ -675,6 +680,7 @@ def parseFactor(tokenBuffer):
             #breakpoint()
             expr,astExpr = parseExpr(tokenBuffer)
             if expr:
+                
                 factorTree['Factor'].update(expr)
                 astFactorTree.update(astExpr)
             tokenToBeConsumed = tokenBuffer[0]
@@ -682,6 +688,7 @@ def parseFactor(tokenBuffer):
             if leafNode.type == 'RPAREN':
                 factorTree['Factor'].update({leafNode.type:leafNode.value})
                 consume(tokenToBeConsumed,tokenBuffer)
+                breakpoint()
                 global isFactorExpr
                 isFactorExpr = True
         else:
