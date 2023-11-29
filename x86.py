@@ -23,9 +23,9 @@ def createAssemblyCode(optimizedCode,symbolTable):
     asm2 = Assembly(mnemonic='mov',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
     assembly.append(asm2)
     #print(symbolTable.table['main']['Variables'],len(symbolTable.table['main']['Variables']))
-    breakpoint()
+    #breakpoint()
     for line in optimizedCode:
-        #breakpoint()
+        breakpoint()
         if line.operation['Operation'] == '=':
             if type(line.arg1['ARG1']) == int:
                 lab = 'DWORD PTR'
@@ -38,7 +38,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
                 continue
             
             elif str(line.arg1['ARG1']).isidentifier():
-                breakpoint()
+                #breakpoint()
                 op1 = None
                 op2 = None
                 for offset_var in offset_var_pairs:
@@ -69,7 +69,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
             for offset_var in offset_var_pairs:
                 if offset_var[0] == line.arg1['ARG1']:
                    source_operand1 = offset_var[1]
-                elif offset_var[0] == line.arg2['ARG2']:
+                if offset_var[0] == line.arg2['ARG2']:
                     source_operand2 = offset_var[1] 
             register1 = None
             register2 = None
@@ -107,7 +107,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     register1 = eval(str(line.arg1['ARG1'])
                      + line.operation['Operation'] 
                      + str(line.arg2['ARG2']))
-
+                
             if as5 != None:
                 assembly.append(as5)
             dest_offset = None

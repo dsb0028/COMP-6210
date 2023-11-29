@@ -581,8 +581,12 @@ def parseExpr(tokenBuffer):
             else:
                 astExprPrime[operator1].insert(0,astTerm)
             """
-            breakpoint()
+            #breakpoint()
             global isFactorExpr
+            #breakpoint()
+            if isFactorExpr == True and tokenBuffer[0].type == 'END':
+                isFactorExpr = False
+            
             other_function(astExprPrime,astTerm,operations=['+','-'],isExprinParens=isFactorExpr)
             isFactorExpr = False
             print("ok",astExprPrime)
@@ -619,8 +623,13 @@ def parseTerm(tokenBuffer):
     
     if astTermPrime != {}:
         print(astTermPrime)
-        breakpoint()
+        #breakpoint()
         global isFactorExpr
+        #breakpoint()
+        
+        if isFactorExpr == True and tokenBuffer[0].type == 'END':
+            isFactorExpr = False
+        
         other_function(astTermPrime,astFactor,operations=['*','/'],isExprinParens=isFactorExpr)
         isFactorExpr = False
         #print(astTermTree)
@@ -688,7 +697,7 @@ def parseFactor(tokenBuffer):
             if leafNode.type == 'RPAREN':
                 factorTree['Factor'].update({leafNode.type:leafNode.value})
                 consume(tokenToBeConsumed,tokenBuffer)
-                breakpoint()
+                #breakpoint()
                 global isFactorExpr
                 isFactorExpr = True
         else:
@@ -785,6 +794,7 @@ def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
         operator2 = list(astExprPrimeTree.keys())[0]
   
     print(operator1,operator2)
+    #breakpoint()
     """
     if list(astExprPrime[operator1][0].keys())[0] == 'NUMBER' \
         or list(astExprPrime[operator1][0].keys())[0] == 'ID':
@@ -792,6 +802,10 @@ def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
         astExprPrimeTree = astExprPrime
     """
     if len(astExprPrime[operator1]) == 1:
+        #breakpoint()
+        #key2 = list(astExprPrime[operator1][0].keys())[0]
+        #print(key2)
+        #breakpoint()    
         astExprPrime[operator1].insert(0,astExprPrimeTree)
         astExprPrimeTree = astExprPrime
     else:
@@ -805,11 +819,14 @@ def other_function(astExprPrime,astTerm,operations,isExprinParens=False):
         operator2 = list(astExprPrime[operator1][0].keys())[0]
         #breakpoint()
         if isExprinParens != True:
-            if operator2 in operations:
+            #breakpoint()
+            if operator2 in operations and len(astExprPrime[operator1][0][operator2])!=1:
                 return other_function(astExprPrime[operator1][0],astTerm,operations,isExprinParens)
             else:
-                #breakpoint()
-                astExprPrime[operator1].insert(0,astTerm)
+                if operator2 not in operations:
+                    astExprPrime[operator1].insert(0,astTerm)
+                else:
+                    astExprPrime[operator1][0][operator2].insert(0,astTerm)
         else:
             if operator2 in operations and len(astExprPrime[operator1][0][operator2])!=2:
                 return other_function(astExprPrime[operator1][0],astTerm,operations,isExprinParens)
