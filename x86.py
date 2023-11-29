@@ -6,7 +6,7 @@ class Assembly:
         self.operands = operands
         self.comments = comments
         
-def createAssemblyCode(optimizedCode):
+def createAssemblyCode(optimizedCode,symbolTable):
     # setting up esp/ebp
     #breakpoint()
     asm = Assembly(mnemonic='push',label=None,operands=['ebp'],comments=None)
@@ -18,6 +18,12 @@ def createAssemblyCode(optimizedCode):
     register_var_pairs = []
     registers = ['eax','ebx','edx']
     lab = None
+    #count how many local variables there are
+    spaceToAllocToStack = len(symbolTable.table['main']['Variables'])
+    asm2 = Assembly(mnemonic='mov',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
+    assembly.append(asm2)
+    #print(symbolTable.table['main']['Variables'],len(symbolTable.table['main']['Variables']))
+    breakpoint()
     for line in optimizedCode:
         #breakpoint()
         if line.operation['Operation'] == '=':
@@ -292,12 +298,12 @@ def createAssemblyCode(optimizedCode):
                     op1 = line.arg1['ARG1']
                 if type(line.arg2['ARG2']) == int or type(line.arg2['ARG2']) == float: 
                     op2 = line.arg2['ARG2']
-                
+                """
                 if op1 != None and op2 != None:
                     register1 = int(eval(str(line.arg1['ARG1'])
                      + line.operation['Operation'] 
                      + str(line.arg2['ARG2'])))
-
+                """
             if as5 != None:
                 assembly.append(as5)
             

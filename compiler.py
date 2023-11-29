@@ -25,6 +25,7 @@ def main():
     # if c file just contains comments, there will be no tokens and no parse tree
     if not tokens:
         raise RuntimeError("Nothing to Parse")
+    breakpoint()
     parseTree,astTree,symbolTable = parserC.createParseTree(tokens)
     #ast = parserC.createAST(parseTree)
     if args.p == True: 
@@ -36,8 +37,8 @@ def main():
         with open('astTree.txt', 'wt') as out:
             pprint(astTree, stream=out,sort_dicts=False)
         #print("AST",astTree,'\n')
-    breakpoint()
-    threeAddressCode = createThreeAddressCode(astTree,symbolTable)
+    #breakpoint()
+    threeAddressCode,symbolTable = createThreeAddressCode(astTree,symbolTable)
     #print(threeAddressCode)
     if args.O1 == True:
         for threeAddrCode in threeAddressCode['Three_Address_Code']:
@@ -72,10 +73,10 @@ def main():
             #    pass
         print('\n')
     if args.O2 == True:
-        assembly =  x86.createAssemblyCode(optimizedCode)
+        assembly =  x86.createAssemblyCode(optimizedCode,symbolTable)
     else:
         breakpoint()
-        assembly =  x86.createAssemblyCode(threeAddressCode['Three_Address_Code'])
+        assembly =  x86.createAssemblyCode(threeAddressCode['Three_Address_Code'],symbolTable)
 
     if args.S == True:
         for line in assembly:
