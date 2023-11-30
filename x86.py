@@ -20,12 +20,12 @@ def createAssemblyCode(optimizedCode,symbolTable):
     lab = None
     #count how many local variables there are
     spaceToAllocToStack = len(symbolTable.table['main']['Variables'])
-    asm2 = Assembly(mnemonic='mov',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
+    asm2 = Assembly(mnemonic='sub',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
     assembly.append(asm2)
     #print(symbolTable.table['main']['Variables'],len(symbolTable.table['main']['Variables']))
     #breakpoint()
     for line in optimizedCode:
-        breakpoint()
+        #breakpoint()
         if line.operation['Operation'] == '=':
             if type(line.arg1['ARG1']) == int:
                 lab = 'DWORD PTR'

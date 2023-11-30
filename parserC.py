@@ -97,33 +97,6 @@ def get_all_keys(d):
         if isinstance(value, dict):
             yield from get_all_keys(value)
 
-
-"""
-def build_ast(parse_tree):
-    if parse_tree.node_type == "program":
-        statements = [build_ast(statement) for statement in parse_tree.children]
-        return ProgramNode(statements)
-    elif parse_tree.node_type == "assignment":
-        variable = parse_tree.children[0].value
-        value = build_ast(parse_tree.children[1])
-        return AssignmentNode(variable, value)
-    elif parse_tree.node_type == "binary_operation":
-        operator = parse_tree.children[0].value
-        left = build_ast(parse_tree.children[1])
-        right = build_ast(parse_tree.children[2])
-        return BinaryOperationNode(operator, left, right)
-    # Handle other node types...
-
-    # For leaf nodes, return their values as-is (e.g., literals or variables).
-    return parse_tree.value
-
-# Example usage:
-parse_tree = parse("x = 5 + 3")
-ast = build_ast(parse_tree)
-"""
-
-
-
 """
 translation-unit:
     external-declaration translation-unit
@@ -586,8 +559,12 @@ def parseExpr(tokenBuffer):
             #breakpoint()
             if isFactorExpr == True and tokenBuffer[0].type == 'END':
                 isFactorExpr = False
-            
-            other_function(astExprPrime,astTerm,operations=['+','-'],isExprinParens=isFactorExpr)
+            #breakpoint()
+            global number_of_nodes
+            number_of_nodes = totalNodes(astExprPrime)
+            #breakpoint()
+            inOrder(astExprPrime,astTerm,operations=['+','-'])
+            #other_function(astExprPrime,astTerm,operations=['+','-'],isExprinParens=isFactorExpr)
             isFactorExpr = False
             print("ok",astExprPrime)
             astExprTree.popitem()
@@ -629,8 +606,9 @@ def parseTerm(tokenBuffer):
         
         if isFactorExpr == True and tokenBuffer[0].type == 'END':
             isFactorExpr = False
-        
-        other_function(astTermPrime,astFactor,operations=['*','/'],isExprinParens=isFactorExpr)
+        #breakpoint()
+        inOrder(astTermPrime,astFactor,operations=['*','/'])
+        #other_function(astTermPrime,astFactor,operations=['*','/'],isExprinParens=isFactorExpr)
         isFactorExpr = False
         #print(astTermTree)
         astTermTree.popitem()
@@ -775,6 +753,8 @@ def parseExprPrime(tokenBuffer):
                 if astExprPrimeTree != {}:
                     #breakpoint()
                     #print(astExprPrime,astExprPrimeTree)
+                    #breakpoint()
+                    #inOrder(astExprPrimeTree,astExprPrime,terminalNodes)
                     astExprPrimeTree = new_func(astExprPrimeTree, terminalNodes, astExprPrime)
                     astExprPrimeTree = astExprPrime
                     #other_function(astExprPrimeTree,astExprPrime,terminalNodes)
@@ -833,6 +813,58 @@ def other_function(astExprPrime,astTerm,operations,isExprinParens=False):
             else:
                 #breakpoint()
                 astExprPrime[operator1].insert(0,astTerm)
+"""
+def insertNode(root,node):
+    if root:
+        pass
+"""
+visited_elements = []
+def inOrder(root,node,operations):
+    #internal_nodes = ['+','-','*','/']
+    left = None
+    right = None
+    if root:
+        root_key = list(root.keys())[0]
+        if root_key in operations:
+            children = root[root_key]
+            left = children[0]
+            if len(children) == 2:
+                right = children[1]
+            inOrder(left,node,operations)
+            visited_elements.append(root_key)
+            if right == None:
+                root[root_key].insert(0,node)
+
+            inOrder(right,node,operations)
+            """
+            if number_of_nodes == len(visited_elements):
+                root[root_key].insert(0,node)     
+            """
+        else:
+            visited_elements.append(root[root_key])
+    
+# from https://www.geeksforgeeks.org/count-number-of-nodes-in-a-complete-binary-tree/
+# Function to get the count of nodes
+# in complete binary tree
+def totalNodes(root):
+  # Base case
+    internal_nodes = ['+','-','*','/']
+    if(root == None):
+        return 0
+    # Find the left height and the
+    # right heights
+    root_type = list(root.keys())[0]
+    if root_type not in internal_nodes:
+        l = 0
+        r = 0
+    else:
+        l = totalNodes(root[root_type][0])
+        if len(root[root_type]) == 2:
+            r = totalNodes(root[root_type][1])
+        else:
+            r = 0
+ 
+    return 1 + l + r
 
 def parseTermPrime(tokenBuffer):
     """
@@ -866,7 +898,8 @@ def parseTermPrime(tokenBuffer):
                 termPrimeTree['TermP'].update(termPrime)
             if astTermPrime != {}:
                 if astTermPrimeTree != {}:
-                    
+                    #breakpoint()        
+                    #inOrder(astTermPrimeTree,astTermPrime,terminalNodes)
                     astTermPrimeTree = new_func(astTermPrimeTree,terminalNodes,astTermPrime)
                     astTermPrimeTree = astTermPrime
                 else:

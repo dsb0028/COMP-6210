@@ -24,57 +24,28 @@ threeAddressCodeDict = defaultdict(list)
 og_variable = None
 statement_type = None
 temps = []
-"""
-parentNode  = None
-branch1 = None
-branch2 = None
-left_branch_temp = None
-right_branch_temp = None
-"""
+
 def createThreeAddressCode(astTree, symbolTable):
     function_name = 'main'
     statementList = astTree[function_name]['Statement']
     for statement in statementList: 
         global visited_elements
         visited_elements = []
-        global parentNode
-        parentNode = None
-        global left_branch_temp
-        left_branch_temp = None
-        global right_branch_temp
-        right_branch_temp = None
-        global branch1,branch2
-        branch1 = None
-        branch2 = None
         if '=' in statement:
             global statement_type
             statement_type = 'Assignment_Statement'
-            #print(statement['='])
             global og_variable
-            
             og_variable = statement['='][0].pop('ID')
-            #print(og_variable)
-            #print(statement['='][1])
             statement['='][0] = statement['='][1]
             statement['='].pop(1)
-            #print(statement['='])
-            #global threeAddressCodeDict
-            #breakpoint()
             global number_of_nodes
-            #breakpoint()
-            #print(len(statement['='][0]['+']))
-            #breakpoint
             number_of_nodes = totalNodes(statement['='][0])
             walk_through_ast(statement['='][0])
-            #breakpoint()
             if temp_dicts != {}:
                 last_temp_var = list(temp_dicts)[-1]
                 temp_dicts[og_variable] = temp_dicts.pop(last_temp_var)
             else:
                 temp_dicts.update({og_variable:statement['='][0]})
-            #print("Dict",threeAddressCodeDict)
-            #breakpoint()
-            #breakpoint()
             print(temp_dicts)
         elif 'return' in statement:
             statement_type = 'return'
@@ -131,10 +102,6 @@ def createThreeAddressCode(astTree, symbolTable):
 
 visited_elements = []
 temp_dicts = {}
-visited = None
-l_temp = None
-r_temp = None
-temp_root = None
 i = 1
 isLeftTerminalNode = False
 isRightTerminalNode = False

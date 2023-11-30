@@ -2,7 +2,7 @@
 
 #optimizedCode = [] 
 #table = {'Assignment'}
-simpleAssignments = set()
+simpleAssignments = []
 
 def performOptimizations(threeAddressCode):
     optimizedCode = None
@@ -10,22 +10,23 @@ def performOptimizations(threeAddressCode):
     while isOptimized(threeAddressCode) == False:
         for threeAddrCode in threeAddressCode:
             print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
-        #breakpoint()
+        breakpoint()
         optimizedCode = executeConstProp(threeAddressCode)
         for threeAddrCode in optimizedCode:
             print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
         #print(len(optimizedCode))
-        #breakpoint()
+        breakpoint()
         optimizedCode = executeConstFolding(optimizedCode)
-        #breakpoint()
+        breakpoint()
         for threeAddrCode in optimizedCode:
             print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
-        #breakpoint()
+        breakpoint()
         optimizedCode = deadCodeRemoval(optimizedCode)
         #breakpoint()
         for threeAddrCode in optimizedCode:
             print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
         threeAddressCode = optimizedCode
+        breakpoint()
         #print(stmt)
         #print(otherAssignments)
     return optimizedCode
@@ -37,18 +38,18 @@ def executeConstFolding(optimizedCode):
         if (threeAddrCode.operation['Operation'] in operations
             and type(threeAddrCode.arg1['ARG1']) == int
             and type(threeAddrCode.arg2['ARG2']) == int):
-                threeAddrCode.arg1['ARG1'] = eval(str(threeAddrCode.arg1['ARG1'])
-                     + threeAddrCode.operation['Operation'] 
-                     + str(threeAddrCode.arg2['ARG2']))
+                threeAddrCode.arg1['ARG1'] = int(eval(str(threeAddrCode.arg1['ARG1'])
+                     + threeAddrCode.operation['Operation']
+                     + str(threeAddrCode.arg2['ARG2'])))
                 threeAddrCode.operation['Operation'] = '='
                 threeAddrCode.arg2['ARG2'] = None
         optimizedThreeAddrCode.append(threeAddrCode)
     return optimizedThreeAddrCode
 
-def isConstFoldingPossible(optmizedCode):
+def isConstFoldingPossible(optimizedCode):
     result = False
     operations = ['+','-','*','/']
-    for threeAddrCode in optmizedCode:
+    for threeAddrCode in optimizedCode:
         if (threeAddrCode.operation['Operation'] in operations
             and type(threeAddrCode.arg1['ARG1']) == int
             and type(threeAddrCode.arg2['ARG2']) == int):
@@ -65,9 +66,10 @@ def executeConstProp(threeAddressCode):
         #elif isConstantFoldingNeeded == True:
         #   perfrom contant folding 
         isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
-        if isSimpleAssign == True:
+        if isSimpleAssign == True and \
+            threeAddrCode.statement['STATEMENT'] != 'Simple_Assignment_Statement':
             threeAddrCode.statement['STATEMENT'] = 'Simple_Assignment_Statement'
-            simpleAssignments.add(threeAddrCode)
+            simpleAssignments.append(threeAddrCode)
             #print(isSimpleAssign)
             optimizedThreeAddrCode.append(threeAddrCode)
             continue
@@ -99,9 +101,10 @@ def isConstPropPossible(threeAddressCode):
     result = False
     for threeAddrCode in threeAddressCode:
         isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
-        if isSimpleAssign == True:
+        if isSimpleAssign == True and \
+                threeAddrCode.statement['STATEMENT'] != 'Simple_Assignment_Statement':
             threeAddrCode.statement['STATEMENT'] = 'Simple_Assignment_Statement'
-            simpleAssignments.add(threeAddrCode)
+            simpleAssignments.append(threeAddrCode)
             #print(isSimpleAssign)
             continue
         if type(threeAddrCode.arg1['ARG1']) == str: 
@@ -143,9 +146,11 @@ def deadCodeRemoval(threeAddressCode):
     global simpleAssignments
     for threeAddrCode in threeAddressCode:
         isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
-        if isSimpleAssign == True:
+        if isSimpleAssign == True \
+            and threeAddrCode.statement['STATEMENT'] != 'Simple_Assignment_Statement':
             threeAddrCode.statement['STATEMENT'] = 'Simple_Assignment_Statement'
-            simpleAssignments.add(threeAddrCode)
+            #breakpoint()
+            simpleAssignments.append(threeAddrCode)
             #print(isSimpleAssign) 
             continue
     """
@@ -158,7 +163,7 @@ def deadCodeRemoval(threeAddressCode):
               simpleAssign.arg2,simpleAssign.result,simpleAssign.statement)
     """
     #breakpoint()
-    if simpleAssignments != set():
+    if simpleAssignments != []:
 
         otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
         """
@@ -183,16 +188,19 @@ def deadCodeRemoval(threeAddressCode):
                 lines_with_irrelevant_vars = 0
                 linesToRemove.append(simpleAssign)
     if linesToRemove != []:
-        breakpoint()
+        #breakpoint()
         optimizedCode = list(set(threeAddressCode).difference(set(linesToRemove)))
-        simpleAssignments = simpleAssignments.difference(set(linesToRemove))
+        optimizedCode.reverse()
+        #breakpoint()
+        simpleAssignments = list(set(simpleAssignments).difference(set(linesToRemove)))
+        simpleAssignments.reverse()
     else:
         optimizedCode = threeAddressCode
     return optimizedCode    
 
 def isdeadCodeRemovalPossible(threeAddressCode):
     result = False
-    if simpleAssignments != {}:
+    if simpleAssignments != []:
         otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
         """
         for oA in otherAssignments:
@@ -218,7 +226,7 @@ def isOptimized(threeAddressCode):
     result = False
     if isConstFoldingPossible(threeAddressCode) == False \
         and isConstPropPossible(threeAddressCode) == False \
-        and isdeadCodeRemovalPossible(threeAddressCode) == False:
+            and isdeadCodeRemovalPossible(threeAddressCode) == False:
         result = True
     return result
 
