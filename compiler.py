@@ -55,7 +55,7 @@ def main():
     optimizedCode = None
     if args.O2 == True:
         breakpoint()
-        optimizedCode = optimizer.performOptimizations(threeAddressCode['Three_Address_Code'])
+        optimizedCode = optimizer.performOptimizations(threeAddressCode['Three_Address_Code'],symbolTable)
         """
         for threeAddrCode in optimizedCode:
             print(threeAddrCode.operation,threeAddrCode.arg1, 

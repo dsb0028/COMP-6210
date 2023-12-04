@@ -5,7 +5,7 @@ from collections import Counter
 #table = {'Assignment'}
 simpleAssignments = []
 linesNumbered = []
-def performOptimizations(threeAddressCode):
+def performOptimizations(threeAddressCode,symbolTable):
     optimizedCode = None
      #make note of lines that are defined multiple times and take note of their line number
     breakpoint()
@@ -18,7 +18,7 @@ def performOptimizations(threeAddressCode):
     print(varsDefined)
     """
     breakpoint()
-    threeAddressCode,livelinessTable = convertToSSA(threeAddressCode)
+    threeAddressCode,livelinessTable = convertToSSA(threeAddressCode,symbolTable)
     while isOptimized(threeAddressCode) == False:
         global linesNumbered
         linesNumbered = [l for l in enumerate(threeAddressCode)]
@@ -35,7 +35,7 @@ def performOptimizations(threeAddressCode):
         for threeAddrCode in optimizedCode:
             print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
         breakpoint()
-        optimizedCode = deadCodeRemoval(optimizedCode)
+        optimizedCode = deadCodeRemoval(optimizedCode,symbolTable)
         #breakpoint()
         for threeAddrCode in optimizedCode:
             print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
@@ -196,7 +196,7 @@ def isSimpleAssignmentStmt(threeAddressCodeStmt):
         #print(result)
     return result
 
-def deadCodeRemoval(threeAddressCode):
+def deadCodeRemoval(threeAddressCode,symbolTable):
     linesToRemove = []
     optimizedCode = None
     global simpleAssignments
@@ -262,7 +262,10 @@ def deadCodeRemoval(threeAddressCode):
         while number_removed != len(linesToRemove):
             for line in optimizedCode: 
                 if line in linesToRemove:
+                    #breakpoint()
                     optimizedCode.remove(line) 
+                    breakpoint()
+                    symbolTable.table['main']['Variables'].pop(line.result['RESULT'])
                     number_removed += 1
         """
         for line in optimizedCode:
@@ -326,12 +329,12 @@ def isOptimized(threeAddressCode):
         result = True
     return result
 
-def convertToSSA(threeAddressCode):
+def convertToSSA(threeAddressCode,symbolTable):
     #conduct livliness analysis
-    livelinessTable = conductLivelinessAnalysis(threeAddressCode)  
+    livelinessTable = conductLivelinessAnalysis(threeAddressCode,symbolTable)  
     return threeAddressCode, livelinessTable
     
-def conductLivelinessAnalysis(threeAddressCode):
+def conductLivelinessAnalysis(threeAddressCode,symbolTable):
     #stores all live variables and their ranges
     livelinessTable = {}
     #numbers all the lines of three address code
@@ -397,6 +400,7 @@ def conductLivelinessAnalysis(threeAddressCode):
             #breakpoint()
             #var_versions = [key for key in livelinessTable.keys() if key.startswith(line.result['RESULT'])]
             line.result['RESULT'] = line.result['RESULT']+str(v_no)
+            symbolTable.addAVariable(line.result['RESULT'],'int','main')
             #start_index = livelinessTable[line.result['RESULT']][0]
             #livelinessTable[line.result['RESULT']][1] = i
             #isLiveArray[start_index] = False
