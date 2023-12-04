@@ -31,6 +31,8 @@ def createThreeAddressCode(astTree, symbolTable):
     for statement in statementList: 
         global visited_elements
         visited_elements = []
+        global parentNode
+        parentNode = None
         if '=' in statement:
             global statement_type
             statement_type = 'Assignment_Statement'
@@ -44,12 +46,15 @@ def createThreeAddressCode(astTree, symbolTable):
             if temp_dicts != {}:
                 last_temp_var = list(temp_dicts)[-1]
                 temp_dicts[og_variable] = temp_dicts.pop(last_temp_var)
+                global i
+                i = i - 1
             else:
                 temp_dicts.update({og_variable:statement['='][0]})
             print(temp_dicts)
         elif 'return' in statement:
             statement_type = 'return'
             number_of_nodes = totalNodes(statement['return'][0])
+            breakpoint()
             walk_through_ast(statement['return'][0])
         temps.append(copy.deepcopy(temp_dicts))
         temp_dicts.clear()
@@ -105,12 +110,16 @@ temp_dicts = {}
 i = 1
 isLeftTerminalNode = False
 isRightTerminalNode = False
-def walk_through_ast(root):
+parentNode = None
+def walk_through_ast(root,isReturn=False):
     internal_nodes = ['+','-','*','/']
     left = None
     right = None
     if root:
         root_key = list(root.keys())[0]
+        global parentNode
+        if parentNode == None:
+            parentNode = root
         if root_key in internal_nodes:
             children = root[root_key]
             left = children[0]
@@ -127,6 +136,7 @@ def walk_through_ast(root):
             m = [item for item in temp_dicts.items() if item[1] == left]
             if list(left.keys())[0] in internal_nodes:
                 if m != []:
+                    breakpoint()
                     root[root_key][0] = m[0][0]
                     left = root[root_key][0]
             m1 = [item for item in temp_dicts.items() if item[1] == right]
@@ -142,11 +152,12 @@ def walk_through_ast(root):
             if isLeftTerminalNode == True and isRightTerminalNode == True:
                 temp_dicts.update({"t"+str(i):root})
                 i = i + 1
+                breakpoint()
                 isLeftTerminalNode = False
                 isRightTerminalNode = False 
         else:
             visited_elements.append(root[root_key])
-            if number_of_nodes == len(visited_elements):
+            if number_of_nodes == len(visited_elements) and parentNode == root:
                 if statement_type == 'return':
                     temp_dicts.update({statement_type:root})
                 """
