@@ -1,13 +1,27 @@
 #from collections import defaultdict
+from collections import Counter
 
 #optimizedCode = [] 
 #table = {'Assignment'}
 simpleAssignments = []
-
+linesNumbered = []
 def performOptimizations(threeAddressCode):
     optimizedCode = None
+     #make note of lines that are defined multiple times and take note of their line number
     breakpoint()
+    """
+    varsUsed = []
+    for line in threeAddressCode:
+        varsUsed.append(line.result['RESULT'])
+    print(varsUsed)
+    varsDefined = set(varsUsed)
+    print(varsDefined)
+    """
+    breakpoint()
+    threeAddressCode = convertToSSA(threeAddressCode)
     while isOptimized(threeAddressCode) == False:
+        global linesNumbered
+        linesNumbered = [l for l in enumerate(threeAddressCode)]
         for threeAddrCode in threeAddressCode:
             print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
         breakpoint()
@@ -59,12 +73,51 @@ def isConstFoldingPossible(optimizedCode):
 
 def executeConstProp(threeAddressCode):
     optimizedThreeAddrCode = []
+    #varsDefined = []
+    linesThatContainDuplicates = []
+    """
+    for i,line in linesNumbered:
+        if line.statement['STATEMENT'] != 'return':
+            varsDefined.append(line.result['RESULT'])
+        else:
+            varsDefined.append(line.arg1['ARG1']) 
+    breakpoint()
+    """
+    varsDefinedMoreThanOnce = [line for line in linesNumbered if line[1]]
+    cnt = Counter()
+    return_var = threeAddressCode[-1].arg1['ARG1']
+    #breakpoint()
+    linesThatHaveSameInitializingVarAsReturnVar = []
+    for line in threeAddressCode:
+        if line.result['RESULT'] == return_var \
+              and line.statement['STATEMENT'] == 'Simple_Assignment_Statement':
+            linesThatHaveSameInitializingVarAsReturnVar.append(line)
+    #breakpoint()
+    for line in linesThatHaveSameInitializingVarAsReturnVar:
+        print(line.operation,line.arg1,line.arg2,line.result)
+    #breakpoint()
+    verdict = False
+    if len(linesThatHaveSameInitializingVarAsReturnVar) > 1:
+        verdict = True
+    ind = None
+    if verdict == True:
+        ind = threeAddressCode.index(linesThatHaveSameInitializingVarAsReturnVar[-1])
+    print(ind)
+    #breakpoint()
+    """"
+    for line in linesNumbered:
+        if line[1].statement['STATEMENT'] != 'return':
+            cnt[line[1].result['RESULT']] += 1     
+        else:
+            cnt[line[1].arg1['ARG1']] += 1 
+    """    
+    #breakpoint()
     for threeAddrCode in threeAddressCode:
         #check for optimization type
         #if isConstantProgagationNeeded == True:
         #   perform constant propagation
         #elif isConstantFoldingNeeded == True:
-        #   perfrom contant folding 
+        #   perfrom contant folding
         isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
         if isSimpleAssign == True and \
             threeAddrCode.statement['STATEMENT'] != 'Simple_Assignment_Statement':
@@ -73,14 +126,17 @@ def executeConstProp(threeAddressCode):
             #print(isSimpleAssign)
             optimizedThreeAddrCode.append(threeAddrCode)
             continue
-        
+        #breakpoint()
         if type(threeAddrCode.arg1['ARG1']) == str: 
             if threeAddrCode.arg1['ARG1'].isidentifier():
                 #check if variable is listed in simple_assignment_statement
                 #if so, extract the value of it and then change matching var to its value
                 for simple_assignment in simpleAssignments:
                     if simple_assignment.result['RESULT'] == threeAddrCode.arg1['ARG1']:
-                        threeAddrCode.arg1['ARG1'] = simple_assignment.arg1['ARG1']
+                        if ind != None:
+                            threeAddrCode.arg1['ARG1'] = threeAddressCode[ind].arg1['ARG1']    
+                        else:
+                            threeAddrCode.arg1['ARG1'] = simple_assignment.arg1['ARG1']
         if type(threeAddrCode.arg2['ARG2']) == str:
             if threeAddrCode.arg2['ARG2'].isidentifier():
                 #check if variable is listed in simple_assignment_statement
@@ -144,6 +200,7 @@ def deadCodeRemoval(threeAddressCode):
     linesToRemove = []
     optimizedCode = None
     global simpleAssignments
+    #linesNumbered = enumerate(threeAddressCode)
     for threeAddrCode in threeAddressCode:
         isSimpleAssign = isSimpleAssignmentStmt(threeAddrCode)
         if isSimpleAssign == True \
@@ -163,6 +220,7 @@ def deadCodeRemoval(threeAddressCode):
               simpleAssign.arg2,simpleAssign.result,simpleAssign.statement)
     """
     #breakpoint()
+    #otherAssignments
     if simpleAssignments != []:
 
         otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
@@ -189,11 +247,49 @@ def deadCodeRemoval(threeAddressCode):
                 linesToRemove.append(simpleAssign)
     if linesToRemove != []:
         #breakpoint()
-        optimizedCode = list(set(threeAddressCode).difference(set(linesToRemove)))
-        optimizedCode.reverse()
+        #linesNumbered = enumerate(threeAddressCode)
+        #optimizedCode = list(set(linesNumbered) - set(linesToRemove))
+        #print(len(list(linesNumbered)),len(optimizedCode))
         #breakpoint()
-        simpleAssignments = list(set(simpleAssignments).difference(set(linesToRemove)))
-        simpleAssignments.reverse()
+        #optimizedCode = sorted(optimizedCode[:-1],key=lambda x: [x.result['RESULT'] if x.result['RESULT'] != None else  '']) 
+        optimizedCode = threeAddressCode
+        for threeAddrCode in linesToRemove:
+            print(threeAddrCode.operation,threeAddrCode.arg1,
+              threeAddrCode.arg2,threeAddrCode.result,threeAddrCode.statement)
+        
+        breakpoint()
+        number_removed = 0
+        while number_removed != len(linesToRemove):
+            for line in optimizedCode: 
+                if line in linesToRemove:
+                    optimizedCode.remove(line) 
+                    number_removed += 1
+        """
+        for line in optimizedCode:
+            if line in linesToRemove:
+                #linesToRemove.remove(line)
+                optimizedCode.remove(line)
+                #i = optimizedCode.index(line)
+                #optimizedCode.pop(i)
+                    #optimizedCode[i] = None
+        """
+        for threeAddrCode in optimizedCode:
+            print(threeAddrCode.operation,threeAddrCode.arg1,
+              threeAddrCode.arg2,threeAddrCode.result,threeAddrCode.statement)
+        breakpoint()
+        for threeAddrCode in simpleAssignments:
+            print(threeAddrCode.operation,threeAddrCode.arg1,
+              threeAddrCode.arg2,threeAddrCode.result,threeAddrCode.statement)
+        breakpoint()
+        #optimizedCode.reverse()
+        #breakpoint()
+        simpleAssignments = list(set(simpleAssignments) - set(linesToRemove))
+        for threeAddrCode in simpleAssignments:
+            print(threeAddrCode.operation,threeAddrCode.arg1,
+              threeAddrCode.arg2,threeAddrCode.result,threeAddrCode.statement)
+        linesToRemove.clear()
+        breakpoint()
+        #simpleAssignments.reverse()
     else:
         optimizedCode = threeAddressCode
     return optimizedCode    
@@ -201,7 +297,7 @@ def deadCodeRemoval(threeAddressCode):
 def isdeadCodeRemovalPossible(threeAddressCode):
     result = False
     if simpleAssignments != []:
-        otherAssignments = set(threeAddressCode).difference(set(simpleAssignments))
+        otherAssignments = set(threeAddressCode) - set(simpleAssignments)
         """
         for oA in otherAssignments:
             print(oA.operation,oA.arg1,oA.arg2,oA.result)
@@ -230,4 +326,36 @@ def isOptimized(threeAddressCode):
         result = True
     return result
 
+def convertToSSA(threeAddressCode):
+    #conduct livliness analysis
+    livelinessTable = conductLivelinessAnalysis(threeAddressCode)  
+    return threeAddressCode
     
+def conductLivelinessAnalysis(threeAddressCode):
+    
+    livelinessTable = {}
+    i = 0
+    for threeAddrCode in threeAddressCode:
+            #liveVariableAndRange = ['Live Variable':None,}
+            print(threeAddrCode.operation,
+                  threeAddrCode.arg1,threeAddrCode.arg2,
+                  threeAddrCode.result, threeAddrCode.statement)
+            breakpoint()
+            end_index = None
+            if threeAddrCode.statement['STATEMENT'] != 'return':
+                if threeAddrCode.result['RESULT'] not in livelinessTable:
+                #liveVariableAndRange['Live Variable'] = threeAddrCode.result['RESULT']
+                #liveVariableAndRange['Live Range'].append(threeAddressCode.index(threeAddrCode))
+                    livelinessTable.update({threeAddrCode.result['RESULT']:[threeAddressCode.index(threeAddrCode)]})
+                else:
+                    if threeAddrCode.result['RESULT'] == threeAddrCode.arg1['ARG1'] \
+                        or threeAddrCode.result['RESULT'] == threeAddrCode.arg2['ARG2']:
+                        end_index = threeAddressCode.index(threeAddrCode)
+                    else:
+                        end_index = threeAddressCode.index(threeAddrCode) - 1
+                    livelinessTable[threeAddrCode.result['RESULT']].append(end_index)
+                    threeAddrCode.result['RESULT'] = threeAddrCode.result['RESULT'] + str(i)
+                    livelinessTable.update({threeAddrCode.result['RESULT']:[threeAddressCode.index(threeAddrCode)]})
+                    i = i + 1
+    breakpoint()
+    return livelinessTable 
