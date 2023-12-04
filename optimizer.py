@@ -18,7 +18,7 @@ def performOptimizations(threeAddressCode):
     print(varsDefined)
     """
     breakpoint()
-    threeAddressCode = convertToSSA(threeAddressCode)
+    threeAddressCode,livelinessTable = convertToSSA(threeAddressCode)
     while isOptimized(threeAddressCode) == False:
         global linesNumbered
         linesNumbered = [l for l in enumerate(threeAddressCode)]
@@ -329,7 +329,7 @@ def isOptimized(threeAddressCode):
 def convertToSSA(threeAddressCode):
     #conduct livliness analysis
     livelinessTable = conductLivelinessAnalysis(threeAddressCode)  
-    return threeAddressCode
+    return threeAddressCode, livelinessTable
     
 def conductLivelinessAnalysis(threeAddressCode):
     #stores all live variables and their ranges
@@ -344,7 +344,7 @@ def conductLivelinessAnalysis(threeAddressCode):
         linesExpanded[line_num].append(isLiveArray[line_num])
         line_num = line_num + 1
 
-    breakpoint()
+    #breakpoint()
     #i = 0
    
     for threeAddrCode in threeAddressCode:
@@ -352,70 +352,121 @@ def conductLivelinessAnalysis(threeAddressCode):
             print(threeAddrCode.operation,
                   threeAddrCode.arg1,threeAddrCode.arg2,
                   threeAddrCode.result, threeAddrCode.statement) 
-    breakpoint()
+    #breakpoint()
     v_no = 1
     #the first variable will automatically be live
     for n_line,isLive in linesExpanded:
-        breakpoint()
+        #breakpoint()
         i = n_line[0]
         line = n_line[1]
         if i == 0:
             isLiveArray[0] = True
             linesExpanded[i][1] = True
-            breakpoint()
+            #breakpoint()
             livelinessTable.update({line.result['RESULT']:[i,None]})
             continue
         if line.statement['STATEMENT'] == 'return':
             if line.arg1['ARG1'] in livelinessTable:
                var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg1['ARG1'])]
                livelinessTable[var_versions[-1]][1] = i
-               breakpoint()
+               line.arg1['ARG1'] = var_versions[-1]
+               #breakpoint()
         elif line.result['RESULT'] not in livelinessTable:
             isLiveArray[i] = True
             linesExpanded[i][1] = True
-            breakpoint()
+            #breakpoint()
             livelinessTable.update({line.result['RESULT']:[i,None]})
             if line.arg1['ARG1'] in livelinessTable:
-               #var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg1['ARG1'])]
+                breakpoint()
+                var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg1['ARG1'])]
+                if len(var_versions) > 1:
+                    if not var_versions[-1].startswith('t'):
+                        line.arg1['ARG1'] =  var_versions[-1] 
                #livelinessTable[var_versions[-1]][1] = i
-               livelinessTable[line.arg1['ARG1']][1] = i
+               #livelinessTable[line.arg1['ARG1']][1] = i
                #isLiveArray[livelinessTable[line.arg1['ARG1']][0]] = False
-               breakpoint()
+               #breakpoint()
             if line.arg2['ARG2'] in livelinessTable:
-               livelinessTable[line.arg2['ARG2']][1] = i
+                breakpoint()
+                var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg2['ARG2'])]
+                if len(var_versions) > 1:
+                    if not var_versions[-1].startswith('t'):
+                        line.arg2['ARG2'] =  var_versions[-1] 
+                #livelinessTable[line.arg2['ARG2']][1] = i
         else:
-            breakpoint()
+            #breakpoint()
+            #var_versions = [key for key in livelinessTable.keys() if key.startswith(line.result['RESULT'])]
             line.result['RESULT'] = line.result['RESULT']+str(v_no)
             #start_index = livelinessTable[line.result['RESULT']][0]
             #livelinessTable[line.result['RESULT']][1] = i
             #isLiveArray[start_index] = False
             livelinessTable.update({line.result['RESULT']:[i,None]})
-            var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg1['ARG1'])]
             isLiveArray[i] = True
             linesExpanded[i][1] = True
-            breakpoint()
-            var_versions_extended = []
-            for version in var_versions:
-                start_index_for_version = livelinessTable[version][0] 
-                verdict = linesExpanded[start_index_for_version][1]
-                var_versions_extended.append([version,verdict])
-                #breakpoint()
-            breakpoint()
-            #var_versions_extended = [i if n != 0 else None for n,i in enumerate(var_versions_extended.reverse())]
-            var_versions_extended.reverse()
-            for n,p in enumerate(var_versions_extended):
-                if n != 0:
-                    var_versions_extended[n][1] = False
-            var_versions_extended.reverse()
-            breakpoint()
-            if line.arg1['ARG1'] in livelinessTable:
-               for pair in var_versions_extended:
+            if len(line.result['RESULT']) > 1 and not line.result['RESULT'].startswith('t'):
+                var_versions = [key for key in livelinessTable.keys() if key.startswith(line.result['RESULT'][0])]
+                var_versions_extended = []
+                for version in var_versions:
+                    start_index_for_version = livelinessTable[version][0] 
+                    verdict = linesExpanded[start_index_for_version][1]
+                    var_versions_extended.append([version,verdict])
+                var_versions_extended.reverse()
+                for n,p in enumerate(var_versions_extended):
+                    if n != 0:
+                        var_versions_extended[n][1] = False
+                var_versions_extended.reverse()
+                for pair in var_versions_extended:
                    if pair[1] == False and livelinessTable[pair[0]][1] == None: 
                         livelinessTable[pair[0]][1] = i
-               #isLiveArray[livelinessTable[line.arg1['ARG1']][0]] = False
+                for pair in var_versions_extended:
+                    start_index_for_version = livelinessTable[pair[0]][0]
+                    linesExpanded[start_index_for_version][1] = pair[1] 
+            if line.arg1['ARG1'] in livelinessTable:
+                #var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg1['ARG1'])]
+                var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg1['ARG1'])]
+                #var_versions = [key for key in livelinessTable.keys() if key.startswith(line.result['RESULT'][0])]
+                var_versions_extended = []
+                for version in var_versions:
+                    start_index_for_version = livelinessTable[version][0] 
+                    verdict = linesExpanded[start_index_for_version][1]
+                    var_versions_extended.append([version,verdict])
+                breakpoint()
+                if len(var_versions) > 1:
+                    if not var_versions[-1].startswith('t'):
+                        var_versions_extended.reverse()
+                        for pair in var_versions_extended:
+                            if line.result['RESULT'][0] == line.arg1['ARG1'][0]:
+                                if pair[1] == False:
+                                    line.arg1['ARG1'] =  pair[0]
+                                    break
+                            else:
+                                if pair[1] == True:
+                                    line.arg1['ARG1'] =  pair[0]
+                                    break
+                        var_versions_extended.reverse()
             if line.arg2['ARG2'] in livelinessTable:
-               livelinessTable[line.arg2['ARG2']][1] = i
-            breakpoint()
+                var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg2['ARG2'])]
+                var_versions_extended = []
+                for version in var_versions:
+                    start_index_for_version = livelinessTable[version][0] 
+                    verdict = linesExpanded[start_index_for_version][1]
+                    var_versions_extended.append([version,verdict])
+                breakpoint()
+                if len(var_versions) > 1:
+                    if not var_versions[-1].startswith('t'):
+                        var_versions_extended.reverse()
+                        for pair in var_versions_extended:
+                            if line.result['RESULT'][0] == line.arg2['ARG2'][0]:
+                                if pair[1] == False:
+                                    line.arg2['ARG2'] =  pair[0]
+                                    break
+                            else:
+                                if pair[1] == True:
+                                    line.arg2['ARG2'] =  pair[0]
+                                    break
+                        var_versions_extended.reverse() 
+               #livelinessTable[line.arg2['ARG2']][1] = i
+            #breakpoint()
             v_no = v_no + 1
             #breakpoint()
             #find the variable that this line is associated with
