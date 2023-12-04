@@ -339,6 +339,12 @@ def conductLivelinessAnalysis(threeAddressCode):
             #liveVariableAndRange = ['Live Variable':None,}
             print(threeAddrCode.operation,
                   threeAddrCode.arg1,threeAddrCode.arg2,
+                  threeAddrCode.result, threeAddrCode.statement) 
+    breakpoint()
+    for threeAddrCode in threeAddressCode:
+            #liveVariableAndRange = ['Live Variable':None,}
+            print(threeAddrCode.operation,
+                  threeAddrCode.arg1,threeAddrCode.arg2,
                   threeAddrCode.result, threeAddrCode.statement)
             breakpoint()
             end_index = None
@@ -347,15 +353,71 @@ def conductLivelinessAnalysis(threeAddressCode):
                 #liveVariableAndRange['Live Variable'] = threeAddrCode.result['RESULT']
                 #liveVariableAndRange['Live Range'].append(threeAddressCode.index(threeAddrCode))
                     livelinessTable.update({threeAddrCode.result['RESULT']:[threeAddressCode.index(threeAddrCode)]})
+                    breakpoint()
+                    if threeAddrCode.arg1['ARG1'] in livelinessTable:
+                        end_index = threeAddressCode.index(threeAddrCode)
+                        var_versions = [key for key in livelinessTable.keys() if key.startswith(threeAddrCode.arg1['ARG1'])]
+                        var_versions_checked = 0
+                        while var_versions_checked < len(var_versions):
+                            if len(livelinessTable[var_versions[var_versions_checked]]) != 2:
+                                livelinessTable[var_versions[var_versions_checked]].append(end_index)
+                                break
+                            var_versions_checked =  var_versions_checked + 1
+                    elif threeAddrCode.arg2['ARG2'] in livelinessTable:
+                        end_index = threeAddressCode.index(threeAddrCode)
+                        var_versions = [key for key in livelinessTable.keys() if key.startswith(threeAddrCode.arg2['ARG2'])]
+                        var_versions_checked = 0
+                        while var_versions_checked < len(var_versions):
+                            if len(livelinessTable[var_versions[var_versions_checked]]) != 2:
+                                livelinessTable[var_versions[var_versions_checked]].append(end_index)
+                                break
+                            var_versions_checked =  var_versions_checked + 1       
                 else:
                     if threeAddrCode.result['RESULT'] == threeAddrCode.arg1['ARG1'] \
                         or threeAddrCode.result['RESULT'] == threeAddrCode.arg2['ARG2']:
                         end_index = threeAddressCode.index(threeAddrCode)
                     else:
                         end_index = threeAddressCode.index(threeAddrCode) - 1
-                    livelinessTable[threeAddrCode.result['RESULT']].append(end_index)
+                    var_versions = [key for key in livelinessTable.keys() if key.startswith(threeAddrCode.result['RESULT'])]
+                    var_versions_checked = 0
+                    while var_versions_checked < len(var_versions):
+                        if end_index not in livelinessTable[var_versions[var_versions_checked]]:
+                            if len(livelinessTable[var_versions[var_versions_checked]]) == 2:
+                                livelinessTable[var_versions[var_versions_checked]][-1] = end_index
+                            else:
+                                livelinessTable[var_versions[var_versions_checked]].append(end_index)
+                            break
+                        var_versions_checked =  var_versions_checked + 1
                     threeAddrCode.result['RESULT'] = threeAddrCode.result['RESULT'] + str(i)
                     livelinessTable.update({threeAddrCode.result['RESULT']:[threeAddressCode.index(threeAddrCode)]})
                     i = i + 1
+                    breakpoint()
+                    if threeAddrCode.arg1['ARG1'] in livelinessTable:
+                        end_index = threeAddressCode.index(threeAddrCode)
+                        var_versions = [key for key in livelinessTable.keys() if key.startswith(threeAddrCode.arg1['ARG1'])]
+                        var_versions_checked = 0
+                        while var_versions_checked < len(var_versions):
+                            if end_index not in livelinessTable[var_versions[var_versions_checked]]:
+                                if len(livelinessTable[var_versions[var_versions_checked]]) == 2:
+                                    livelinessTable[var_versions[var_versions_checked]][-1] = end_index
+                                else:
+                                    livelinessTable[var_versions[var_versions_checked]].append(end_index)
+                                break
+                            var_versions_checked =  var_versions_checked + 1
+                    if threeAddrCode.arg2['ARG2'] in livelinessTable:
+                        end_index = threeAddressCode.index(threeAddrCode)
+                        var_versions = [key for key in livelinessTable.keys() if key.startswith(threeAddrCode.arg2['ARG2'])]
+                        var_versions_checked = 0
+                        while var_versions_checked < len(var_versions):
+                            if end_index not in livelinessTable[var_versions[var_versions_checked]]:
+                                if len(livelinessTable[var_versions[var_versions_checked]]) == 2:
+                                    #do other versions of the variable have an index that is within range 
+                                    livelinessTable[var_versions[var_versions_checked]][-1] = end_index
+                                else:
+                                    livelinessTable[var_versions[var_versions_checked]].append(end_index)
+                                break
+                            var_versions_checked =  var_versions_checked + 1   
+
+                    
     breakpoint()
     return livelinessTable 
