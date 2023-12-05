@@ -380,7 +380,7 @@ def conductLivelinessAnalysis(threeAddressCode,symbolTable):
             #breakpoint()
             livelinessTable.update({line.result['RESULT']:[i,None]})
             if line.arg1['ARG1'] in livelinessTable:
-                breakpoint()
+                #breakpoint()
                 var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg1['ARG1'])]
                 if len(var_versions) > 1:
                     if not var_versions[-1].startswith('t'):
@@ -390,7 +390,7 @@ def conductLivelinessAnalysis(threeAddressCode,symbolTable):
                #isLiveArray[livelinessTable[line.arg1['ARG1']][0]] = False
                #breakpoint()
             if line.arg2['ARG2'] in livelinessTable:
-                breakpoint()
+                #breakpoint()
                 var_versions = [key for key in livelinessTable.keys() if key.startswith(line.arg2['ARG2'])]
                 if len(var_versions) > 1:
                     if not var_versions[-1].startswith('t'):
@@ -434,7 +434,7 @@ def conductLivelinessAnalysis(threeAddressCode,symbolTable):
                     start_index_for_version = livelinessTable[version][0] 
                     verdict = linesExpanded[start_index_for_version][1]
                     var_versions_extended.append([version,verdict])
-                breakpoint()
+                #breakpoint()
                 if len(var_versions) > 1:
                     if not var_versions[-1].startswith('t'):
                         var_versions_extended.reverse()
@@ -455,7 +455,7 @@ def conductLivelinessAnalysis(threeAddressCode,symbolTable):
                     start_index_for_version = livelinessTable[version][0] 
                     verdict = linesExpanded[start_index_for_version][1]
                     var_versions_extended.append([version,verdict])
-                breakpoint()
+                #breakpoint()
                 if len(var_versions) > 1:
                     if not var_versions[-1].startswith('t'):
                         var_versions_extended.reverse()

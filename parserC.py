@@ -174,10 +174,14 @@ def parseDeclaration(tokenBuffer):
         initDecl,astIntDecl = parseInitDeclarator(tokenBuffer)
         if initDecl['Init-Declarator'] != None:
             declarationTree['Declaration'].update(initDecl)
+            astDeclarationTree.update(astIntDecl)
             tokenToBeConsumed = tokenBuffer[0]
+            breakpoint()
             #print("Declaration",declarationTree)
             if tokenToBeConsumed.value == ';':
                 declarationTree['Declaration'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+                breakpoint()
+                #astDeclarationTree.update()
                 consume(tokenToBeConsumed,tokenBuffer)
     return declarationTree, astDeclarationTree
 
@@ -195,17 +199,24 @@ def parseInitDeclarator(tokenBuffer):
     initDeclaratorTree = {'Init-Declarator':{}}
     astInitDeclaratorTree = {}
     tokenToBeConsumed = tokenBuffer[0]
+    variable_being_assigned = None
     if tokenToBeConsumed.type == 'ID':
         initDeclaratorTree['Init-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
+        variable_being_assigned = {tokenToBeConsumed.type:tokenToBeConsumed.value}
+        #tokenToBeConsumed = tokenBuffer[0]
         tokenToBeConsumed = tokenBuffer[0]
+        
         if tokenToBeConsumed.value == '=':
             initDeclaratorTree['Init-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-            astInitDeclaratorTree.update({tokenToBeConsumed.value:{}})
+            astInitDeclaratorTree.update({tokenToBeConsumed.value:[]})
+            astInitDeclaratorTree[tokenToBeConsumed.value].append(variable_being_assigned)
             consume(tokenToBeConsumed,tokenBuffer)
-            expr = parseExpr(tokenBuffer)
+            expr,astExpr = parseExpr(tokenBuffer)
+            breakpoint()
             if expr['Expr'] != None:
                 initDeclaratorTree['Init-Declarator'].update(expr)
+                astInitDeclaratorTree['='].append(astExpr)
             #astInitDeclaratorTree['='].update(astDeclarator)
             #astInitDeclaratorTree['='].update(astInitializer)
     return initDeclaratorTree, astInitDeclaratorTree
@@ -251,6 +262,7 @@ def parseFunctionDefinition(tokenBuffer):
                     if tokenToBeConsumed.type == 'RPAREN':
                         functionDefTree['Function-Definition'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                         consume(tokenToBeConsumed,tokenBuffer)
+                        breakpoint()
                         compoundStmt, astCompStmt = parseCompoundStatement(tokenBuffer)
                         if compoundStmt['Compound-Statement'] != None:
                             functionDefTree['Function-Definition'].update(compoundStmt)
@@ -382,7 +394,11 @@ def parseBlockItemList(tokenBuffer):
         blockItem, astBlockItem = parseBlockItem(tokenBuffer)
         if blockItem['Block-Item'] != {}:
             blockItemListTree['Block-Item-List'].update(blockItem)
-            astBlockItemListTree.update(astBlockItem)
+            breakpoint()
+            if '=' in astBlockItem:
+                astStmtTree['Statement'].append(astBlockItem)
+            else:
+                astBlockItemListTree.update(astBlockItem)
             blockItemList, astBlockItemList = parseBlockItemList(tokenBuffer)
             if blockItemList['Block-Item-List'] != {}:
                 blockItemListTree['Block-Item-List'].update(blockItemList)
@@ -420,6 +436,7 @@ def parseBlockItem(tokenBuffer):
         #var_name = declaration['Declaration'][]
         #var_type 
         astBlockItemTree.update(astDeclaration)
+        #breakpoint()
     return blockItemTree, astBlockItemTree
 
 """
