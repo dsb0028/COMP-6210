@@ -100,7 +100,7 @@ def get_all_keys(d):
 
 """
 translation-unit:
-    external-declaration translation-unit
+    external-declaration external-declaration'
 """
 
 def parseTranslationUnit(tokens):
@@ -120,6 +120,15 @@ def parseTranslationUnit(tokens):
     if externalDeclaration:
         translationUnitTree['Translation-Unit'].update(externalDeclaration)
         astTranslUnitTree.update(astExternalDecl)
+        breakpoint()
+        
+        if tokenBuffer:
+            tokens = tokenBuffer
+            translationUnit,astTranslUnit = parseExternalDeclarationPrime(tokens)
+            if astTranslUnit != {}:
+                astTranslUnitTree.update(astTranslUnit)
+        #externalDeclarationPrime,astExternalDeclPrime = parseExternalDeclarationPrime(tokens)  
+        
     return translationUnitTree, astTranslUnitTree
 
 """
@@ -154,6 +163,29 @@ def parseExternalDeclaration(tokens):
     return externalDeclarationTree, astExternalDeclarationTree
 
 """
+external-declaration':
+    external-declaration external-declaration'
+    epsilon
+"""
+
+def parseExternalDeclarationPrime(tokenBuffer):
+    """
+    Description:
+    Arguments:
+    Returns:
+    """
+    externalDeclarationPrimeTree = {'External-Declaration-Prime':{}}
+    breakpoint()
+    if tokenBuffer:
+        externalDeclaration,astExternalDecl = parseExternalDeclaration(tokenBuffer)
+        if externalDeclaration:
+            externalDeclarationPrimeTree['External-Declaration-Prime'].update(externalDeclaration)
+            externalDeclarationPrime = parseExternalDeclarationPrime(tokenBuffer)
+            if externalDeclarationPrime:
+                externalDeclarationPrimeTree['External-Declaration-Prime'].update(externalDeclarationPrime)
+    return externalDeclarationPrimeTree
+
+"""
 declaration:
     type-specifier init-declarator;
 """
@@ -177,11 +209,11 @@ def parseDeclaration(tokenBuffer):
             declarationTree['Declaration'].update(initDecl)
             astDeclarationTree.update(astIntDecl)
             tokenToBeConsumed = tokenBuffer[0]
-            breakpoint()
+            #breakpoint()
             #print("Declaration",declarationTree)
             if tokenToBeConsumed.value == ';':
                 declarationTree['Declaration'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-                breakpoint()
+                #breakpoint()
                 #astDeclarationTree.update()
                 consume(tokenToBeConsumed,tokenBuffer)
     return declarationTree, astDeclarationTree
@@ -203,7 +235,7 @@ def parseInitDeclarator(tokenBuffer):
     variable_being_assigned = None
     if tokenToBeConsumed.type == 'ID':
         initDeclaratorTree['Init-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-        breakpoint()
+        #breakpoint()
         consume(tokenToBeConsumed,tokenBuffer)
         variable_being_assigned = {tokenToBeConsumed.type:tokenToBeConsumed.value}
         #tokenToBeConsumed = tokenBuffer[0]
@@ -215,7 +247,7 @@ def parseInitDeclarator(tokenBuffer):
             astInitDeclaratorTree[tokenToBeConsumed.value].append(variable_being_assigned)
             consume(tokenToBeConsumed,tokenBuffer)
             expr,astExpr = parseExpr(tokenBuffer)
-            breakpoint()
+            #breakpoint()
             if expr['Expr'] != None:
                 initDeclaratorTree['Init-Declarator'].update(expr)
                 astInitDeclaratorTree['='].append(astExpr)
@@ -264,7 +296,7 @@ def parseFunctionDefinition(tokenBuffer):
                     if tokenToBeConsumed.type == 'RPAREN':
                         functionDefTree['Function-Definition'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
                         consume(tokenToBeConsumed,tokenBuffer)
-                        breakpoint()
+                        #breakpoint()
                         compoundStmt, astCompStmt = parseCompoundStatement(tokenBuffer)
                         if compoundStmt['Compound-Statement'] != None:
                             functionDefTree['Function-Definition'].update(compoundStmt)
@@ -373,7 +405,7 @@ def parseCompoundStatement(tokenBuffer):
         compoundStatementTree['Compound-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         astCompoundStatementTree.update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
-        breakpoint()
+        #breakpoint()
         blockItemList, astBlockItemList = parseBlockItemList(tokenBuffer)
         if blockItemList['Block-Item-List'] != None:
             compoundStatementTree['Compound-Statement'].update(blockItemList)
@@ -397,7 +429,7 @@ def parseBlockItemList(tokenBuffer):
         blockItem, astBlockItem = parseBlockItem(tokenBuffer)
         if blockItem['Block-Item'] != {}:
             blockItemListTree['Block-Item-List'].update(blockItem)
-            breakpoint()
+            #breakpoint()
             if '=' in astBlockItem:
                 astStmtTree['Statement'].append(astBlockItem)
                 #astBlockItemListTree = {}
@@ -439,7 +471,7 @@ def parseBlockItem(tokenBuffer):
         var_type = declaration['Declaration']['type-specifier']
         symTable.addAVariable(var_name,var_type,function_name)
         #var_name = declaration['Declaration'][]
-        breakpoint()
+        #breakpoint()
         astBlockItemTree.update(astDeclaration)
         #breakpoint()
         astDeclaration.clear()
@@ -462,7 +494,7 @@ def parseStatement(tokenBuffer):
     #astStmtTree = {}
     assignStatement,astAssignStmt = parseAssignmentStatement(tokenBuffer)
     if assignStatement['Assignment-Statement'] != {}:
-        breakpoint()
+        #breakpoint()
         statementTree['Statement'].update(assignStatement)
         astStmtTree['Statement'].append(astAssignStmt)
     else:
@@ -682,7 +714,7 @@ def parseFactor(tokenBuffer):
         tokenToBeConsumed = tokenBuffer[0] 
     leafNode = match(tokenToBeConsumed, terminalNodes,isFactor=True)
     # if a match exists, check to see if the type is a LPAREN
-    breakpoint()
+    #breakpoint()
     if leafNode:
         if leafNode.type == 'LPAREN':
             factorTree['Factor'].update({leafNode.type:leafNode.value})
