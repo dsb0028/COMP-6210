@@ -20,95 +20,99 @@ class ThreeAddressCode:
             #self.statement = {'STATEMENT':statement}
             #self.arg1 = {'ARG1':arg1}
         
-threeAddressCodeDict = defaultdict(list)
+threeAddressCodeDict = {}
 og_variable = None
 statement_type = None
 temps = []
 
 def createThreeAddressCode(astTree, symbolTable):
-    function_name = 'main'
-    statementList = astTree[function_name]['Statement']
-    for statement in statementList: 
-        global visited_elements
-        visited_elements = []
-        global parentNode
-        parentNode = None
-        if '=' in statement:
-            global statement_type
-            statement_type = 'Assignment_Statement'
-            global og_variable
-            og_variable = statement['='][0].pop('ID')
-            statement['='][0] = statement['='][1]
-            statement['='].pop(1)
-            global number_of_nodes
-            number_of_nodes = totalNodes(statement['='][0])
-            walk_through_ast(statement['='][0])
-            if temp_dicts != {}:
-                last_temp_var = list(temp_dicts)[-1]
-                temp_dicts[og_variable] = temp_dicts.pop(last_temp_var)
-                global i
-                i = i - 1
-            else:
-                temp_dicts.update({og_variable:statement['='][0]})
-            print(temp_dicts)
-        elif 'return' in statement:
-            statement_type = 'return'
-            number_of_nodes = totalNodes(statement['return'][0])
-            #breakpoint()
-            walk_through_ast(statement['return'][0])
-            #breakpoint()
-            if list(temp_dicts.keys())[-1] != 'return':
-                temp_dicts.update({statement_type:list(temp_dicts.keys())[-1]})
+    for function_name,function_body in astTree.items():
+        temps.clear()
+        threeAddressCodeDict.update({function_name:[]})
+        breakpoint()
+        statementList = astTree[function_name]['Statement']
+        for statement in statementList: 
+            global visited_elements
+            visited_elements = []
+            global parentNode
+            parentNode = None
+            if '=' in statement:
+                global statement_type
+                statement_type = 'Assignment_Statement'
+                global og_variable
+                og_variable = statement['='][0].pop('ID')
+                statement['='][0] = statement['='][1]
+                statement['='].pop(1)
+                global number_of_nodes
+                number_of_nodes = totalNodes(statement['='][0])
+                walk_through_ast(statement['='][0])
+                if temp_dicts != {}:
+                    last_temp_var = list(temp_dicts)[-1]
+                    temp_dicts[og_variable] = temp_dicts.pop(last_temp_var)
+                    global i
+                    i = i - 1
+                else:
+                    temp_dicts.update({og_variable:statement['='][0]})
+                print(temp_dicts)
+            elif 'return' in statement:
+                statement_type = 'return'
+                number_of_nodes = totalNodes(statement['return'][0])
                 #breakpoint()
-        temps.append(copy.deepcopy(temp_dicts))
-        temp_dicts.clear()
-    #breakpoint()
-    for temp in temps:
+                walk_through_ast(statement['return'][0])
+                #breakpoint()
+                if list(temp_dicts.keys())[-1] != 'return':
+                    temp_dicts.update({statement_type:list(temp_dicts.keys())[-1]})
+                    #breakpoint()
+            temps.append(copy.deepcopy(temp_dicts))
+            temp_dicts.clear()
+            breakpoint()
+        for temp in temps:
         #print(temp)
-        for item in temp.items():
-            stmt = None
-            operator = None
-            op1 = None
-            op2 = None
-            res = None
-            if item[0] == 'return':
-                stmt = 'return'
-                if type(item[1]) != str: 
+            for item in temp.items():
+                stmt = None
+                operator = None
+                op1 = None
+                op2 = None
+                res = None
+                if item[0] == 'return':
+                    stmt = 'return'
+                    if type(item[1]) != str: 
+                        operator = list(item[1].keys())[0]
+                        if operator not in ['+','-','*','/']:
+                            op1 = item[1][operator]
+                            operator = None
+                    else:
+                        op1 = item[1]
+                else:
+                    stmt = 'Assignment_Statement'
                     operator = list(item[1].keys())[0]
-                    if operator not in ['+','-','*','/']:
-                        op1 = item[1][operator]
-                        operator = None
-                else:
-                    op1 = item[1]
-            else:
-                stmt = 'Assignment_Statement'
-                operator = list(item[1].keys())[0]
-                if operator in ['+','-','*','/']:
-                    op1 = item[1][operator][0]
-                    if type(op1) is dict:
-                        key = list(op1.keys())[0]
-                        op1 = op1[key]
-                    op2 = item[1][operator][1]
-                    if type(op2) is dict:
-                        key = list(op2.keys())[0]
-                        op2 = op2[key]
-                else:
-                    val_type = list(item[1].keys())[0]
-                    op1 = item[1][val_type]
-                    operator = '='
-                    breakpoint
-                res = item[0]
-                #print(res)
-                #breakpoint()
-                symbolTable.addAVariable(res,'int','main')
-                #breakpoint()
+                    if operator in ['+','-','*','/']:
+                        op1 = item[1][operator][0]
+                        if type(op1) is dict:
+                            key = list(op1.keys())[0]
+                            op1 = op1[key]
+                        op2 = item[1][operator][1]
+                        if type(op2) is dict:
+                            key = list(op2.keys())[0]
+                            op2 = op2[key]
+                    else:
+                        val_type = list(item[1].keys())[0]
+                        op1 = item[1][val_type]
+                        operator = '='
+                        breakpoint
+                    res = item[0]
+                    #print(res)
+                    #breakpoint()
+                    symbolTable.addAVariable(res,'int',function_name)
+                    #breakpoint()
                
             
-            threeAddressCode =  \
-                ThreeAddressCode(operation=operator
+                threeAddressCode =  \
+                    ThreeAddressCode(operation=operator
                                  ,arg1=op1,arg2=op2,result=res,statement=stmt)
-            threeAddressCodeDict['Three_Address_Code'].append(threeAddressCode)
+                threeAddressCodeDict[function_name].append(threeAddressCode)
     #print(threeAddressCodeDict)
+        #print(threeAddressCodeDict)
     return threeAddressCodeDict,symbolTable
 
 

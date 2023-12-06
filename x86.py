@@ -9,15 +9,14 @@ class Assembly:
 def createAssemblyCode(optimizedCode,symbolTable):
     # setting up esp/ebp
     #breakpoint()
+    offset = 0
+    offset_var_pairs = []
+    register_var_pairs = []
+    lab = None
     asm = Assembly(mnemonic='push',label=None,operands=['ebp'],comments=None)
     assembly.append(asm)
     asm1 = Assembly(mnemonic='mov',label=None,operands=['ebp','esp'],comments=None)
     assembly.append(asm1)
-    offset = 0
-    offset_var_pairs = []
-    register_var_pairs = []
-    registers = ['eax','ebx','edx']
-    lab = None
     #count how many local variables there are
     spaceToAllocToStack = len(symbolTable.table['main']['Variables'])
     asm2 = Assembly(mnemonic='sub',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
@@ -61,10 +60,9 @@ def createAssemblyCode(optimizedCode,symbolTable):
                         assembly.append(asm3)
                         break
                                  
-
         elif line.operation['Operation'] == '+':
             #breakpoint()
-            source_operand1 =  None
+            source_operand1 = None
             source_operand2 = None
             for offset_var in offset_var_pairs:
                 if offset_var[0] == line.arg1['ARG1']:
@@ -380,3 +378,6 @@ def createAssemblyCode(optimizedCode,symbolTable):
             assembly.append(as5)
 
     return assembly
+
+def convertTACToAssembly(tac,operation):
+    return

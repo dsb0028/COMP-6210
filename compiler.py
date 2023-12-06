@@ -40,16 +40,54 @@ def main():
     breakpoint()
     threeAddressCode,symbolTable = createThreeAddressCode(astTree,symbolTable)
     #print(threeAddressCode)
+    #function_names = list(astTree.keys())
+    breakpoint()
     if args.O1 == True:
-        for threeAddrCode in threeAddressCode['Three_Address_Code']:
-            if threeAddrCode.statement['STATEMENT'] == 'return':
-                print(threeAddrCode.statement,threeAddrCode.arg1)
-            else:
-                  print(threeAddrCode.operation, threeAddrCode.arg1, threeAddrCode.arg2, 
-                      threeAddrCode.result, threeAddrCode.statement)
+        for function_name in threeAddressCode:
+            function_header = function_name+':'
+            print(function_header)
+            variables = symbolTable.table[function_name]['Variables']
+            #breakpoint()
+            for var in variables:
+                #breakpoint()
+                width = len(function_header) + 13
+                if len(var) < 2:
+                    width = width - 2 
+                printedLine = variables[var] + ' ' + var + ';'
+                print(printedLine.center(width,' '))
+            #breakpoint()
+            tac = threeAddressCode[function_name]
+            for line in tac:
+                #breakpoint()
+                width = len(function_header) + 15
+                printedLine = ' '
+                if line.statement['STATEMENT'] == 'return':
+                    printedLine = str(line.statement['STATEMENT']) + ' ' + str(line.arg1['ARG1']) + ';'
+                    #width = width + 15
+                    #breakpoint()
+                    #print(printedLine.center(20," "))
+                else:
+                    if line.operation['Operation'] != '=':
+                        
+                        if len(line.result['RESULT']) > 1:
+                            width = width + len(str(line.result['RESULT'])) - 1
+                        #breakpoint()
+                        if len(str(line.arg1['ARG1'])) > 1:
+                            width = width + len(str(line.arg1['ARG1'])) - 1
+                        if len(str(line.arg2['ARG2'])) > 1:
+                            width = width + len(str(line.arg2['ARG2'])) - 1
+                        printedLine = str(line.result['RESULT']) + ' = ' \
+                            + str(line.arg1['ARG1']) + ' ' + str(line.operation['Operation']) \
+                            + ' ' + str(line.arg2['ARG2']) + ';'
+                        #width = 20
+                    else:
+                        printedLine = str(line.result['RESULT']) + ' ' + str(line.operation['Operation']) \
+                            + ' '+str(line.arg1['ARG1']) + ';'
+                        width = width - 3
+                print(printedLine.center(width,' '))
             #elif threeAddrCode.statement == 'return':
             #    pass
-        print('\n')
+            print('\n')
            
         #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
     optimizedCode = None
@@ -76,7 +114,7 @@ def main():
         assembly =  x86.createAssemblyCode(optimizedCode,symbolTable)
     else:
         breakpoint()
-        assembly =  x86.createAssemblyCode(threeAddressCode['Three_Address_Code'],symbolTable)
+        assembly =  x86.createAssemblyCode(threeAddressCode,symbolTable)
 
     if args.S == True:
         for line in assembly:

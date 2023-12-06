@@ -115,17 +115,20 @@ def parseTranslationUnit(tokens):
     #Initializes a dictionary object that will store the children of translation-unit
     translationUnitTree = {'Translation-Unit':{}}
     astTranslUnitTree = {}
-    externalDeclaration, astExternalDecl = parseExternalDeclaration(tokens)
+    global tokenBuffer
+    externalDeclaration, astExternalDecl = parseExternalDeclaration(tokenBuffer)
     #Updating the translatationUnitTree with the externalDeclation subtree
     if externalDeclaration:
         translationUnitTree['Translation-Unit'].update(externalDeclaration)
         astTranslUnitTree.update(astExternalDecl)
         breakpoint()
-        
         if tokenBuffer:
-            tokens = tokenBuffer
-            translationUnit,astTranslUnit = parseExternalDeclarationPrime(tokens)
+            consumed.clear()
+            astStmtTree.clear()
+            #tokens = tokenBuffer
+            translationUnit,astTranslUnit = parseTranslationUnit(tokenBuffer)
             if astTranslUnit != {}:
+                translationUnitTree['Translation-Unit'].update(translationUnit)
                 astTranslUnitTree.update(astTranslUnit)
         #externalDeclarationPrime,astExternalDeclPrime = parseExternalDeclarationPrime(tokens)  
         
@@ -147,12 +150,14 @@ def parseExternalDeclaration(tokens):
     externalDeclarationTree = {'External-Declaration':{}}
     astExternalDeclarationTree = {}
     #breakpoint()
-    declaration, astDeclaration = parseDeclaration(tokens)
+    global tokenBuffer
+    declaration, astDeclaration = parseDeclaration(tokenBuffer)
     if declaration['Declaration'].get('END') != None:
         externalDeclarationTree['External-Declaration'].update(declaration)
         astExternalDeclarationTree.update(astDeclaration)
     else:
-        global tokenBuffer
+        #global tokenBuffer
+        breakpoint()
         tokenBuffer = consumed + tokenBuffer
         astDeclarationTree.clear()
         consumed.clear()
@@ -190,7 +195,7 @@ declaration:
     type-specifier init-declarator;
 """
 astDeclarationTree = defaultdict(list)
-def parseDeclaration(tokenBuffer):
+def parseDeclaration(tokens):
     """
     Description:
     Arguments:
@@ -200,11 +205,13 @@ def parseDeclaration(tokenBuffer):
     declarationTree = {'Declaration':{}}
     type_specifiers = ['int','double','float']
     #breakpoint()
+    global tokenBuffer
+    tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type in type_specifiers:
         declarationTree['Declaration'].update({'type-specifier':tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)  
-        initDecl,astIntDecl = parseInitDeclarator(tokenBuffer)
+        initDecl,astIntDecl = parseInitDeclarator(tokens)
         if initDecl['Init-Declarator'] != None:
             declarationTree['Declaration'].update(initDecl)
             astDeclarationTree.update(astIntDecl)
@@ -223,7 +230,7 @@ init-declarator:
     ID
     ID = expr
 """
-def parseInitDeclarator(tokenBuffer):
+def parseInitDeclarator(tokens):
     """
     Description:
     Arguments:
@@ -231,6 +238,8 @@ def parseInitDeclarator(tokenBuffer):
     """
     initDeclaratorTree = {'Init-Declarator':{}}
     astInitDeclaratorTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     variable_being_assigned = None
     if tokenToBeConsumed.type == 'ID':
@@ -246,7 +255,7 @@ def parseInitDeclarator(tokenBuffer):
             astInitDeclaratorTree.update({tokenToBeConsumed.value:[]})
             astInitDeclaratorTree[tokenToBeConsumed.value].append(variable_being_assigned)
             consume(tokenToBeConsumed,tokenBuffer)
-            expr,astExpr = parseExpr(tokenBuffer)
+            expr,astExpr = parseExpr(tokens)
             #breakpoint()
             if expr['Expr'] != None:
                 initDeclaratorTree['Init-Declarator'].update(expr)
@@ -261,7 +270,7 @@ function-definition:
     type-specifier ID (parameter-list) compound-statement
 """    
 function_name = None
-def parseFunctionDefinition(tokenBuffer):
+def parseFunctionDefinition(tokens):
     """
     Description:
     Arguments:
@@ -270,6 +279,8 @@ def parseFunctionDefinition(tokenBuffer):
     functionDefTree = {'Function-Definition':{}}
     astFunctionDefTree = {}
     type_specifiers = ['int','double', 'float']
+    #global tokenBuffer
+    #tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type in type_specifiers:
         functionDefTree['Function-Definition'].update({'return-type':tokenToBeConsumed.value})
@@ -309,7 +320,7 @@ parameter-list:
     parameter-declaration parameter-list'
 """
 
-def parseParameterList(tokenBuffer):
+def parseParameterList(tokens):
     """
     Description:
     Arguments:
@@ -319,12 +330,14 @@ def parseParameterList(tokenBuffer):
     """
     parameterListTree = {'Parameter-List':{}}
     astParameterListTree = {}
-    parameterDeclaration, astParamDeclTree = parseParameterDeclaration(tokenBuffer)
+    global tokenBuffer
+    tokens = tokenBuffer
+    parameterDeclaration, astParamDeclTree = parseParameterDeclaration(tokens)
     if parameterDeclaration:
         #print(parameterDeclaration)
         parameterListTree['Parameter-List'].update(parameterDeclaration)
         astParameterListTree.update(astParamDeclTree)
-        parameterListPrime = parseParameterListPrime(tokenBuffer)
+        parameterListPrime = parseParameterListPrime(tokens)
         if parameterListPrime['Parameter-List-Prime'] != None:
             parameterListTree['Parameter-List'].update(parameterListPrime)
     return parameterListTree, astParameterListTree
@@ -336,7 +349,7 @@ parameter-list':
     epsilon
 """
 
-def parseParameterListPrime(tokenBuffer):
+def parseParameterListPrime(tokens):
     """
     Description:
     Arguments:
@@ -345,14 +358,16 @@ def parseParameterListPrime(tokenBuffer):
         parameterListPrimeTree: dict object that contains the children resulting from parameter-list' productions
     """
     parameterListPrimeTree = {'Parameter-List-Prime':{}}
+    global tokenBuffer
+    tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type == 'COMMA':
         parameterListPrimeTree['Parameter-List-Prime'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
-        parameterDeclaration, astParamDecl = parseParameterDeclaration(tokenBuffer)
+        parameterDeclaration, astParamDecl = parseParameterDeclaration(tokens)
         if parameterDeclaration:
             parameterListPrimeTree['Parameter-List-Prime'].update(parameterDeclaration)
-            parameterListPrime = parseParameterListPrime(tokenBuffer)
+            parameterListPrime = parseParameterListPrime(tokens)
             if parameterListPrime['Parameter-List-Prime'] != None:
                 parameterListPrimeTree['Parameter-List-Prime'].update(parameterListPrime)
     return parameterListPrimeTree
@@ -362,7 +377,7 @@ parameter-declaration:
     type-specifier ID
 
 """
-def parseParameterDeclaration(tokenBuffer):
+def parseParameterDeclaration(tokens):
     """
     Description:
     Arguments:
@@ -374,6 +389,8 @@ def parseParameterDeclaration(tokenBuffer):
     astParameterDeclarationTree = {}
     
     type_specifiers = ['int','double','float']
+    global tokenBuffer
+    tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type in type_specifiers:
         parameterDeclarationTree['Parameter-Declaration'].update({'type-specifier':tokenToBeConsumed.value}) 
@@ -392,7 +409,7 @@ def parseParameterDeclaration(tokenBuffer):
 compound-statement:
     { block-item-list }
 """
-def parseCompoundStatement(tokenBuffer):
+def parseCompoundStatement(tokens):
     """
     Description:
     Arguments:
@@ -400,13 +417,15 @@ def parseCompoundStatement(tokenBuffer):
     """
     compoundStatementTree = {'Compound-Statement':{}}
     astCompoundStatementTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.type == 'LBRACE':
         compoundStatementTree['Compound-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         astCompoundStatementTree.update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
         #breakpoint()
-        blockItemList, astBlockItemList = parseBlockItemList(tokenBuffer)
+        blockItemList, astBlockItemList = parseBlockItemList(tokens)
         if blockItemList['Block-Item-List'] != None:
             compoundStatementTree['Compound-Statement'].update(blockItemList)
             astCompoundStatementTree.update(astBlockItemList)
@@ -422,11 +441,13 @@ block-item-list:
     block-item block-item-list
     epsilon
 """
-def parseBlockItemList(tokenBuffer):
+def parseBlockItemList(tokens):
     blockItemListTree = {'Block-Item-List':{}}
     astBlockItemListTree = defaultdict(list)
+    global tokenBuffer
+    tokens = tokenBuffer
     if tokenBuffer[0].type != 'RBRACE':
-        blockItem, astBlockItem = parseBlockItem(tokenBuffer)
+        blockItem, astBlockItem = parseBlockItem(tokens)
         if blockItem['Block-Item'] != {}:
             blockItemListTree['Block-Item-List'].update(blockItem)
             #breakpoint()
@@ -436,7 +457,7 @@ def parseBlockItemList(tokenBuffer):
                 #astBlockItem = None
             else:
                 astBlockItemListTree.update(astBlockItem)
-            blockItemList, astBlockItemList = parseBlockItemList(tokenBuffer)
+            blockItemList, astBlockItemList = parseBlockItemList(tokens)
             if blockItemList['Block-Item-List'] != {}:
                 blockItemListTree['Block-Item-List'].update(blockItemList)
                 #astBlockItemListTree.setdefault(k, []).append(v)
@@ -448,7 +469,7 @@ block-item:
     declaration
     statement
 """
-def parseBlockItem(tokenBuffer):
+def parseBlockItem(tokens):
     """
     Description:
     Arguments:
@@ -457,7 +478,9 @@ def parseBlockItem(tokenBuffer):
     blockItemTree = {'Block-Item':{}}
     astBlockItemTree = {}
     #breakpoint()
-    declaration, astDeclaration = parseDeclaration(tokenBuffer)
+    global tokenBuffer
+    tokens = tokenBuffer
+    declaration, astDeclaration = parseDeclaration(tokens)
     if declaration['Declaration'].get('END') == None:
         statement,astStmt = parseStatement(tokenBuffer)
         if statement:
@@ -484,7 +507,7 @@ statement:
 """
 
 astStmtTree = defaultdict(list)
-def parseStatement(tokenBuffer):
+def parseStatement(tokens):
     """
     Description:
     Arguments:
@@ -492,14 +515,17 @@ def parseStatement(tokenBuffer):
     """
     statementTree = {'Statement':{}}
     #astStmtTree = {}
-    assignStatement,astAssignStmt = parseAssignmentStatement(tokenBuffer)
+    global tokenBuffer
+    tokens = tokenBuffer
+    assignStatement,astAssignStmt = parseAssignmentStatement(tokens)
     if assignStatement['Assignment-Statement'] != {}:
         #breakpoint()
         statementTree['Statement'].update(assignStatement)
         astStmtTree['Statement'].append(astAssignStmt)
     else:
-        returnStatement, astReturnStmt = parseReturnStatement(tokenBuffer)
+        returnStatement, astReturnStmt = parseReturnStatement(tokens)
         if returnStatement['Return-Statement'] != {}:
+            breakpoint()
             statementTree['Statement'].update(returnStatement)
             astStmtTree['Statement'].append(astReturnStmt)
     #astStmtTree = defaultdict(list)
@@ -510,9 +536,11 @@ assignment-statement:
     ID = expr;
 
 """
-def parseAssignmentStatement(tokenBuffer):
+def parseAssignmentStatement(tokens):
     assignmentStmtTree = {'Assignment-Statement':{}}
     astAssignmentStmtTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     #breakpoint()
     variable_being_assigned = None
@@ -526,7 +554,7 @@ def parseAssignmentStatement(tokenBuffer):
             astAssignmentStmtTree = {tokenToBeConsumed.value:[]}
             astAssignmentStmtTree[tokenToBeConsumed.value].append(variable_being_assigned)
             consume(tokenToBeConsumed,tokenBuffer)
-            expr,astExpr = parseExpr(tokenBuffer)
+            expr,astExpr = parseExpr(tokens)
             if expr['Expr'] != None:
                 assignmentStmtTree['Assignment-Statement'].update(expr)
                 astAssignmentStmtTree['='].append(astExpr)
@@ -541,7 +569,7 @@ def parseAssignmentStatement(tokenBuffer):
 return-statement:
     return expr;
 """
-def parseReturnStatement(tokenBuffer):
+def parseReturnStatement(tokens):
     """
     Description:
     Arguments:
@@ -550,13 +578,15 @@ def parseReturnStatement(tokenBuffer):
    
     returnStmtTree = {'Return-Statement':{}}
     astReturnStmtTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     tokenToBeConsumed = tokenBuffer[0]
     if tokenToBeConsumed.value == 'return':
         returnStmtTree['Return-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         astReturnStmtTree = {tokenToBeConsumed.value:[]}
         consume(tokenToBeConsumed,tokenBuffer)
         #breakpoint()
-        exprTree,astExprTree = parseExpr(tokenBuffer)
+        exprTree,astExprTree = parseExpr(tokens)
         if exprTree['Expr'] != None:
             returnStmtTree['Return-Statement'].update(exprTree)
             astReturnStmtTree['return'].append(astExprTree)
@@ -567,7 +597,7 @@ def parseReturnStatement(tokenBuffer):
     return returnStmtTree, astReturnStmtTree
 
 isFactorExpr = False
-def parseExpr(tokenBuffer):
+def parseExpr(tokens):
     """
     Description:
         Simulates the Expr productions from the grammar
@@ -580,13 +610,15 @@ def parseExpr(tokenBuffer):
     #Initializes a dictionary object that will store the children of Expr
     exprTree = {'Expr':{}}
     astExprTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     #parse Term
-    term,astTerm = parseTerm(tokenBuffer)
+    term,astTerm = parseTerm(tokens)
     if term:
         exprTree['Expr'].update(term)
         astExprTree.update(astTerm)
     #breakpoint()
-    exprPrime,astExprPrime = parseExprPrime(tokenBuffer)
+    exprPrime,astExprPrime = parseExprPrime(tokens)
     if exprPrime['ExprP']:
         exprTree['Expr'].update(exprPrime)
         #astExprTree.update(astExprPrime)
@@ -628,7 +660,7 @@ def parseExpr(tokenBuffer):
             
     return exprTree,astExprTree
 
-def parseTerm(tokenBuffer):
+def parseTerm(tokens):
     """
     Description:
         Simulates the Term productions from the grammar
@@ -642,14 +674,16 @@ def parseTerm(tokenBuffer):
     # and an empty dictionary as the value to store children
     termTree = {'Term':{}}
     astTermTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     #Contains the tree for factor given the tokens that remain in the buffer
-    factor,astFactor = parseFactor(tokenBuffer)
+    factor,astFactor = parseFactor(tokens)
     #The value of factor will only be stored as a child of Term in Term dictionary if factor exists
     if factor:
         termTree['Term'].update(factor)
         astTermTree.update(astFactor)
     #Contains the tree for Term' given the tokens that remain in the buffer
-    termPrime,astTermPrime = parseTermPrime(tokenBuffer)
+    termPrime,astTermPrime = parseTermPrime(tokens)
     #The resulting Term' tree will ony be stored as a child of Term if termPrime exists
     if termPrime:
         termTree['Term'].update(termPrime)
@@ -672,7 +706,7 @@ def parseTerm(tokenBuffer):
     #print("Exiting Term")
     return termTree,astTermTree
 
-def parseFactor(tokenBuffer):
+def parseFactor(tokens):
     """
     Description:
         Simulates the Factor productions from the grammar
@@ -685,12 +719,14 @@ def parseFactor(tokenBuffer):
     #Initalizes a dictionary object that stores the children resulting from a matching factor production
     factorTree = {'Factor':{}}
     astFactorTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     #Checks to make sure there are tokens left in the token buffer, if not there must be an error
     if tokenBuffer:
         #the next token to be consumed will be set to the token that is next in the tokens buffer 
         tokenToBeConsumed = tokenBuffer[0]
     else:
-        errorString = generateErrorString(tokenBuffer)
+        errorString = generateErrorString(tokens)
         raise MissingFactorError(errorString,"Expected an Identifier or Number",
                                  {'line': consumed[len(consumed)-1].line, 'column': consumed[len(consumed)-1].column+1})
     #terminalNodes contains the token types versus the token values
@@ -720,7 +756,7 @@ def parseFactor(tokenBuffer):
             factorTree['Factor'].update({leafNode.type:leafNode.value})
             consume(tokenToBeConsumed,tokenBuffer)
             #breakpoint()
-            expr,astExpr = parseExpr(tokenBuffer)
+            expr,astExpr = parseExpr(tokens)
             if expr:
                 factorTree['Factor'].update(expr)
                 astFactorTree.update(astExpr)
@@ -734,7 +770,7 @@ def parseFactor(tokenBuffer):
                 isFactorExpr = True
         else:
             if leafNode.type == 'RPAREN':
-                errorString = generateErrorString(tokenBuffer)
+                errorString = generateErrorString(tokens)
                 raise MissingFactorError(errorString,"Expected an Identifier or Number",
                                  {'line': consumed[len(consumed)-1].line, 'column': consumed[len(consumed)-1].column+1})             
             factorTree['Factor'].update({leafNode.type:sign+str(leafNode.value)})
@@ -742,7 +778,7 @@ def parseFactor(tokenBuffer):
             astFactorTree.update({leafNode.type:leafNode.value})
             consume(tokenToBeConsumed,tokenBuffer)
     else:
-        errorString = generateErrorString(tokenBuffer)
+        errorString = generateErrorString(tokens)
         raise MissingFactorError(errorString,"Expected an Identifier or Number",
                                  {'line': consumed[len(consumed)-1].line, 'column': consumed[len(consumed)-1].column+1})
     #print("Exiting Factor")
@@ -770,7 +806,7 @@ def generateErrorString(tokenBuffer, isParseTreeGenerated = False):
     return errorString
 
 
-def parseExprPrime(tokenBuffer):
+def parseExprPrime(tokens):
     """
     Description:
         Simulates the Expr' productions from the grammar
@@ -783,6 +819,8 @@ def parseExprPrime(tokenBuffer):
     #Initalizes a dictionary object that stores the children resulting from a matching Expr' production
     exprPrimeTree = {'ExprP':'ε'}
     astExprPrimeTree = {}
+    global tokenBuffer
+    tokens = tokenBuffer
     #If tokens have yet to be consumed, match the value of the next token to be consumed to a '+' or '-' 
     if tokenBuffer:    
         tokenToBeConsumed = tokenBuffer[0]
@@ -920,7 +958,7 @@ def totalNodes(root):
  
     return 1 + l + r
 
-def parseTermPrime(tokenBuffer):
+def parseTermPrime(tokens):
     """
     Description: 
         Simulates the Term' productions from the grammar
@@ -932,6 +970,7 @@ def parseTermPrime(tokenBuffer):
     #print("Entering Term'")
     termPrimeTree = {'TermP':'ε'}
     astTermPrimeTree = {}
+    global tokenBuffer
     if tokenBuffer:
         tokenToBeConsumed = tokenBuffer[0]
         terminalNodes = {'*','/'}
