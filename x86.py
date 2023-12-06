@@ -96,6 +96,16 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     #print("S2",source_operand2,register1,line.arg1['ARG1'])
                     as5 = Assembly(mnemonic='add',label=None,operands=[register1,line.arg1['ARG1']],comments=None)
             else:
+                breakpoint()
+                register1 = 'eax'
+                register2 = 'edx'
+                as12 = Assembly(mnemonic='mov',label=None,operands=[register1,line.arg1['ARG1']],comments=None)
+                assembly.append(as12)
+                as13 = Assembly(mnemonic='mov',label=None,operands=[register2,line.arg2['ARG2']],comments=None)
+                assembly.append(as13)
+                as14 = Assembly(mnemonic='add',label=None,operands=[register1,register2],comments=None)
+                assembly.append(as14)
+                """
                 op1 = None
                 op2 = None
                 if type(line.arg1['ARG1']) == int or type(line.arg1['ARG1']) == float: 
@@ -107,7 +117,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     register1 = eval(str(line.arg1['ARG1'])
                      + line.operation['Operation'] 
                      + str(line.arg2['ARG2']))
-                
+                """
             if as5 != None:
                 assembly.append(as5)
             dest_offset = None
@@ -159,6 +169,15 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     as5 = Assembly(mnemonic='sub',label='DWORD PTR',operands=[register1,source_operand2],comments=None)
             
             else:
+                register1 = 'eax'
+                register2 = 'edx'
+                as12 = Assembly(mnemonic='mov',label=None,operands=[register1,line.arg1['ARG1']],comments=None)
+                assembly.append(as12)
+                as13 = Assembly(mnemonic='mov',label=None,operands=[register2,line.arg2['ARG2']],comments=None)
+                assembly.append(as13)
+                as14 = Assembly(mnemonic='sub',label=None,operands=[register1,register2],comments=None)
+                assembly.append(as14)
+                """
                 op1 = None
                 op2 = None
                 if type(line.arg1['ARG1']) == int or type(line.arg1['ARG1']) == float: 
@@ -170,7 +189,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     register1 = eval(str(line.arg1['ARG1'])
                      + line.operation['Operation'] 
                      + str(line.arg2['ARG2']))
-
+                """
             if as5 != None:
                 assembly.append(as5)
             #breakpoint()
@@ -225,6 +244,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     #print("S2",source_operand2,register1,line.arg1['ARG1'])
                     as5 = Assembly(mnemonic='mul',label=None,operands=[register1,line.arg1['ARG1']],comments=None)
             else:
+                """
                 op1 = None
                 op2 = None
                 if type(line.arg1['ARG1']) == int or type(line.arg1['ARG1']) == float: 
@@ -236,7 +256,15 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     register1 = eval(str(line.arg1['ARG1'])
                      + line.operation['Operation'] 
                      + str(line.arg2['ARG2']))
-
+                """
+                register1 = 'eax'
+                register2 = 'edx'
+                as12 = Assembly(mnemonic='mov',label=None,operands=[register1,line.arg1['ARG1']],comments=None)
+                assembly.append(as12)
+                as13 = Assembly(mnemonic='mov',label=None,operands=[register2,line.arg2['ARG2']],comments=None)
+                assembly.append(as13)
+                as14 = Assembly(mnemonic='mul',label=None,operands=[register1,register2],comments=None)
+                assembly.append(as14)
             if as5 != None:
                 assembly.append(as5)
             #breakpoint()
@@ -292,13 +320,22 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     #print("S2",source_operand2,register1,line.arg1['ARG1'])
                     as5 = Assembly(mnemonic='div',label=None,operands=[register1,line.arg1['ARG1']],comments=None)
             else:
+                register1 = 'eax'
+                register2 = 'edx'
+                as12 = Assembly(mnemonic='mov',label=None,operands=[register1,line.arg1['ARG1']],comments=None)
+                assembly.append(as12)
+                as13 = Assembly(mnemonic='mov',label=None,operands=[register2,line.arg2['ARG2']],comments=None)
+                assembly.append(as13)
+                as14 = Assembly(mnemonic='div',label=None,operands=[register1,register2],comments=None)
+                assembly.append(as14)
+                """
                 op1 = None
                 op2 = None
                 if type(line.arg1['ARG1']) == int or type(line.arg1['ARG1']) == float: 
                     op1 = line.arg1['ARG1']
                 if type(line.arg2['ARG2']) == int or type(line.arg2['ARG2']) == float: 
                     op2 = line.arg2['ARG2']
-                """
+                
                 if op1 != None and op2 != None:
                     register1 = int(eval(str(line.arg1['ARG1'])
                      + line.operation['Operation'] 

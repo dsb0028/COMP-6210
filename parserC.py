@@ -10,6 +10,7 @@ Program:
 translation-unit:
     function-definition
 
+
 function-definition:
     type-specifier ID (parameter-list) compound-statement
 
@@ -202,6 +203,7 @@ def parseInitDeclarator(tokenBuffer):
     variable_being_assigned = None
     if tokenToBeConsumed.type == 'ID':
         initDeclaratorTree['Init-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
+        breakpoint()
         consume(tokenToBeConsumed,tokenBuffer)
         variable_being_assigned = {tokenToBeConsumed.type:tokenToBeConsumed.value}
         #tokenToBeConsumed = tokenBuffer[0]
@@ -371,6 +373,7 @@ def parseCompoundStatement(tokenBuffer):
         compoundStatementTree['Compound-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         astCompoundStatementTree.update({tokenToBeConsumed.type:tokenToBeConsumed.value})
         consume(tokenToBeConsumed,tokenBuffer)
+        breakpoint()
         blockItemList, astBlockItemList = parseBlockItemList(tokenBuffer)
         if blockItemList['Block-Item-List'] != None:
             compoundStatementTree['Compound-Statement'].update(blockItemList)
@@ -397,6 +400,8 @@ def parseBlockItemList(tokenBuffer):
             breakpoint()
             if '=' in astBlockItem:
                 astStmtTree['Statement'].append(astBlockItem)
+                #astBlockItemListTree = {}
+                #astBlockItem = None
             else:
                 astBlockItemListTree.update(astBlockItem)
             blockItemList, astBlockItemList = parseBlockItemList(tokenBuffer)
@@ -434,9 +439,10 @@ def parseBlockItem(tokenBuffer):
         var_type = declaration['Declaration']['type-specifier']
         symTable.addAVariable(var_name,var_type,function_name)
         #var_name = declaration['Declaration'][]
-        #var_type 
+        breakpoint()
         astBlockItemTree.update(astDeclaration)
         #breakpoint()
+        astDeclaration.clear()
     return blockItemTree, astBlockItemTree
 
 """
@@ -456,6 +462,7 @@ def parseStatement(tokenBuffer):
     #astStmtTree = {}
     assignStatement,astAssignStmt = parseAssignmentStatement(tokenBuffer)
     if assignStatement['Assignment-Statement'] != {}:
+        breakpoint()
         statementTree['Statement'].update(assignStatement)
         astStmtTree['Statement'].append(astAssignStmt)
     else:
@@ -669,14 +676,13 @@ def parseFactor(tokenBuffer):
     signs = ['+','-']
     sign = ''
     #breakpoint()
-    """
     if tokenToBeConsumed.value in signs:
         sign = copy.deepcopy(tokenToBeConsumed.value)
         consume(tokenToBeConsumed,tokenBuffer)
         tokenToBeConsumed = tokenBuffer[0] 
-    """
     leafNode = match(tokenToBeConsumed, terminalNodes,isFactor=True)
     # if a match exists, check to see if the type is a LPAREN
+    breakpoint()
     if leafNode:
         if leafNode.type == 'LPAREN':
             factorTree['Factor'].update({leafNode.type:leafNode.value})
@@ -684,7 +690,6 @@ def parseFactor(tokenBuffer):
             #breakpoint()
             expr,astExpr = parseExpr(tokenBuffer)
             if expr:
-                
                 factorTree['Factor'].update(expr)
                 astFactorTree.update(astExpr)
             tokenToBeConsumed = tokenBuffer[0]

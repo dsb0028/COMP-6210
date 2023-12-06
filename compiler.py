@@ -37,7 +37,7 @@ def main():
         with open('astTree.txt', 'wt') as out:
             pprint(astTree, stream=out,sort_dicts=False)
         #print("AST",astTree,'\n')
-    #breakpoint()
+    breakpoint()
     threeAddressCode,symbolTable = createThreeAddressCode(astTree,symbolTable)
     #print(threeAddressCode)
     if args.O1 == True:
