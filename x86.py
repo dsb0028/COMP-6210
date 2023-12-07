@@ -6,10 +6,8 @@ class Assembly:
         self.operands = operands
         self.comments = comments
         
+offset = 0
 def createAssemblyCode(optimizedCode,symbolTable):
-    # setting up esp/ebp
-    #breakpoint()
-    offset = 0
     offset_var_pairs = []
     register_var_pairs = []
     lab = None
@@ -21,140 +19,8 @@ def createAssemblyCode(optimizedCode,symbolTable):
     spaceToAllocToStack = len(symbolTable.table['main']['Variables'])
     asm2 = Assembly(mnemonic='sub',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
     assembly.append(asm2)
-    #print(symbolTable.table['main']['Variables'],len(symbolTable.table['main']['Variables']))
-    #breakpoint()
     for line in optimizedCode['main']:
         #breakpoint()
-        if line.operation['Operation'] == '=':
-            if type(line.arg1['ARG1']) == int:
-                lab = 'DWORD PTR'
-                offset = offset + 4
-                offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))     
-                register_var_pairs.append(('eax',line.result['RESULT']))
-                asm2 = Assembly(mnemonic='mov',label=lab,
-                    operands=['[ebp - '+str(offset)+']',line.arg1['ARG1']],comments=None)
-                assembly.append(asm2)
-                continue
-            
-            elif str(line.arg1['ARG1']).isidentifier():
-                #breakpoint()
-                op1 = None
-                op2 = None
-                for offset_var in offset_var_pairs:
-                    if offset_var[0] == line.arg1['ARG1']:
-                        op1 = offset_var[1]
-                        asm2 = Assembly(mnemonic='mov',label=lab,
-                            operands=['eax',op1],comments=None)
-                        assembly.append(asm2)
-                        break
-                if op1 == None:
-                    offset = offset + 4
-                    offset_var_pairs.append((line.arg1['ARG1'],'[ebp - '+str(offset)+']'))
-                    asm2 = Assembly(mnemonic='mov',label=lab,
-                        operands=['eax','[ebp - '+str(offset)+']'],comments=None)
-                    assembly.append(asm2)
-                for offset_var in offset_var_pairs:
-                    if offset_var[0] == line.result['RESULT']:
-                        asm3 = Assembly(mnemonic='mov',label=lab,
-                            operands=[offset_var[1],'eax'],comments=None)
-                        assembly.append(asm3)
-                        break
-                                 
-        elif line.operation['Operation'] == '+':
-            breakpoint()
-            source_operand1, source_operand2 = getSourceOperands(offset_var_pairs, line) 
-            register1 = 'eax'
-            register2 = 'edx'
-            #breakpoint()
-            allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2)           
-            as5 = None
-            as5 = generateArithmeticInstr('add',source_operand1, source_operand2, register1, register2)
-            assembly.append(as5)
-
-            dest_offset = None
-            if offset_var_pairs != []:
-                dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
-                if dest_offset != []:
-                    dest_offset = dest_offset[0]                  
-            if dest_offset == None or dest_offset == []:
-                offset = offset + 4
-                offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-                dest_offset = '[ebp - '+str(offset)+']'
-            #offset = offset + 4
-            #offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-            as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
-                            operands=[dest_offset,register1],comments=None)
-            assembly.append(as9)
-        elif line.operation['Operation'] == '-':
-            source_operand1, source_operand2 = getSourceOperands(offset_var_pairs, line) 
-            register1 = 'eax'
-            register2 = 'edx'
-            allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2,isSub=True)
-            as5 = None
-            as5 = generateArithmeticInstr('sub',source_operand1,source_operand2,register1,register2)
-            assembly.append(as5)
-            breakpoint()
-            dest_mem = None
-            if offset_var_pairs != []:
-                dest_mem = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
-                if dest_mem != []:
-                    dest_mem = dest_mem[0]
-                else:
-                    offset = offset + 4
-                    offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-                    dest_mem = '[ebp - '+str(offset)+']'                  
-            
-            as9 =  Assembly(mnemonic='mov',label='DWORD PTR', operands=[dest_mem,register1],comments=None)
-            # use the result part of the three-address code structure to find the destination operand
-            assembly.append(as9)
-        elif line.operation['Operation'] == '*':
-            source_operand1, source_operand2 = getSourceOperands(offset_var_pairs, line) 
-            register1 = 'eax'
-            register2 = 'edx'
-            allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2)
-            as5 = None
-            as5 = generateArithmeticInstr('mult',source_operand1, source_operand2, register1, register2)
-            assembly.append(as5)
-            #breakpoint()
-            dest_offset = None
-            if offset_var_pairs != []:
-                dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
-                if dest_offset != []:
-                    dest_offset = dest_offset[0]                  
-            if dest_offset == None or dest_offset == []:
-                offset = offset + 4
-                offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-                dest_offset = '[ebp - '+str(offset)+']'
-            print("Dest",dest_offset)
-           
-            as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
-                            operands=[dest_offset,register1],comments=None)
-            # use the result part of the three-address code structure to find the destination operand
-            assembly.append(as9)
-        elif line.operation['Operation'] == '/':
-            source_operand1, source_operand2 = getSourceOperands(offset_var_pairs, line)
-            register1 = 'eax'
-            register2 = 'edx'
-            allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2,isSub=True)
-            as5 = None
-            as5 = generateArithmeticInstr('div',source_operand1,source_operand2,register1,register2)
-            assembly.append(as5)
-            
-            dest_offset = None
-            if offset_var_pairs != []:
-                dest_offset = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == line.result['RESULT']]
-                if dest_offset != []:
-                    dest_offset = dest_offset[0]                  
-            if dest_offset == None or dest_offset == []:
-                offset = offset + 4
-                offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
-                dest_offset = '[ebp - '+str(offset)+']'
-            print("Dest",dest_offset)
-        
-            as9 =  Assembly(mnemonic='mov',label='DWORD PTR',
-                            operands=[dest_offset,register1],comments=None)
-            # use the result part of the three-address code structure to find the destination operand
-            assembly.append(as9)
         if line.statement['STATEMENT'] == 'return':
             ret_var_offset = None
             #breakpoint()
@@ -174,8 +40,95 @@ def createAssemblyCode(optimizedCode,symbolTable):
             assembly.append(as4)
             as5 = Assembly(mnemonic='ret',label=None,operands=[],comments=None)
             assembly.append(as5)
+        
+        
+        elif line.operation['Operation'] == '=':
+            if type(line.arg1['ARG1']) == int:
+                lab = 'DWORD PTR'
+                global offset
+                offset = offset + 4
+                offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))     
+                register_var_pairs.append(('eax',line.result['RESULT']))
+                asm2 = Assembly(mnemonic='mov',label=lab,
+                    operands=['[ebp - '+str(offset)+']',line.arg1['ARG1']],comments=None)
+                assembly.append(asm2)
+                continue
+            
+            elif str(line.arg1['ARG1']).isidentifier():
+                op1 = None
+                for offset_var in offset_var_pairs:
+                    if offset_var[0] == line.arg1['ARG1']:
+                        op1 = offset_var[1]
+                        asm2 = Assembly(mnemonic='mov',label=lab,
+                            operands=['eax',op1],comments=None)
+                        assembly.append(asm2)
+                        break
+                if op1 == None:
+                    offset = offset + 4
+                    offset_var_pairs.append((line.arg1['ARG1'],'[ebp - '+str(offset)+']'))
+                    asm2 = Assembly(mnemonic='mov',label=lab,
+                        operands=['eax','[ebp - '+str(offset)+']'],comments=None)
+                    assembly.append(asm2)
+                for offset_var in offset_var_pairs:
+                    if offset_var[0] == line.result['RESULT']:
+                        asm3 = Assembly(mnemonic='mov',label=lab,
+                            operands=[offset_var[1],'eax'],comments=None)
+                        assembly.append(asm3)
+                        break
+        else:
+            source_operand1, source_operand2 = getSourceOperands(offset_var_pairs, line) 
+            register1 = 'eax'
+            register2 = 'edx'
+            as5 = generateIntr(line.operation['Operation'],source_operand1,source_operand2,register1,register2)
+            assembly.append(as5)
+            """
+            if line.operation['Operation'] == '+':
+                allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2)           
+                as5 = generateArithmeticInstr('add',source_operand1, source_operand2, register1, register2)
+                assembly.append(as5)
+            elif line.operation['Operation'] == '-':
+                allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2,isSub=True)
+                as5 = generateArithmeticInstr('sub',source_operand1,source_operand2,register1,register2)
+                assembly.append(as5)
+            elif line.operation['Operation'] == '*':
+                allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2)
+                as5 = generateArithmeticInstr('mult',source_operand1, source_operand2, register1, register2)
+                assembly.append(as5)
+            elif line.operation['Operation'] == '/':
+                allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2,isSub=True)
+                as5 = generateArithmeticInstr('div',source_operand1,source_operand2,register1,register2)
+                assembly.append(as5)
+            """
+            variableWrittenTo = line.result['RESULT']
+            dest_mem = getDestMemory(offset_var_pairs, variableWrittenTo)                  
+            as9 =  Assembly(mnemonic='mov',label='DWORD PTR', operands=[dest_mem,register1],comments=None)
+            assembly.append(as9)
+       
 
     return assembly
+
+
+def generateIntr(operation,source_operand1,source_operand2,register1,register2):
+    mnemonic = getMnemonic(operation)
+    isSub = False
+    if mnemonic == 'sub' or mnemonic == 'div':
+        isSub = True
+    allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2,isSub)           
+    line = generateArithmeticInstr(mnemonic,source_operand1, source_operand2, register1, register2)
+    return line
+
+
+def getDestMemory(offset_var_pairs, variableWrittenTo):
+    if offset_var_pairs != []:
+        dest_mem = [offset_var[1] for offset_var in offset_var_pairs if offset_var[0] == variableWrittenTo]
+        if dest_mem != []:
+            dest_mem = dest_mem[0]
+        else:
+            global offset
+            offset = offset + 4
+            offset_var_pairs.append((variableWrittenTo,'[ebp - '+str(offset)+']'))
+            dest_mem = '[ebp - '+str(offset)+']'
+    return dest_mem
 
 def generateArithmeticInstr(mnemonic,source_operand1, source_operand2, register1, register2):
     label = None
@@ -205,9 +158,6 @@ def getSourceOperands(offset_var_pairs, line):
     if source_operand2 == None:
         source_operand2 = line.arg2['ARG2']
     return source_operand1,source_operand2
-
-def convertTACToAssembly(tac,operation):
-    return
 
 def allocateRegistersPreOperation(source_operand1,source_operand2,register1,register2,isSub=False):
     lab = None
@@ -245,7 +195,18 @@ def isImmediate(source_operand):
     if type(source_operand) is not str:
         verdict = True
     return verdict
-        
+
+def getMnemonic(operation):
+    mnemonic = None
+    if operation == '+':
+        mnemonic = 'add'
+    elif operation == '-':
+        mnemonic = 'sub'
+    elif operation == '*':
+        mnemonic = 'mult'
+    elif operation == '/':
+        mnemonic = 'div'
+    return mnemonic
 
             
 

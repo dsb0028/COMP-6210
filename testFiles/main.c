@@ -2,8 +2,8 @@ int main()
 {  
     int a = 12;
     int b = 4;
-    b = 4-b;
-    int c = 5-4;
+    b = a+4;
+    int c = 5-a;
     
     //a = a/4;
     //a = 4/a;
