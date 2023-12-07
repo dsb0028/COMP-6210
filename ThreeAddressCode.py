@@ -29,7 +29,8 @@ def createThreeAddressCode(astTree, symbolTable):
     for function_name,function_body in astTree.items():
         temps.clear()
         threeAddressCodeDict.update({function_name:[]})
-        breakpoint()
+        global i
+        i = 1
         statementList = astTree[function_name]['Statement']
         for statement in statementList: 
             global visited_elements
@@ -49,7 +50,6 @@ def createThreeAddressCode(astTree, symbolTable):
                 if temp_dicts != {}:
                     last_temp_var = list(temp_dicts)[-1]
                     temp_dicts[og_variable] = temp_dicts.pop(last_temp_var)
-                    global i
                     i = i - 1
                 else:
                     temp_dicts.update({og_variable:statement['='][0]})
@@ -65,7 +65,7 @@ def createThreeAddressCode(astTree, symbolTable):
                     #breakpoint()
             temps.append(copy.deepcopy(temp_dicts))
             temp_dicts.clear()
-            breakpoint()
+            #breakpoint()
         for temp in temps:
         #print(temp)
             for item in temp.items():
@@ -99,7 +99,6 @@ def createThreeAddressCode(astTree, symbolTable):
                         val_type = list(item[1].keys())[0]
                         op1 = item[1][val_type]
                         operator = '='
-                        breakpoint
                     res = item[0]
                     #print(res)
                     #breakpoint()

@@ -8,7 +8,7 @@ Program:
     translation-unit
 
 translation-unit:
-    function-definition
+    external-declaration translation-unit
 
 
 function-definition:
@@ -100,7 +100,7 @@ def get_all_keys(d):
 
 """
 translation-unit:
-    external-declaration external-declaration'
+    external-declaration translation-unit
 """
 
 def parseTranslationUnit(tokens):
@@ -157,7 +157,7 @@ def parseExternalDeclaration(tokens):
         astExternalDeclarationTree.update(astDeclaration)
     else:
         #global tokenBuffer
-        breakpoint()
+        #breakpoint()
         tokenBuffer = consumed + tokenBuffer
         astDeclarationTree.clear()
         consumed.clear()
@@ -180,7 +180,7 @@ def parseExternalDeclarationPrime(tokenBuffer):
     Returns:
     """
     externalDeclarationPrimeTree = {'External-Declaration-Prime':{}}
-    breakpoint()
+    #breakpoint()
     if tokenBuffer:
         externalDeclaration,astExternalDecl = parseExternalDeclaration(tokenBuffer)
         if externalDeclaration:
@@ -288,7 +288,7 @@ def parseFunctionDefinition(tokens):
         tokenToBeConsumed = tokenBuffer[0]
         if tokenToBeConsumed.type == 'ID':
             functionDefTree['Function-Definition'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
-            print(functionDefTree)
+            #print(functionDefTree)
             global function_name
             function_name = functionDefTree['Function-Definition']['ID']
             astFunctionDefTree.update({function_name:{}})
@@ -489,7 +489,7 @@ def parseBlockItem(tokens):
     else:
         #print(declaration)
         blockItemTree['Block-Item'].update(declaration)
-        print("Declaration",declaration)
+        #print("Declaration",declaration)
         var_name = declaration['Declaration']['Init-Declarator']['ID']
         var_type = declaration['Declaration']['type-specifier']
         symTable.addAVariable(var_name,var_type,function_name)
@@ -525,7 +525,7 @@ def parseStatement(tokens):
     else:
         returnStatement, astReturnStmt = parseReturnStatement(tokens)
         if returnStatement['Return-Statement'] != {}:
-            breakpoint()
+            #breakpoint()
             statementTree['Statement'].update(returnStatement)
             astStmtTree['Statement'].append(astReturnStmt)
     #astStmtTree = defaultdict(list)
@@ -558,7 +558,7 @@ def parseAssignmentStatement(tokens):
             if expr['Expr'] != None:
                 assignmentStmtTree['Assignment-Statement'].update(expr)
                 astAssignmentStmtTree['='].append(astExpr)
-                print(astExpr)
+                #print(astExpr)
                 tokenToBeConsumed = tokenBuffer[0]
                 if tokenToBeConsumed.value == ';':
                     assignmentStmtTree['Assignment-Statement'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
@@ -654,7 +654,7 @@ def parseExpr(tokens):
             inOrder(astExprPrime,astTerm,operations=['+','-'])
             #other_function(astExprPrime,astTerm,operations=['+','-'],isExprinParens=isFactorExpr)
             isFactorExpr = False
-            print("ok",astExprPrime)
+            #print("ok",astExprPrime)
             astExprTree.popitem()
             astExprTree.update(astExprPrime)
             
@@ -689,7 +689,7 @@ def parseTerm(tokens):
         termTree['Term'].update(termPrime)
     
     if astTermPrime != {}:
-        print(astTermPrime)
+        #print(astTermPrime)
         #breakpoint()
         global isFactorExpr
         #breakpoint()
@@ -835,7 +835,7 @@ def parseExprPrime(tokens):
             if term:
                 exprPrimeTree['ExprP'].update(term)
                 astExprPrimeTree[leafNode.value].append(astTerm)
-                print(astExprPrimeTree)
+                #print(astExprPrimeTree)
             #breakpoint()
             exprPrime,astExprPrime = parseExprPrime(tokenBuffer)
             if exprPrime:
@@ -852,7 +852,7 @@ def parseExprPrime(tokens):
                     #other_function(astExprPrimeTree,astExprPrime,terminalNodes)
                 else:
                     astExprPrimeTree[leafNode.value].append(astExprPrime)
-                print("AST ExprPrime",astExprPrimeTree)
+                #print("AST ExprPrime",astExprPrimeTree)
     #print("Exiting Expr'")        
     return exprPrimeTree,astExprPrimeTree
 
@@ -865,7 +865,7 @@ def new_func(astExprPrimeTree, terminalNodes, astExprPrime):
     else:
         operator2 = list(astExprPrimeTree.keys())[0]
   
-    print(operator1,operator2)
+    #print(operator1,operator2)
     #breakpoint()
     """
     if list(astExprPrime[operator1][0].keys())[0] == 'NUMBER' \
