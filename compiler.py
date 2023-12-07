@@ -50,8 +50,9 @@ def main():
             param_str = [str(parameters[parm]) + ' ' + str(parm) for parm in parameters]
             param_str = ','.join(param_str)
             function_header = function_name+'(' + param_str + ')'
-            print('{')
+            #print('{')
             print(function_header)
+            print('{')
             variables = symbolTable.table[function_name]['Variables']
             #breakpoint()
             for var in variables:
@@ -97,6 +98,7 @@ def main():
                 print(printedLine.center(width,' '))
             #elif threeAddrCode.statement == 'return':
             #    pass
+            print('}')
             print('\n')
            
         #print(ThreeAddressCode.__str__(threeAddressCode,threeAddressCodeDict=threeAddressCode))
