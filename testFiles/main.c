@@ -2,7 +2,13 @@ int main()
 {  
     int a = 12;
     int b = 4;
-    a = 4+8;
+    b = 4-b;
+    int c = 5-4;
+    
+    //a = a/4;
+    //a = 4/a;
+    //b = a+4;
+
     //int b = 14;
     //a = a/b;
     //int a = 4+8+20;
