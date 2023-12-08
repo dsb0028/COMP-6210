@@ -6,6 +6,7 @@ class SymbolTable:
         self.table[name] = {}
         self.table[name]['Return_Type'] = return_type
         self.table[name]['Parameters'] = {}
+        #self.table[name]['Globals'] = {}
         self.table[name]['Variables'] = {}
     
     def addAVariable(self,name,type,function):

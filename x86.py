@@ -16,7 +16,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
         offset = 0
         #offset = 0
         assembly.update({func:[]})
-        breakpoint()
+        #breakpoint()
         offset_var_pairs = []
         lab = None
         asm = Assembly(mnemonic='push',label=None,operands=['ebp'],comments=None)
@@ -27,28 +27,29 @@ def createAssemblyCode(optimizedCode,symbolTable):
         spaceToAllocToStack = len(symbolTable.table[func]['Variables'])
         asm2 = Assembly(mnemonic='sub',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
         assembly[func].append(asm2)
-        for line in optimizedCode[func]:
-            #breakpoint()
+        number_of_lines = len(optimizedCode[func])
+        for i,line in enumerate(optimizedCode[func]):
+            breakpoint()
+            ret_var_offset = None
             if line.statement['STATEMENT'] == 'return':
-                ret_var_offset = None
-                #breakpoint()
+                breakpoint()
                 if offset_var_pairs != []:
                     for offset_var in offset_var_pairs:
                         print(offset_var,line.arg1['ARG1'])
                         if offset_var[0] == line.arg1['ARG1']:
                             ret_var_offset = offset_var[1]
                     lab = 'DWORD PTR'
-                else:
+                if ret_var_offset == None:
                     lab = None
                     ret_var_offset = line.arg1['ARG1']
-
+                """
                 as3 = Assembly(mnemonic='mov',label=lab,operands=['eax',ret_var_offset],comments=None)
                 assembly[func].append(as3)
                 as4 = Assembly(mnemonic='pop',label=None,operands=['ebp'],comments=None)
                 assembly[func].append(as4)
                 as5 = Assembly(mnemonic='ret',label=None,operands=[],comments=None)
                 assembly[func].append(as5)
-        
+                """
         
             elif line.operation['Operation'] == '=':
                 if type(line.arg1['ARG1']) == int:
@@ -58,26 +59,37 @@ def createAssemblyCode(optimizedCode,symbolTable):
                     offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))     
                     asm2 = Assembly(mnemonic='mov',label=lab, operands=['[ebp - '+str(offset)+']',line.arg1['ARG1']],comments=None)
                     assembly[func].append(asm2)
-                    continue
+                    
             
                 elif str(line.arg1['ARG1']).isidentifier():
                     op1 = None
+                    #breakpoint()
                     for offset_var in offset_var_pairs:
                         if offset_var[0] == line.arg1['ARG1']:
                             op1 = offset_var[1]
-                            asm2 = Assembly(mnemonic='mov',label=lab, operands=['eax',op1],comments=None)
+                            asm2 = Assembly(mnemonic='mov',label='DWORD PTR', operands=['eax',op1],comments=None)
                             assembly[func].append(asm2)
-                            break
                     if op1 == None:
+                        #breakpoint()
                         offset = offset + 4
                         offset_var_pairs.append((line.arg1['ARG1'],'[ebp - '+str(offset)+']'))
                         asm2 = Assembly(mnemonic='mov',label=lab, operands=['eax','[ebp - '+str(offset)+']'],comments=None)
                         assembly[func].append(asm2)
+                    match = None
                     for offset_var in offset_var_pairs:
                         if offset_var[0] == line.result['RESULT']:
+                            match = offset_var[0]
                             asm3 = Assembly(mnemonic='mov',label=lab, operands=[offset_var[1],'eax'],comments=None)
                             assembly[func].append(asm3)
                             break
+                    if match == None:
+                        offset = offset + 4
+                        offset_var_pairs.append((line.result['RESULT'],'[ebp - '+str(offset)+']'))
+                        asm3 = Assembly(mnemonic='mov',label='DWORD PTR', 
+                                        operands=['[ebp - '+str(offset)+']','eax'],comments=None)
+                        assembly[func].append(asm3)
+
+
             else:
                 source_operand1, source_operand2 = getSourceOperands(offset_var_pairs, line) 
                 register1 = 'eax'
@@ -88,6 +100,18 @@ def createAssemblyCode(optimizedCode,symbolTable):
                 dest_mem = getDestMemory(offset_var_pairs, variableWrittenTo)                  
                 as9 =  Assembly(mnemonic='mov',label='DWORD PTR', operands=[dest_mem,register1],comments=None)
                 assembly[func].append(as9)
+            if i == number_of_lines - 1:
+                breakpoint()
+                if ret_var_offset == None:
+                    ret_var_offset = 0
+                    lab = None
+                as3 = Assembly(mnemonic='mov',label=lab,operands=['eax',ret_var_offset],comments=None)
+                assembly[func].append(as3)
+                as4 = Assembly(mnemonic='pop',label=None,operands=['ebp'],comments=None)
+                assembly[func].append(as4)
+                as5 = Assembly(mnemonic='ret',label=None,operands=[],comments=None)
+                assembly[func].append(as5)
+            
     
     return assembly
 

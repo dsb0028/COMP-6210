@@ -27,14 +27,14 @@ def main():
     # if c file just contains comments, there will be no tokens and no parse tree
     if not tokens:
         raise RuntimeError("Nothing to Parse")
-    #breakpoint()
+    breakpoint()
     parseTree,astTree,symbolTable = parserC.createParseTree(tokens)
     #ast = parserC.createAST(parseTree)
     if args.p == True: 
         #from https://stackoverflow.com/questions/17280534/prettyprint-to-a-file  
         with open('parseTree.txt', 'wt') as out:
             pprint(parseTree, stream=out,sort_dicts=False)
-        #print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table,'\n')
+        print("Parse Tree",parseTree,'\n',"Symbol Table",symbolTable.table,'\n')
         #from https://stackoverflow.com/questions/17280534/prettyprint-to-a-file  
         with open('astTree.txt', 'wt') as out:
             pprint(astTree, stream=out,sort_dicts=False)

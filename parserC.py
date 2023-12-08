@@ -10,6 +10,9 @@ Program:
 translation-unit:
     external-declaration translation-unit
 
+external-declaration:
+    declaration
+    function-definition
 
 function-definition:
     type-specifier ID (parameter-list) compound-statement
@@ -57,7 +60,7 @@ Term -> Factor Term'
 
 Term' -> * Factor Term' | / Factor Term' | epsilon
 
-Factor -> ( Expr )  | + num |- num |num  | ID
+Factor -> ( Expr )  | num  | ID
 
 return-statement:
     return expropt;
@@ -121,7 +124,7 @@ def parseTranslationUnit(tokens):
     if externalDeclaration:
         translationUnitTree['Translation-Unit'].update(externalDeclaration)
         astTranslUnitTree.update(astExternalDecl)
-        breakpoint()
+        #breakpoint()
         if tokenBuffer:
             consumed.clear()
             astStmtTree.clear()
@@ -167,28 +170,6 @@ def parseExternalDeclaration(tokens):
             astExternalDeclarationTree.update(astFunctionDef)
     return externalDeclarationTree, astExternalDeclarationTree
 
-"""
-external-declaration':
-    external-declaration external-declaration'
-    epsilon
-"""
-
-def parseExternalDeclarationPrime(tokenBuffer):
-    """
-    Description:
-    Arguments:
-    Returns:
-    """
-    externalDeclarationPrimeTree = {'External-Declaration-Prime':{}}
-    #breakpoint()
-    if tokenBuffer:
-        externalDeclaration,astExternalDecl = parseExternalDeclaration(tokenBuffer)
-        if externalDeclaration:
-            externalDeclarationPrimeTree['External-Declaration-Prime'].update(externalDeclaration)
-            externalDeclarationPrime = parseExternalDeclarationPrime(tokenBuffer)
-            if externalDeclarationPrime:
-                externalDeclarationPrimeTree['External-Declaration-Prime'].update(externalDeclarationPrime)
-    return externalDeclarationPrimeTree
 
 """
 declaration:
@@ -428,6 +409,9 @@ def parseCompoundStatement(tokens):
         blockItemList, astBlockItemList = parseBlockItemList(tokens)
         if blockItemList['Block-Item-List'] != None:
             compoundStatementTree['Compound-Statement'].update(blockItemList)
+            #breakpoint()
+            if astBlockItemList == {} and astStmtTree['Statement'] != []:
+                astBlockItemList = astStmtTree
             astCompoundStatementTree.update(astBlockItemList)
             tokenToBeConsumed = tokenBuffer[0]
             if tokenToBeConsumed.type == 'RBRACE':
@@ -762,12 +746,17 @@ def parseFactor(tokens):
                 astFactorTree.update(astExpr)
             tokenToBeConsumed = tokenBuffer[0]
             leafNode = match(tokenToBeConsumed, terminalNodes,True)
-            if leafNode.type == 'RPAREN':
-                factorTree['Factor'].update({leafNode.type:leafNode.value})
-                consume(tokenToBeConsumed,tokenBuffer)
-                #breakpoint()
-                global isFactorExpr
-                isFactorExpr = True
+            if leafNode:
+                if leafNode.type == 'RPAREN':
+                    factorTree['Factor'].update({leafNode.type:leafNode.value})
+                    consume(tokenToBeConsumed,tokenBuffer)
+                    #breakpoint()
+                    global isFactorExpr
+                    isFactorExpr = True
+            else:
+                errorString = generateErrorString(tokens)
+                raise MissingRParenError(errorString,"Expected a Right Parenthesis",
+                                 {'line': consumed[len(consumed)-1].line, 'column': consumed[len(consumed)-1].column+1})   
         else:
             if leafNode.type == 'RPAREN':
                 errorString = generateErrorString(tokens)
@@ -905,11 +894,7 @@ def other_function(astExprPrime,astTerm,operations,isExprinParens=False):
             else:
                 #breakpoint()
                 astExprPrime[operator1].insert(0,astTerm)
-"""
-def insertNode(root,node):
-    if root:
-        pass
-"""
+
 visited_elements = []
 def inOrder(root,node,operations):
     #internal_nodes = ['+','-','*','/']

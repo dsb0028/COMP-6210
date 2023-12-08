@@ -67,117 +67,24 @@ Program:
     translation-unit
 
 translation-unit:
-    external-declaration external-declaration'
+    external-declaration translation-unit
 
 external-declaration:
     declaration
     function-definition
 
-external-declaration':
-    external-declaration external-declaration'
-    epsilon
-    
-declaration:
-    declaration-specifiers init-declarator-list;
-    ID initital-declarator;
-    epsilon
-
-declaration-specifiers:
-    type-specifier declaration-specifers'
-
-declaration-specifiers':
-    declaration-specifiers declaration-specifiers'
-    epsilon
-    
-init-declarator-list:
-    init-declarator init-declarator-list' 
-    epsilon
-
-init-declarator-list':
-    , init-declarator-list init-declarator-list'
-    epsilon  
-
-init-declarator:
-    declarator
-    declarator = initializer
-
-initializer:
-    assignment-expression
-  
-assignment-expression:
-    conditional-expression
-
-conditional-expression:
-    logical-OR-expression
-
-logical-OR-expression;
-    logical-AND-expression
-
-logical-AND-expression:
-    inclusive-OR-expression
-
-inclusive-OR-expression:
-    exclusive-OR-expression
-
-exclusive-OR-expression:
-    AND-expression
-
-AND-expression:
-    equality-expression
-
-equality-expression:
-    relational-expression
-
-relational-expression:
-    shift-expression
-
-shift-expression:
-    additive-expression
-
-additive-expression:
-    multiplicative-expression additive-expression'
-   
-additive-expression':
-    + multiplicative-expression additive-expression'
-    - multiplicatice-expression additive-expression'
-    epsilon
-        
-multiplicative-expression:
-    cast-expression multiplicative-expresssion'
-  
-multiplicative-expresssion':
-    * cast-expression multiplicative-expresssion'
-    / cast-expression multiplicative-expresssion'
-    % cast-expression multiplicative-expresssion'
-    epsilon
-
-cast-expression:
-    unary-expression
-
-expression:
-    assignment-expression 
-    epsilon
-    
-unary-expression:
-    postfix-expression
-
-postfix-expression:
-    primary-expression
-
-primary-expression:
-    identifier
-    constant
-    string-literal
-    ( expression )
-    
-declarator:
-    pointer direct-declarator
-
-pointer:
-    epsilon
-
 function-definition:
-    declaration-specifiers declarator declaration-list compound-statement
+    type-specifier ID (parameter-list) compound-statement
+
+parameter-list:
+    parameter-declaration parameter-list'
+
+parameter-list':
+    , parameter-declaration parameter-list'
+    epsilon
+
+parameter-declaration:
+    type-specifier ID
 
 compound-statement:
     { block-item-list }
@@ -190,59 +97,58 @@ block-item:
     declaration
     statement
 
+declaration:
+    type-specifier init-declarator;
+
+init-declarator:
+    ID
+    ID = expr
+   
 statement:
-    compound-statement
-    jump-statement
+    assignment-statement
+    return-statement
 
-jump-statement:
-    return expressionopt;
-    
-declaration-list:
-    declaration declaration-list
-    epsilon
+assignment-statement:
+    ID = expr;
 
-direct-declarator:
-    identifer direct-declarator'
-    (declarator) direct-declarator'
+Expr -> Term Expr'
 
-direct-declarator':
-    (parameter-type-list)
-    (identifer-list)
-    epsilon
+Expr' -> + Term Expr' | - Term Expr' | epsilon
 
-parameter-type-list:
-    parameter-list
-    parameter-list, ...
+Term -> Factor Term' 
 
-parameter-list:
-    parameter-declaration parameter-list'
+Term' -> * Factor Term' | / Factor Term' | epsilon
 
-parameter-declaration:
-    declaration-specifers declarator
+Factor -> ( Expr )  | num  | ID
 
-identifier-list:
-    identifier identifier-list'
-
-identifer-list':
-    , identifer identifier-list'
-
-
+return-statement:
+    return expr;
 
 Tree:
-	Parse Tree
+	Parse Tree (used to fill symbol table during parsing)
+    AST (used after parser)
 
+Optimization methods:
+    SSA 
+    deadcode removal
+    constant propagation
+    constant folding
+
+x86:
+Can support all math operations:
+    ADD
+    SUB
+    DIV
+    MULT
 
 Comments:
 	Used C11 handbook provided on Canvas to help me restructure the grammar
-	Symbol Table will only be correct when there are 0 or 1 parameters.
-	Symbol Table will not contain variables defined inside of a function
-	Parse Tree does not support functions that have a return type of char
-	Parse Tree will support functions that either have a return type of int, float, or double
-	Error handling has not been fully implemented
-	Had to restructure grammar so it can be further expanded to support more things
-	function-definition cannot support identifier-lists in the declarator due to bug in code.
-	function-definition can only support parameter-type-list inside of declarator
-	can not produce valid parse tree if source file contains more than one function
-	Having strange issue where the tokenbuffer will suddenly contain the tokens from compound statment when the subtree for external declaration is added to translation-unit
-	I am getting the correct parse trees. It's a very strange bug. 
+	Can generate assembly for mutliple functions but cannot support function calls
+    Can support global variables in the parser phase but do not add them to symbol table
+    Can support parameters up to assembler
+    have great error handling for expressions
+    I do support complex expressions 
+    I do not support any kind of control flow
+    pretty printing for the parser, three address code, optimizer, and assembly is a plus
+    Cannot support negative numbers in the parser phase
 
