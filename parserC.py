@@ -156,6 +156,7 @@ def parseExternalDeclaration(tokens):
     global tokenBuffer
     declaration, astDeclaration = parseDeclaration(tokenBuffer)
     if declaration['Declaration'].get('END') != None:
+        breakpoint()
         externalDeclarationTree['External-Declaration'].update(declaration)
         astExternalDeclarationTree['Globals'].append(astDeclaration)
         var_name = declaration['Declaration']['Init-Declarator']['ID']

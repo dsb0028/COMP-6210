@@ -1,6 +1,6 @@
 
 int x = 4+13+8;
-int z = 4;
+//int z = 4;
 int main()
 {    
     int y = 4+13+8;
