@@ -142,7 +142,7 @@ external-declaration:
     declaration
     function-definition
 """
-
+astExternalDeclarationTree = {'Globals':[]}
 def parseExternalDeclaration(tokens):
     """
     Description:
@@ -151,13 +151,13 @@ def parseExternalDeclaration(tokens):
     
     """
     externalDeclarationTree = {'External-Declaration':{}}
-    astExternalDeclarationTree = {}
-    #breakpoint()
+    #astExternalDeclarationTree = {'Globals':[]}
+    breakpoint()
     global tokenBuffer
     declaration, astDeclaration = parseDeclaration(tokenBuffer)
     if declaration['Declaration'].get('END') != None:
         externalDeclarationTree['External-Declaration'].update(declaration)
-        astExternalDeclarationTree.update(astDeclaration)
+        astExternalDeclarationTree['Globals'].append(astDeclaration)
         var_name = declaration['Declaration']['Init-Declarator']['ID']
         var_type = declaration['Declaration']['type-specifier']
         breakpoint()
