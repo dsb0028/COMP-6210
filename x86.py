@@ -24,7 +24,7 @@ def createAssemblyCode(optimizedCode,symbolTable):
         asm1 = Assembly(mnemonic='mov',label=None,operands=['ebp','esp'],comments=None)
         assembly[func].append(asm1)
         #count how many local variables there are
-        spaceToAllocToStack = len(symbolTable.table[func]['Variables'])
+        spaceToAllocToStack = len(symbolTable.table[func]['Locals'])
         asm2 = Assembly(mnemonic='sub',label=None,operands=['ebp',spaceToAllocToStack*4],comments=None)
         assembly[func].append(asm2)
         number_of_lines = len(optimizedCode[func])

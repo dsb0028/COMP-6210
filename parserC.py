@@ -158,6 +158,10 @@ def parseExternalDeclaration(tokens):
     if declaration['Declaration'].get('END') != None:
         externalDeclarationTree['External-Declaration'].update(declaration)
         astExternalDeclarationTree.update(astDeclaration)
+        var_name = declaration['Declaration']['Init-Declarator']['ID']
+        var_type = declaration['Declaration']['type-specifier']
+        breakpoint()
+        symTable.addAVariable(var_name,var_type,'global')
     else:
         #global tokenBuffer
         #breakpoint()
@@ -230,6 +234,7 @@ def parseInitDeclarator(tokens):
         variable_being_assigned = {tokenToBeConsumed.type:tokenToBeConsumed.value}
         #tokenToBeConsumed = tokenBuffer[0]
         tokenToBeConsumed = tokenBuffer[0]
+        breakpoint()
         
         if tokenToBeConsumed.value == '=':
             initDeclaratorTree['Init-Declarator'].update({tokenToBeConsumed.type:tokenToBeConsumed.value})
@@ -476,7 +481,8 @@ def parseBlockItem(tokens):
         #print("Declaration",declaration)
         var_name = declaration['Declaration']['Init-Declarator']['ID']
         var_type = declaration['Declaration']['type-specifier']
-        symTable.addAVariable(var_name,var_type,function_name)
+        symTable.addAVariable(var_name,var_type,function_name,'local')
+        breakpoint()
         #var_name = declaration['Declaration'][]
         #breakpoint()
         astBlockItemTree.update(astDeclaration)

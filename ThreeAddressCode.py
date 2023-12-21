@@ -101,8 +101,8 @@ def createThreeAddressCode(astTree, symbolTable):
                         operator = '='
                     res = item[0]
                     #print(res)
-                    #breakpoint()
-                    symbolTable.addAVariable(res,'int',function_name)
+                    breakpoint()
+                    symbolTable.addAVariable(res,'int','local',function_name)
                     #breakpoint()
                
             

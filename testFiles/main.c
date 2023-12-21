@@ -1,7 +1,10 @@
 //int x;
 int main()
 {    
-    return 0;
+    int y = 4;
+    int x = 12;
+    //int r = 12;
+    return y;
 }
 
 

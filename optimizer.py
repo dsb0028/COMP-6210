@@ -12,15 +12,16 @@ def performOptimizations(threeAddressCode,symbolTable):
     functions = list(threeAddressCode.keys())
     global func
     for func in functions:
+        #breakpoint()
         threeAddressCode[func],livelinessTable = convertToSSA(threeAddressCode[func],symbolTable)
         while isOptimized(threeAddressCode[func]) == False:
             global linesNumbered
             linesNumbered = [l for l in enumerate(threeAddressCode[func])]
-            """
+            
             for threeAddrCode in threeAddressCode[func]:
                 print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
             breakpoint()
-            """
+            
             optimizedCode[func] = executeConstProp(threeAddressCode[func])
             """
             for threeAddrCode in optimizedCode[func]:
@@ -29,19 +30,19 @@ def performOptimizations(threeAddressCode,symbolTable):
             """
             #breakpoint()
             optimizedCode[func] = executeConstFolding(optimizedCode[func])
-            #breakpoint()
-            """
-            for threeAddrCode in optimizedCode[func]:
-                print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
-            """
-            #breakpoint()
-            optimizedCode[func] = deadCodeRemoval(optimizedCode[func],symbolTable)
-            #breakpoint()
-            """
+            breakpoint()
+            
             for threeAddrCode in optimizedCode[func]:
                 print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
             
-            """
+            breakpoint()
+            optimizedCode[func] = deadCodeRemoval(optimizedCode[func],symbolTable)
+            #breakpoint()
+            
+            for threeAddrCode in optimizedCode[func]:
+                print(threeAddrCode.operation,threeAddrCode.arg1,threeAddrCode.arg2,threeAddrCode.result, threeAddrCode.statement)
+            
+            breakpoint()
             threeAddressCode[func] = optimizedCode[func]
             #breakpoint()
             #print(stmt)
